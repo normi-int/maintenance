@@ -1,0 +1,1491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#1f2937">
+<title>Maintenance Project</title>
+<style>
+  :root{--bg:#f4f5f7;--card:#fff;--ink:#1f2937;--muted:#6b7280;--line:#e5e7eb;--accent:#2563eb;--green:#16a34a;--red:#dc2626;--amber:#d97706;--radius:14px;}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--ink);font-size:16px;line-height:1.4;padding-bottom:40px;}
+  header.appbar{position:sticky;top:0;z-index:20;background:var(--ink);color:#fff;padding:14px 16px;display:flex;align-items:center;gap:10px;box-shadow:0 2px 6px rgba(0,0,0,.15);}
+  header.appbar h1{font-size:17px;margin:0;font-weight:600;flex:1}
+  header.appbar .sub{font-size:12px;opacity:.7;font-weight:400}
+  .iconbtn{background:rgba(255,255,255,.15);border:none;color:#fff;font-size:13px;padding:8px 12px;border-radius:10px;cursor:pointer;}
+  .wrap{max-width:820px;margin:0 auto;padding:16px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:16px;}
+  label{display:block;font-size:13px;font-weight:600;color:var(--muted);margin:0 0 6px}
+  select,input[type=text],input[type=email],input[type=password],input[type=date],input[type=time],input[type=url],textarea{width:100%;padding:12px;font-size:16px;border:1px solid #cbd2dc;border-radius:10px;background:#fff;color:var(--ink);font-family:inherit;}
+  select:disabled,input:disabled{background:#f3f4f6;color:#6b7280}
+  textarea{min-height:80px;resize:vertical}
+  .row{margin-bottom:14px}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;font-size:16px;font-weight:600;border:none;border-radius:12px;cursor:pointer;background:var(--accent);color:#fff;}
+  .btn:active{transform:translateY(1px)}
+  .btn.back{background:#727272;color:#fff;border:none}
+  .btn.proceed{background:#22aa96;color:#fff;border:none}
+  .btn.cancel{background:#9b0a0a;color:#fff;border:none}
+  .btn.add{background:#f26f21;color:#fff;border:none}
+  .btn.preview{background:#edae0f;color:#fff;border:none}
+  .btn.brown{background:#3b2314;color:#fff;border:none}
+  .btn.grey{background:#e5e7eb;color:var(--ink)}
+  .btn.back:hover,.btn.proceed:hover,.btn.cancel:hover,.btn.add:hover,.btn.preview:hover{filter:brightness(1.06)}
+  .btn[disabled]{opacity:.5;cursor:not-allowed}
+  .btn.small{width:auto;padding:9px 14px;font-size:14px}
+  .hide{display:none !important}
+  .dept-wrap{display:flex;flex-wrap:wrap;gap:8px}
+  .dept{border:1.5px solid #cbd2dc;background:#fff;color:var(--ink);border-radius:999px;padding:9px 16px;font-size:14px;font-weight:600;cursor:pointer;}
+  .dept.on{background:var(--accent);border-color:var(--accent);color:#fff}
+  .btnrow2{display:flex;gap:8px}.btnrow2 .btn{flex:1}
+  .btnrow3{display:flex;gap:8px;flex-wrap:wrap}.btnrow3 .btn{flex:1 1 30%;min-width:120px}
+  .pill{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px}
+  .pill.open{background:#fef3c7;color:#92400e}.pill.resolved{background:#dcfce7;color:#166534}
+  .pill.grey{background:#f3f4f6;color:#374151}
+  .muted{color:var(--muted);font-size:13px}.spacer{height:8px}
+  h2.section{font-size:15px;margin:0 0 12px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+  .sec-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}
+  .add-photo-lbl{display:flex;align-items:center;gap:8px;justify-content:center;padding:12px;border:1.5px dashed #cbd2dc;border-radius:10px;cursor:pointer;color:var(--accent);font-weight:600}
+  .thumbrow{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
+  .thumbrow .t{position:relative}
+  .thumbrow .t img{width:84px;height:84px;object-fit:cover;border-radius:10px;border:1px solid var(--line)}
+  .thumbrow .t .x{position:absolute;top:-8px;right:-8px;background:var(--red);color:#fff;border:none;border-radius:999px;width:24px;height:24px;font-size:14px;cursor:pointer}
+  .finding{border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px;background:#fbfcfd;}
+  .finding .no{font-weight:700;color:var(--accent)}
+  .finding .code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;color:var(--muted)}
+  .tag{font-size:11px;font-weight:700;background:#eef2ff;color:#3730a3;padding:2px 8px;border-radius:6px;display:inline-block}
+  .del{background:none;border:none;color:var(--red);font-size:13px;cursor:pointer;padding:4px}
+  .msg{font-size:13px;margin-top:8px}.msg.err{color:var(--red)}.msg.ok{color:var(--green)}
+  .authbar{display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:12px;padding:10px 12px;border-radius:10px;background:#eef2ff;color:#3730a3}
+  .authbar .grow{flex:1}
+  small.hint{display:block;color:var(--muted);font-size:12px;margin-top:4px}
+  .listcard{border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px;cursor:pointer;background:#fff}
+  .listcard:active{background:#f8fafc}
+  .listcard .t{font-weight:700}.listcard .m{font-size:13px;color:var(--muted);margin-top:2px}
+  .approvalrow{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:10px;padding:10px;margin-bottom:8px}
+  .approvalrow .info{flex:1;min-width:0}
+  .approvalrow .rn{font-weight:700;font-size:14px;text-transform:capitalize}
+  .approvalrow .rm{font-size:12px;color:var(--muted)}
+  .progblock{border-left:3px solid var(--accent);padding:10px 12px;margin-bottom:12px;background:#fbfcfd;border-radius:0 10px 10px 0}
+  .progblock .ph{font-weight:800;font-size:13px;margin-bottom:2px}
+  .progblock .pm{font-size:12px;color:var(--muted);margin-bottom:6px}
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:60;display:flex;align-items:flex-start;justify-content:center;padding:30px 14px;overflow:auto}
+  .modal-card{max-width:520px;width:100%;margin:0}
+  .filterbar{border:1px solid var(--line);border-radius:10px;padding:10px;background:#fafafa;margin-bottom:10px}
+  #reportView .report-paper{background:#fff;border:1px solid var(--line);border-radius:12px;padding:26px}
+  .report-page{margin-bottom:22px;padding-bottom:16px;border-bottom:2px dashed #cbd2dc}
+  .report-page:last-child{border-bottom:none;margin-bottom:0}
+  .rep-title{font-size:18px;font-weight:800;letter-spacing:.05em;border-bottom:3px solid var(--ink);padding-bottom:5px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:baseline}
+  .rep-head{font-size:14px;line-height:1.6}.rep-head b{font-weight:700}
+  .rep-head .rr{display:flex;justify-content:space-between}
+  .sec-h{font-size:15px;margin:14px 0 4px;padding:3px 8px;background:#eef2f7;border-left:4px solid var(--ink)}
+  table.rep{width:100%;border-collapse:collapse;margin-top:6px}
+  table.rep th,table.rep td{border:1px solid #9aa2ad;padding:6px;vertical-align:top;font-size:13px;text-align:left;overflow-wrap:break-word}
+  table.rep th{background:#f1f5f9;font-weight:700;text-align:center}
+  table.rep td.no{text-align:center;width:32px}table.rep td.ph{width:100px;text-align:center}
+  table.rep img{max-width:90px;max-height:80px;border-radius:6px}
+  .statusbadge{font-size:14px;font-weight:800;padding:4px 12px;border-radius:8px}
+  .statusbadge.resolved{background:#dcfce7;color:#166534}
+  .statusbadge.open{background:#fee2e2;color:#991b1b}
+  .noprint{}
+  @page{size:A4;margin:1.27cm}
+  @media print{
+    @page{ margin:12mm 10mm }
+    html,body{background:#fff;padding:0;margin:0}
+    header.appbar,.noprint{display:none !important}.wrap{max-width:none;padding:0}
+    .report-page.pgbreak{ break-before:page; page-break-before:always }
+    #reportView .report-paper{border:none;border-radius:0;padding:0}
+    table.rep th,table.rep td{border:1px solid #333;padding:3px 6px;font-size:11px}
+  }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+<header class="appbar">
+  <h1>Maintenance Project <span class="sub" id="barSub"></span></h1>
+  <button class="iconbtn noprint hide" id="btnSettings">⚙ Settings</button>
+  <button class="iconbtn noprint hide" id="btnLogout">Sign out</button>
+</header>
+
+<div class="wrap">
+
+  <!-- ============ LOGIN ============ -->
+  <section id="loginView" class="hide">
+    <div class="card">
+      <h2 class="section">Sign in</h2>
+      <div class="row"><label>Username</label><input type="text" id="authUser" autocomplete="username" autocapitalize="none" spellcheck="false"></div>
+      <div class="row"><label>Password</label><input type="password" id="authPass" autocomplete="current-password"></div>
+      <button class="btn proceed" id="btnAuthGo">Sign in</button>
+      <div class="msg" id="authMsg"></div>
+      <div id="authHelp" style="text-align:center;margin-top:12px;font-size:13px"><a href="#" id="lnkForgotUser">Forgot my username</a> &nbsp;·&nbsp; <a href="#" id="lnkForgotPass">Forgot my password</a></div>
+    </div>
+  </section>
+
+  <!-- ============ SET PASSWORD (invite) ============ -->
+  <section id="setpwView" class="hide">
+    <div class="card">
+      <h2 class="section">Set your password</h2>
+      <p class="muted" style="font-size:13px;margin-bottom:10px">Welcome! Create a password for your account.</p>
+      <div class="row"><label>New password</label><input type="password" id="setpwNew" autocomplete="new-password" placeholder="at least 6 characters"></div>
+      <div class="row"><label>Confirm password</label><input type="password" id="setpwConfirm" autocomplete="new-password"></div>
+      <div class="msg" id="setpwMsg"></div>
+      <button class="btn proceed" id="setpwGo">Set password</button>
+    </div>
+  </section>
+
+  <!-- ============ HOME ============ -->
+  <section id="homeView" class="hide">
+    <div class="authbar" id="authBar">
+      <span class="grow" id="authBarText"></span>
+    </div>
+    <button class="btn hide" id="btnRequestsBanner" style="background:#fef3c7;color:#92400e;border:1px solid #fcd34d;margin-bottom:16px">🔔 Delete requests pending: <span id="reqCount">0</span> — review</button>
+    <div class="card">
+      <h2 class="section">Pick a location</h2>
+      <div class="row"><label>Location</label><select id="selLocation"></select></div>
+      <div class="btnrow2">
+        <button class="btn add" id="btnNewReport">🆕 New report</button>
+        <button class="btn preview" id="btnRecall">🔎 Recall report</button>
+      </div>
+      <small class="hint" id="homeHint"></small>
+    </div>
+    <div class="card">
+      <div class="sec-head"><h2 class="section" style="margin:0;border:none">My recent reports</h2></div>
+      <div id="myReportsList"></div><p class="muted" id="myReportsEmpty">No reports yet.</p>
+    </div>
+  </section>
+
+  <!-- ============ NEW REPORT ============ -->
+  <section id="newReportView" class="hide">
+    <div class="card">
+      <div class="rep-head" id="nrHeader"></div>
+    </div>
+    <div class="card">
+      <h2 class="section">Add a finding</h2>
+      <div class="row"><label>Department (choose 1)</label><div class="dept-wrap" id="nrDeptWrap"></div></div>
+      <div class="row"><label>Issue</label><textarea id="nrIssue" placeholder="Describe what you found..."></textarea></div>
+      <div class="row">
+        <label>Photos (up to 3)</label>
+        <label class="add-photo-lbl" for="nrPhoto">📷 Add photo (camera or gallery)</label>
+        <input type="file" id="nrPhoto" accept="image/*" multiple class="hide">
+        <div class="thumbrow" id="nrPhotoPrev"></div>
+      </div>
+      <div class="row"><label>Video link <span class="muted" style="font-weight:400">(optional — paste a Drive/YouTube-unlisted link; compress before uploading)</span></label><input type="url" id="nrVideo" placeholder="https://..."></div>
+      <div class="row"><label>Proposal</label>
+        <select id="nrProposal">
+          <option value="">— choose —</option>
+          <option value="sparepart">Ask for sparepart</option>
+          <option value="technician">Call technician/vendor</option>
+        </select>
+      </div>
+      <div class="row hide" id="nrBrokenWrap" style="border:1px solid #fde68a;background:#fffdf5;border-radius:10px;padding:12px">
+        <label>Broken part name</label><input type="text" id="nrBrokenName" style="margin-bottom:10px">
+        <label>Serial number <span class="muted" style="font-weight:400">(optional)</span></label><input type="text" id="nrBrokenSerial" style="margin-bottom:10px">
+        <label>Photo of broken part (required)</label>
+        <label class="add-photo-lbl" for="nrBrokenPhoto">📷 Add photo</label>
+        <input type="file" id="nrBrokenPhoto" accept="image/*" class="hide">
+        <div class="thumbrow" id="nrBrokenPhotoPrev"></div>
+        <div class="row" style="margin-top:10px"><label>Video link <span class="muted" style="font-weight:400">(optional)</span></label><input type="url" id="nrBrokenVideo" placeholder="https://..."></div>
+      </div>
+      <button class="btn add" id="btnNrAdd">+ Add finding to report</button>
+      <div class="msg err" id="nrMsg"></div>
+    </div>
+    <div class="card">
+      <h2 class="section">Findings in this report (<span id="nrCount">0</span>)</h2>
+      <div id="nrList"></div><p class="muted" id="nrEmpty">No findings added yet.</p>
+    </div>
+    <div class="card noprint">
+      <div class="btnrow2">
+        <button class="btn back" id="btnNrBack">← Back to home</button>
+        <button class="btn proceed" id="btnNrSubmit">Submit report</button>
+      </div>
+      <small class="hint">Once submitted, findings can't be edited — only added to over time via progress updates.</small>
+    </div>
+  </section>
+
+  <!-- ============ RECALL LIST ============ -->
+  <section id="recallListView" class="hide">
+    <div class="card">
+      <div class="sec-head"><h2 class="section" style="margin:0;border:none">Recall report</h2><button class="btn back small" id="btnRecallBack">← Back</button></div>
+      <input type="text" id="rlSearch" placeholder="🔎 Search by item code, report code, or issue text…" style="width:100%;box-sizing:border-box;padding:9px 11px;border:1px solid var(--line);border-radius:10px;font-size:14px;margin:6px 0 10px">
+      <div class="filterbar">
+        <div class="two">
+          <div class="row"><label>Location</label><select id="rlLocation"></select></div>
+          <div class="row"><label>Department</label><select id="rlDept"><option value="">All</option><option value="FOH">FOH</option><option value="BAR">BAR</option><option value="BOH">BOH</option><option value="PASTRY">PASTRY</option></select></div>
+        </div>
+        <label style="display:flex;align-items:center;gap:8px;font-size:14px"><input type="checkbox" id="rlOpenOnly" checked style="width:auto"> Unresolved only</label>
+      </div>
+      <p class="muted" id="rlCount" style="font-size:12px"></p>
+      <div id="rlList"></div><p class="muted" id="rlEmpty" style="display:none">No matching items.</p>
+    </div>
+  </section>
+
+  <!-- ============ ITEM DETAIL ============ -->
+  <section id="itemDetailView" class="hide">
+    <div class="card">
+      <div class="sec-head"><h2 class="section" style="margin:0;border:none" id="idTitle">Item</h2><button class="btn back small" id="btnIdBack">← Back</button></div>
+      <div id="idStatusBadge"></div>
+      <div class="rep-head" id="idHeader" style="margin-top:8px"></div>
+    </div>
+    <div class="card">
+      <h2 class="section">1st report</h2>
+      <div id="idFirstReport"></div>
+    </div>
+    <div class="card">
+      <h2 class="section">Progress (<span id="idProgCount">0</span>)</h2>
+      <div id="idProgList"></div>
+      <p class="muted" id="idProgEmpty">No progress logged yet.</p>
+      <button class="btn add noprint" id="btnAddProgress" style="margin-top:10px">+ Add progress</button>
+    </div>
+    <div class="card noprint">
+      <h2 class="section">Resolution approval</h2>
+      <p class="muted" style="font-size:13px;margin-bottom:10px">Every role below must confirm before this item is marked resolved.</p>
+      <div id="idApprovals"></div>
+    </div>
+    <div class="card noprint">
+      <button class="btn preview" id="btnIdPrint">Print progress report</button>
+    </div>
+  </section>
+
+  <!-- ============ SETTINGS (admin) ============ -->
+  <section id="settingsView" class="hide">
+    <div class="card hide" id="uncodedCard">
+      <h2 class="section">Outlets needing a maintenance code</h2>
+      <p class="muted" style="font-size:13px;margin-bottom:10px">These exist in Store Visit's outlet list but don't have a maintenance brand/store code yet, so they can't be picked on Home until coded here. Outlet names/cities always come live from Store Visit — this only adds the code.</p>
+      <div id="uncodedList"></div>
+      <div class="msg" id="uncodedMsg"></div>
+    </div>
+    <div class="card">
+      <div class="sec-head"><h2 class="section" style="margin:0;border:none">Settings</h2><button class="btn back small" id="btnSetBack">← Back</button></div>
+      <h2 class="section" style="margin-top:10px">Invite a new member</h2>
+      <p class="muted" style="font-size:13px;margin-bottom:10px">Same account system as Store Visit Report — one login works for both apps. Creates the profile; they set their own password via the link (or set it yourself on their behalf right after).</p>
+      <div class="row"><label>First name</label><input type="text" id="invFirst"></div>
+      <div class="row"><label>Last name</label><input type="text" id="invLast"></div>
+      <label style="display:flex;align-items:center;gap:8px;font-size:14px;margin-bottom:8px"><input type="checkbox" id="invNoLast" style="width:auto"> No last name</label>
+      <div class="row"><label>Email</label><input type="email" id="invEmail"></div>
+      <button class="btn add" id="btnInviteCreate">+ Create account</button>
+      <div class="msg" id="invMsg"></div>
+      <div class="hide" id="invResult" style="margin-top:10px;border:1px solid var(--line);border-radius:10px;padding:10px">
+        <div class="muted" style="font-size:12px">Username</div><div id="invUser" style="font-weight:700;margin-bottom:8px"></div>
+        <div class="muted" style="font-size:12px">Set-password link — send this to them</div>
+        <div class="row"><textarea id="invLink" rows="2" readonly></textarea></div>
+        <button class="btn small proceed" id="btnCopyInvite" style="width:auto">Copy link</button>
+      </div>
+      <div class="spacer"></div>
+      <h2 class="section" style="margin-top:10px">Member location access &amp; titles</h2>
+      <div class="row"><label>Member</label><select id="setMember"></select></div>
+      <div class="row"><label>Locations this member can report against</label><div id="setLocList" style="max-height:220px;overflow:auto;border:1px solid var(--line);border-radius:10px;padding:8px"></div></div>
+      <div class="row"><label>Functional titles (independent of owner/admin/member)</label><div id="setRoleList"></div></div>
+      <button class="btn proceed" id="btnSetSave">Save member settings</button>
+      <div class="msg" id="setMsg"></div>
+    </div>
+  </section>
+
+  <!-- ============ DELETE REQUESTS (admin) ============ -->
+  <section id="requestsView" class="hide">
+    <div class="card">
+      <div class="sec-head"><h2 class="section" style="margin:0;border:none">Deletion requests</h2><button class="btn back small" id="btnReqBack">← Back</button></div>
+      <div id="reqList"></div><p class="muted" id="reqEmpty">No pending requests.</p>
+    </div>
+  </section>
+
+  <!-- ============ PROGRESS MODAL ============ -->
+  <div id="progressModal" class="hide modal-overlay">
+    <div class="card modal-card">
+      <h2 class="section">Add progress</h2>
+      <div class="row"><label>Type</label>
+        <select id="pgType">
+          <option value="">— choose —</option>
+          <option value="tech_visit">Technician's visit</option>
+          <option value="repair_staff">Repair by staff</option>
+        </select>
+      </div>
+
+      <div id="pgTechFields" class="hide">
+        <div class="row"><label>Photo of technician at work</label>
+          <label class="add-photo-lbl" for="pgTechPhoto">📷 Add photo</label>
+          <input type="file" id="pgTechPhoto" accept="image/*" class="hide">
+          <div class="thumbrow" id="pgTechPhotoPrev"></div>
+        </div>
+        <div class="row"><label>Finding</label><textarea id="pgTechFinding"></textarea></div>
+        <div class="row"><label>Finding photo <span class="muted" style="font-weight:400">(optional, e.g. sparepart to change)</span></label>
+          <label class="add-photo-lbl" for="pgTechFindingPhoto">📷 Add photo</label>
+          <input type="file" id="pgTechFindingPhoto" accept="image/*" class="hide">
+          <div class="thumbrow" id="pgTechFindingPhotoPrev"></div>
+        </div>
+        <div class="row"><label>Resolution</label>
+          <div class="dept-wrap"><button type="button" class="dept" data-val="resolved" id="pgTechResBtn1">Resolved</button><button type="button" class="dept" data-val="unresolved" id="pgTechResBtn2">Unresolved</button></div>
+        </div>
+        <div id="pgTechUnresolved" class="hide">
+          <div class="row"><label>Next step</label>
+            <select id="pgNextStep">
+              <option value="">— choose —</option>
+              <option>Order replacement part</option>
+              <option>Schedule cleaning</option>
+              <option>Not repairable — needs replacement</option>
+              <option>Needs re-inspection</option>
+              <option value="__other__">Other</option>
+            </select>
+          </div>
+          <div class="row hide" id="pgNextStepOtherWrap"><label>Specify</label><input type="text" id="pgNextStepOther"></div>
+          <div class="row"><label>Broken part photo</label>
+            <label class="add-photo-lbl" for="pgBrokenPhoto">📷 Add photo</label>
+            <input type="file" id="pgBrokenPhoto" accept="image/*" class="hide">
+            <div class="thumbrow" id="pgBrokenPhotoPrev"></div>
+          </div>
+          <div class="two">
+            <div class="row"><label>Part name</label><input type="text" id="pgBrokenName"></div>
+            <div class="row"><label>Serial number <span class="muted" style="font-weight:400">(optional)</span></label><input type="text" id="pgBrokenSerial"></div>
+          </div>
+        </div>
+        <div id="pgTechResolved" class="hide">
+          <div class="row"><label>Photo of "after"</label>
+            <label class="add-photo-lbl" for="pgAfterPhotoTech">📷 Add photo</label>
+            <input type="file" id="pgAfterPhotoTech" accept="image/*" class="hide">
+            <div class="thumbrow" id="pgAfterPhotoTechPrev"></div>
+          </div>
+        </div>
+        <div class="row"><label>Upload tech visit form</label>
+          <label class="add-photo-lbl" for="pgTechForm">📷 Add photo/scan</label>
+          <input type="file" id="pgTechForm" accept="image/*" class="hide">
+          <div class="thumbrow" id="pgTechFormPrev"></div>
+        </div>
+      </div>
+
+      <div id="pgStaffFields" class="hide">
+        <div class="row"><label>Photo of parts received</label>
+          <label class="add-photo-lbl" for="pgPartsPhoto">📷 Add photo</label>
+          <input type="file" id="pgPartsPhoto" accept="image/*" class="hide">
+          <div class="thumbrow" id="pgPartsPhotoPrev"></div>
+        </div>
+        <div class="row"><label>Photo of "after"</label>
+          <label class="add-photo-lbl" for="pgAfterPhotoStaff">📷 Add photo</label>
+          <input type="file" id="pgAfterPhotoStaff" accept="image/*" class="hide">
+          <div class="thumbrow" id="pgAfterPhotoStaffPrev"></div>
+        </div>
+        <div class="row"><label>Resolution</label>
+          <div class="dept-wrap"><button type="button" class="dept" data-val="resolved" id="pgStaffResBtn1">Resolved</button><button type="button" class="dept" data-val="unresolved" id="pgStaffResBtn2">Unresolved</button></div>
+        </div>
+        <div class="row hide" id="pgStaffWhyWrap"><label>Why unresolved</label><textarea id="pgStaffWhy"></textarea></div>
+      </div>
+
+      <div class="msg err" id="pgMsg"></div>
+      <div class="btnrow2" style="margin-top:10px">
+        <button class="btn back" id="pgCancel">Cancel</button>
+        <button class="btn proceed" id="pgSubmit">Submit progress</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ CONFIRM APPROVAL MODAL ============ -->
+  <div id="approveModal" class="hide modal-overlay">
+    <div class="card modal-card">
+      <h2 class="section" id="apTitle">Confirm resolved</h2>
+      <p class="muted" style="font-size:13px" id="apSub"></p>
+      <div class="row"><label>Proof (1–3 files — photo, or reference an existing upload)</label>
+        <label class="add-photo-lbl" for="apPhoto">📷 Add photo</label>
+        <input type="file" id="apPhoto" accept="image/*" multiple class="hide">
+        <div class="thumbrow" id="apPhotoPrev"></div>
+      </div>
+      <div class="msg err" id="apMsg"></div>
+      <div class="btnrow2" style="margin-top:10px">
+        <button class="btn back" id="apCancel">Cancel</button>
+        <button class="btn proceed" id="apSubmit">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ REQUEST DELETE MODAL ============ -->
+  <div id="delModal" class="hide modal-overlay">
+    <div class="card modal-card">
+      <h2 class="section">Request deletion</h2>
+      <div class="row"><label>Reason</label><textarea id="delReason"></textarea></div>
+      <div class="msg err" id="delMsg"></div>
+      <div class="btnrow2">
+        <button class="btn back" id="delCancel">Cancel</button>
+        <button class="btn cancel" id="delSubmit">Send request</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ INFO POPUP ============ -->
+  <div id="infoModal" class="hide modal-overlay" style="z-index:90">
+    <div class="card modal-card" style="position:relative">
+      <button id="infoClose" title="Close" style="position:absolute;top:8px;right:8px;width:34px;height:34px;border:none;border-radius:999px;background:#eee;color:#333;font-size:20px;line-height:1;cursor:pointer">×</button>
+      <h2 class="section" id="infoTitle" style="padding-right:36px">Account</h2>
+      <div id="infoBody" style="font-size:14px;line-height:1.6"></div>
+    </div>
+  </div>
+
+  <!-- ============ FORM POPUP (forgot username / password) ============ -->
+  <div id="formModal" class="hide modal-overlay" style="z-index:90">
+    <div class="card modal-card" style="position:relative">
+      <button id="fmClose" title="Close" style="position:absolute;top:8px;right:8px;width:34px;height:34px;border:none;border-radius:999px;background:#eee;color:#333;font-size:20px;line-height:1;cursor:pointer">×</button>
+      <h2 class="section" id="fmTitle" style="padding-right:36px">—</h2>
+      <p class="muted" id="fmSub" style="font-size:13px;margin-bottom:10px"></p>
+      <div id="fmFields"></div>
+      <div class="msg" id="fmMsg"></div>
+      <button class="btn proceed" id="fmGo" style="width:100%;margin-top:6px">Submit</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* =====================================================================
+   Maintenance Project — single-file app
+   Shares Supabase Auth (profiles) + reuses Store Visit's project.
+   All maint_* tables are new and separate. See Maintenance_Project_Plan.md
+   and Maintenance_Project_Schema.sql for the full spec this implements.
+===================================================================== */
+var BUILTIN={url:"https://clprrwuizmlsddxmlvrh.supabase.co", key:"sb_publishable_bY46Emu9VVzYZEhpjxnr2A_9_ranhHt"};
+var sb=null;
+var $=function(id){return document.getElementById(id);};
+var DEPTS=["FOH","BAR","BOH","PASTRY"];
+var LS={insp:"mp_insp_v1"};
+
+var ROLE_LABEL={
+  store_manager_spv:"Store Manager / SPV", barista:"Barista", kitchen_leader:"Kitchen Leader",
+  pastry_leader:"Pastry Team/Leader", maintenance_team:"Maintenance Team", om:"Operations Manager (OM)"
+};
+
+function show(v){
+  ["loginView","setpwView","homeView","newReportView","recallListView","itemDetailView","settingsView","requestsView"]
+    .forEach(function(x){$(x).classList.add("hide");});
+  $(v).classList.remove("hide"); window.scrollTo(0,0);
+}
+
+/* ---------------- state ---------------- */
+var me=null;                 // {id, email, name, role}
+var myAccessLocIds=null;     // null = all (owner/admin); else array
+var myRoles=[];              // [{role, location_id}]
+var locations=[];            // maint_locations rows
+var approvalRules={};        // key "type|dept" -> [roles]
+var currentLocation=null;    // location row chosen on home
+var draftItems=[];           // findings queued in newReportView, not yet submitted
+var draftPhotos=[], draftBrokenPhoto=null;
+var currentItem=null;        // loaded maint_items row for itemDetailView
+var pgPhotos={};             // temp holder of data URLs keyed by field id, for progress modal
+var apRoleCtx=null;          // {role, idx} being confirmed
+var apPhotos=[];
+
+/* ---------------- supabase / auth plumbing ---------------- */
+function initSupabase(){ try{ sb=window.supabase.createClient(BUILTIN.url, BUILTIN.key);}catch(e){} }
+
+async function emailForUsername(u){
+  var r=await sb.rpc("email_for_username",{u:u});
+  if(r.error) throw r.error;
+  return r.data;
+}
+
+/* ---------------- invite / set-password (same mechanism as Store Visit) ---------------- */
+var inviteToken=null;
+function detectInvite(){
+  var h=location.hash||"", s=location.search||"";
+  var m=h.match(/[#&]setpw=([^&]+)/)||s.match(/[?&]setpw=([^&]+)/);
+  return m?decodeURIComponent(m[1]):null;
+}
+$("setpwGo").addEventListener("click", async function(){
+  var a=$("setpwNew").value, b=$("setpwConfirm").value, msg=$("setpwMsg"); msg.className="msg";
+  if(!a||a.length<6){ msg.className="msg err"; msg.textContent="Password must be at least 6 characters."; return; }
+  if(a!==b){ msg.className="msg err"; msg.textContent="The two passwords don't match."; return; }
+  msg.textContent="Setting your password...";
+  try{
+    var r=await sb.rpc("set_invite_password",{p_token:inviteToken,p_new:a});
+    if(r.error) throw r.error;
+    if(!r.data){ msg.className="msg err"; msg.textContent="This invite link is invalid or was already used."; return; }
+    var acc=r.data; inviteToken=null;
+    try{ history.replaceState(null,"",location.pathname); }catch(e){}
+    msg.className="msg ok";
+    msg.textContent="Account ready — username: "+(acc.username||"—")+". Redirecting to sign in…";
+    setTimeout(function(){ $("authUser").value=acc.username||""; show("loginView"); }, 1200);
+  }catch(e){ msg.className="msg err"; msg.textContent=(e&&e.message)||String(e); }
+});
+
+async function doSignIn(){
+  var u=$("authUser").value.trim(), p=$("authPass").value;
+  $("authMsg").className="msg"; $("authMsg").textContent="";
+  if(!u||!p){ $("authMsg").className="msg err"; $("authMsg").textContent="Enter username and password."; return; }
+  try{
+    var email=await emailForUsername(u);
+    var r=await sb.auth.signInWithPassword({email:email,password:p});
+    if(r.error) throw r.error;
+    await afterLogin();
+  }catch(e){ $("authMsg").className="msg err"; $("authMsg").textContent="Sign-in failed — check username/password."; }
+}
+
+/* ---------------- info popup + generic form popup (forgot username/password) ---------------- */
+var infoOnClose=null;
+function showInfo(title, html, onClose){ $("infoTitle").innerHTML=title; $("infoBody").innerHTML=html; infoOnClose=onClose||null; $("infoModal").classList.remove("hide"); }
+function closeInfo(){ $("infoModal").classList.add("hide"); var f=infoOnClose; infoOnClose=null; if(f) f(); }
+$("infoClose").addEventListener("click", closeInfo);
+$("infoModal").addEventListener("click", function(e){ if(e.target===this) closeInfo(); });
+
+var fmSubmit=null;
+function openForm(o){
+  $("fmTitle").textContent=o.title||""; $("fmSub").textContent=o.sub||""; $("fmSub").style.display=o.sub?"block":"none";
+  $("fmMsg").textContent=""; $("fmMsg").className="msg"; $("fmGo").textContent=o.submitLabel||"Submit";
+  var box=$("fmFields"); box.innerHTML="";
+  (o.fields||[]).forEach(function(f){
+    var row=document.createElement("div"); row.className="row";
+    var lab=document.createElement("label"); lab.textContent=f.label; row.appendChild(lab);
+    var inp=document.createElement("input"); inp.type=f.type||"text"; inp.id="fm_"+f.key; inp.autocomplete="off"; inp.autocapitalize="none"; row.appendChild(inp);
+    box.appendChild(row);
+  });
+  fmSubmit=o.onSubmit; $("formModal").classList.remove("hide");
+  var first=box.querySelector("input"); if(first) first.focus();
+}
+function closeForm(){ $("formModal").classList.add("hide"); fmSubmit=null; }
+$("fmClose").addEventListener("click", closeForm);
+$("formModal").addEventListener("click", function(e){ if(e.target===this) closeForm(); });
+$("fmGo").addEventListener("click", async function(){
+  if(!fmSubmit) return;
+  var vals={}; $("fmFields").querySelectorAll("input").forEach(function(i){ vals[i.id.slice(3)]=i.value; });
+  var msg=$("fmMsg"); msg.className="msg"; msg.textContent="Please wait...";
+  try{ var r=await fmSubmit(vals); if(r&&r.error){ msg.className="msg err"; msg.textContent=r.error; } else { var done=(r&&r.done); closeForm(); if(done) done(); } }
+  catch(e){ msg.className="msg err"; msg.textContent=(e&&e.message)||String(e); }
+});
+
+function forgotUsername(){
+  if(!sb){ alert("Not connected."); return; }
+  openForm({ title:"Forgot my username", sub:"Confirm your email and password to see your username.",
+    fields:[{key:"email",label:"Email",type:"email"},{key:"pass",label:"Password",type:"password"}],
+    submitLabel:"Show my username",
+    onSubmit:async function(v){
+      if(!v.email||!v.pass) return {error:"Enter your email and password."};
+      var r=await sb.auth.signInWithPassword({email:(v.email||"").trim(),password:v.pass});
+      if(r.error) return {error:"Email or password is incorrect."};
+      var pr=await sb.from("profiles").select("id,email,name,role,username").eq("id",r.data.user.id).limit(1);
+      var acct=pr.data && pr.data[0];
+      return {done:function(){
+        showInfo("Your username",
+          "Your username is:<div style='font-family:ui-monospace,Menlo,Consolas,monospace;font-weight:800;font-size:22px;margin:8px 0'>"+escapeHtml((acct&&acct.username)||"—")+"</div>"+
+          "Use this to sign in from now on.",
+          function(){ afterLogin(); });
+      }};
+    }});
+}
+function forgotPassword(){
+  if(!sb){ alert("Not connected."); return; }
+  openForm({ title:"Forgot my password", sub:"Confirm your email and username, then set a new password.",
+    fields:[{key:"email",label:"Email",type:"email"},{key:"username",label:"Username",type:"text"},{key:"newpass",label:"New password",type:"password"}],
+    submitLabel:"Set new password",
+    onSubmit:async function(v){
+      if(!v.email||!v.username||!v.newpass) return {error:"Fill in all three fields."};
+      if((v.newpass||"").length<6) return {error:"New password must be at least 6 characters."};
+      var r=await sb.rpc("reset_password",{p_email:(v.email||"").trim(),p_username:(v.username||"").trim(),p_new:v.newpass});
+      if(r.error) return {error:r.error.message||"Could not reset the password."};
+      if(!r.data) return {error:"That email + username don't match any account."};
+      return {done:function(){ showInfo("Password updated","You can now sign in with your username and your new password."); }};
+    }});
+}
+$("lnkForgotUser").addEventListener("click", function(e){ e.preventDefault(); forgotUsername(); });
+$("lnkForgotPass").addEventListener("click", function(e){ e.preventDefault(); forgotPassword(); });
+
+async function afterLogin(){
+  var s=await sb.auth.getSession();
+  var user=s.data && s.data.session && s.data.session.user;
+  if(!user){ show("loginView"); return; }
+  var pr=await sb.from("profiles").select("id,email,name,role,username").eq("id",user.id).limit(1);
+  if(pr.error || !pr.data || !pr.data.length){ show("loginView"); return; }
+  me=pr.data[0];
+  await loadAccessAndRoles();
+  await loadLocations();
+  await loadApprovalRules();
+  $("btnSettings").classList.toggle("hide", !isStaff());
+  $("btnLogout").classList.remove("hide");
+  renderHome();
+  show("homeView");
+}
+
+function isStaff(){ return me && (me.role==="owner"||me.role==="admin"); }
+function hasRole(role, locId){
+  if(!myRoles) return false;
+  return myRoles.some(function(r){ return r.role===role && (r.location_id===null || r.location_id===locId); });
+}
+
+async function loadAccessAndRoles(){
+  if(isStaff()){ myAccessLocIds=null; }
+  else{
+    var r=await sb.from("maint_access").select("location_ids").eq("user_id",me.id).limit(1);
+    myAccessLocIds=(r.data && r.data.length) ? (r.data[0].location_ids||[]) : [];
+  }
+  var rr=await sb.from("maint_roles").select("role,location_id").eq("user_id",me.id);
+  myRoles=rr.data||[];
+}
+
+var uncodedOutlets=[];   // outlets that exist in Store Visit's tree but have no maint_locations row yet
+var staleLocationIds=[]; // maint_locations STORE rows whose match_key wasn't found in the live tree anymore
+
+async function loadStoreVisitOutletTree(){
+  // Same table/key Store Visit itself reads (app_config, key="outlets").
+  // Reading it here does NOT modify it — outlet management stays in
+  // Store Visit's own Settings screen; this is a read-only live join.
+  try{
+    var r=await sb.from("app_config").select("data").eq("key","outlets").limit(1);
+    var cfg=(r.data && r.data.length) ? r.data[0].data : null;
+    var flat=[]; // [{matchKey, brand, city, outlet}]
+    (cfg && cfg.brands || []).forEach(function(b){
+      (b.cities||[]).forEach(function(c){
+        (c.outlets||[]).forEach(function(o){
+          flat.push({matchKey:b.name+"|"+c.name+"|"+o, brand:b.name, city:c.name, outlet:o});
+        });
+      });
+    });
+    return flat;
+  }catch(e){ return []; }
+}
+
+async function loadLocations(){
+  var r=await sb.from("maint_locations").select("*").order("brand").order("city").order("name");
+  var rows=r.data||[];
+  var tree=await loadStoreVisitOutletTree();
+  var treeByKey={}; tree.forEach(function(t){ treeByKey[t.matchKey]=t; });
+
+  staleLocationIds=[];
+  locations=rows.map(function(row){
+    if(row.type!=="STORE" || !row.match_key) return row;
+    var live=treeByKey[row.match_key];
+    if(live){
+      return Object.assign({}, row, {brand:live.brand, city:live.city, name:live.outlet});
+    }
+    staleLocationIds.push(row.id);
+    return row; // fall back to cached brand/city/name
+  });
+  locations.sort(function(a,b){ return (a.brand+a.city+a.name).localeCompare(b.brand+b.city+b.name); });
+
+  var codedKeys={}; rows.forEach(function(row){ if(row.match_key) codedKeys[row.match_key]=true; });
+  uncodedOutlets=tree.filter(function(t){ return !codedKeys[t.matchKey]; });
+}
+
+async function loadApprovalRules(){
+  var r=await sb.from("maint_approval_rules").select("*");
+  approvalRules={};
+  (r.data||[]).forEach(function(row){ approvalRules[row.location_type+"|"+row.department]=row.required_roles; });
+}
+
+function visibleLocations(){
+  if(myAccessLocIds===null) return locations;
+  return locations.filter(function(l){ return myAccessLocIds.indexOf(l.id)>=0; });
+}
+
+/* ---------------- home ---------------- */
+function renderHome(){
+  $("authBarText").textContent="Signed in as "+me.name+" ("+me.role+(myRoles.length?", "+myRoles.map(function(r){return ROLE_LABEL[r.role]||r.role;}).join(", "):"")+")";
+  var sel=$("selLocation"); sel.innerHTML="";
+  var vl=visibleLocations();
+  if(!vl.length){ sel.innerHTML="<option value=''>No locations assigned — ask your admin</option>"; }
+  vl.forEach(function(l){
+    var o=document.createElement("option"); o.value=l.id;
+    var stale=staleLocationIds.indexOf(l.id)>=0;
+    o.textContent=l.brand+" — "+l.name+" ("+l.city+") ["+l.id+"]"+(stale?" ⚠ not in Store Visit's list anymore":"");
+    sel.appendChild(o);
+  });
+  if(isStaff() && uncodedOutlets.length){
+    $("homeHint").textContent="⚠ "+uncodedOutlets.length+" outlet(s) in Store Visit have no maintenance code yet — add them in Settings.";
+  } else { $("homeHint").textContent=""; }
+  refreshRequestsBadge();
+  loadMyReports();
+}
+
+async function refreshRequestsBadge(){
+  if(!isStaff()){ $("btnRequestsBanner").classList.add("hide"); return; }
+  var r=await sb.from("maint_delete_requests").select("id",{count:"exact"}).eq("status","pending");
+  var n=(r.count)||0;
+  $("reqCount").textContent=n;
+  $("btnRequestsBanner").classList.toggle("hide", n===0);
+}
+
+async function loadMyReports(){
+  var q=sb.from("maint_reports").select("*").order("submitted_at",{ascending:false}).limit(10);
+  if(!isStaff()) q=q.eq("submitted_by", me.id);
+  var r=await q;
+  var list=$("myReportsList"); list.innerHTML="";
+  var rows=r.data||[];
+  $("myReportsEmpty").style.display = rows.length? "none":"block";
+  rows.forEach(function(rep){
+    var d=document.createElement("div"); d.className="listcard";
+    d.innerHTML='<div class="t">'+rep.brand+' — '+rep.outlet+' <span class="pill '+(rep.cached_status==="finished"?"resolved":"open")+'">'+rep.cached_status+'</span></div>'+
+      '<div class="m">'+rep.id+' · '+rep.item_count+' item(s) · '+new Date(rep.submitted_at).toLocaleDateString()+'</div>';
+    d.addEventListener("click", function(){ openReportPrint(rep.id); });
+    list.appendChild(d);
+  });
+}
+
+$("selLocation").addEventListener("change", function(){});
+$("btnLogout").addEventListener("click", async function(){ await sb.auth.signOut(); me=null; show("loginView"); });
+$("btnAuthGo").addEventListener("click", doSignIn);
+$("btnSettings").addEventListener("click", function(){ openSettings(); });
+$("btnRequestsBanner").addEventListener("click", function(){ openRequests(); });
+
+$("btnNewReport").addEventListener("click", function(){
+  var id=$("selLocation").value; if(!id){ return; }
+  currentLocation=locations.find(function(l){return l.id===id;});
+  openNewReport();
+});
+$("btnRecall").addEventListener("click", function(){
+  var id=$("selLocation").value;
+  currentLocation = id ? locations.find(function(l){return l.id===id;}) : null;
+  openRecall();
+});
+
+/* ---------------- numbering ---------------- */
+function pad5(n){ n=""+n; while(n.length<5) n="0"+n; return n; }
+function todayYmd(){ var d=new Date(); return ""+d.getFullYear()+String(d.getMonth()+1).padStart(2,"0")+String(d.getDate()).padStart(2,"0"); }
+function randCode5(){
+  var digits="123456789", letters="ABCDEFGHIJKLMNOPQRSTUVWXYZ", pool=digits+letters, out="";
+  for(var i=0;i<5;i++) out+=pool[Math.floor(Math.random()*pool.length)];
+  return out;
+}
+async function nextItemSeq(loc, dept){
+  var key=loc.id+"|"+dept+"|"+todayYmd();
+  var r=await sb.rpc("next_maint_seq",{pkey:key});
+  if(r.error) throw r.error;
+  return r.data;
+}
+async function makeReportCode(loc){
+  for(var tries=0;tries<8;tries++){
+    var code=loc.brand_code+loc.store_code+randCode5();
+    var chk=await sb.from("maint_reports").select("id").eq("id",code).limit(1);
+    if(!chk.data || !chk.data.length) return code;
+  }
+  throw new Error("Could not generate a unique report code, try again.");
+}
+function makeItemCode(loc, dept, seq){
+  return loc.brand_code+loc.store_code+dept+todayYmd()+pad5(seq);
+}
+
+/* ---------------- photo compression / upload ---------------- */
+function fileToDataUrl(file){
+  return new Promise(function(res,rej){ var fr=new FileReader(); fr.onload=function(){res(fr.result);}; fr.onerror=rej; fr.readAsDataURL(file); });
+}
+function compressImage(dataUrl, maxDim, q){
+  maxDim=maxDim||900; q=q||0.6;
+  return new Promise(function(res){
+    var img=new Image();
+    img.onload=function(){
+      var w=img.width,h=img.height,scale=Math.min(1,maxDim/Math.max(w,h));
+      var cw=Math.round(w*scale), ch=Math.round(h*scale);
+      var c=document.createElement("canvas"); c.width=cw; c.height=ch;
+      c.getContext("2d").drawImage(img,0,0,cw,ch);
+      res(c.toDataURL("image/jpeg", q));
+    };
+    img.onerror=function(){ res(dataUrl); };
+    img.src=dataUrl;
+  });
+}
+async function pickCompressed(inputEl, multi){
+  var files=Array.prototype.slice.call(inputEl.files||[]);
+  var out=[];
+  for(var i=0;i<files.length;i++){
+    var du=await fileToDataUrl(files[i]);
+    var cu=await compressImage(du);
+    out.push(cu);
+  }
+  return multi?out:(out[0]||null);
+}
+function dataUrlToBlob(du){
+  var parts=du.split(","), mime=parts[0].match(/:(.*?);/)[1], bin=atob(parts[1]);
+  var arr=new Uint8Array(bin.length); for(var i=0;i<bin.length;i++) arr[i]=bin.charCodeAt(i);
+  return new Blob([arr],{type:mime});
+}
+async function uploadPhoto(dataUrl, pathPrefix){
+  if(!dataUrl || dataUrl.indexOf("data:")!==0) return dataUrl; // already a URL
+  var blob=dataUrlToBlob(dataUrl);
+  var path=pathPrefix+"/"+Date.now()+"_"+Math.random().toString(36).slice(2,8)+".jpg";
+  var up=await sb.storage.from("maint-photos").upload(path, blob, {contentType:"image/jpeg"});
+  if(up.error) throw up.error;
+  var pub=sb.storage.from("maint-photos").getPublicUrl(path);
+  return pub.data.publicUrl;
+}
+async function uploadPhotos(arr, pathPrefix){
+  var out=[]; for(var i=0;i<arr.length;i++) out.push(await uploadPhoto(arr[i], pathPrefix));
+  return out;
+}
+
+function renderThumbs(container, urls, onRemove){
+  container.innerHTML="";
+  urls.forEach(function(u,i){
+    var d=document.createElement("div"); d.className="t";
+    d.innerHTML='<img src="'+u+'"><button type="button" class="x">×</button>';
+    d.querySelector(".x").addEventListener("click", function(){ onRemove(i); });
+    container.appendChild(d);
+  });
+}
+
+/* ---------------- new report flow ---------------- */
+var nrDept=null;
+function deptsForLocation(loc){
+  if(loc && loc.type==="CENTRAL_KITCHEN") return ["BOH","PASTRY"];
+  return DEPTS;
+}
+function renderNrDeptWrap(){
+  var w=$("nrDeptWrap"); w.innerHTML="";
+  deptsForLocation(currentLocation).forEach(function(d){
+    var b=document.createElement("button"); b.type="button"; b.className="dept"+(nrDept===d?" on":"");
+    b.textContent=d;
+    b.addEventListener("click", function(){ nrDept=d; renderNrDeptWrap(); });
+    w.appendChild(b);
+  });
+}
+function openNewReport(){
+  draftItems=[]; draftPhotos=[]; draftBrokenPhoto=null; nrDept=null;
+  $("nrHeader").innerHTML="<b>Location:</b> "+currentLocation.brand+" — "+currentLocation.name+" ("+currentLocation.city+")<br><b>Date:</b> "+new Date().toLocaleDateString()+"<br><b>Submission by:</b> "+me.name;
+  $("nrIssue").value=""; $("nrVideo").value=""; $("nrProposal").value="";
+  $("nrBrokenWrap").classList.add("hide"); $("nrBrokenName").value=""; $("nrBrokenSerial").value=""; $("nrBrokenVideo").value="";
+  renderThumbs($("nrPhotoPrev"), [], function(){});
+  renderThumbs($("nrBrokenPhotoPrev"), [], function(){});
+  renderNrDeptWrap(); renderNrList();
+  $("nrMsg").textContent="";
+  show("newReportView");
+}
+$("btnNrBack").addEventListener("click", function(){ show("homeView"); });
+$("nrProposal").addEventListener("change", function(){ $("nrBrokenWrap").classList.toggle("hide", $("nrProposal").value!=="sparepart"); });
+$("nrPhoto").addEventListener("change", async function(){
+  var got=await pickCompressed($("nrPhoto"), true);
+  draftPhotos=draftPhotos.concat(got).slice(0,3);
+  renderThumbs($("nrPhotoPrev"), draftPhotos, function(i){ draftPhotos.splice(i,1); renderThumbs($("nrPhotoPrev"), draftPhotos, arguments.callee); });
+  $("nrPhoto").value="";
+});
+$("nrBrokenPhoto").addEventListener("change", async function(){
+  draftBrokenPhoto=await pickCompressed($("nrBrokenPhoto"), false);
+  renderThumbs($("nrBrokenPhotoPrev"), draftBrokenPhoto?[draftBrokenPhoto]:[], function(){ draftBrokenPhoto=null; renderThumbs($("nrBrokenPhotoPrev"),[],function(){}); });
+  $("nrBrokenPhoto").value="";
+});
+
+function renderNrList(){
+  var list=$("nrList"); list.innerHTML="";
+  $("nrCount").textContent=draftItems.length;
+  $("nrEmpty").style.display = draftItems.length? "none":"block";
+  draftItems.forEach(function(it, idx){
+    var d=document.createElement("div"); d.className="finding";
+    d.innerHTML='<div class="no">#'+(idx+1)+'</div><span class="tag">'+it.department+'</span> '+
+      (it.proposal==="sparepart"?'<span class="tag" style="background:#fff7ed;color:#9a3412">Sparepart</span>':'<span class="tag" style="background:#eff6ff;color:#1e3a8a">Technician</span>')+
+      '<div style="margin-top:6px">'+escapeHtml(it.issue)+'</div>'+
+      (it.photos.length?'<div class="thumbrow">'+it.photos.map(function(p){return '<div class="t"><img src="'+p+'"></div>';}).join("")+'</div>':'')+
+      '<button type="button" class="del" data-i="'+idx+'">✕ Remove</button>';
+    d.querySelector(".del").addEventListener("click", function(){ draftItems.splice(idx,1); renderNrList(); });
+    list.appendChild(d);
+  });
+}
+function escapeHtml(s){ return (s||"").replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+
+$("btnNrAdd").addEventListener("click", function(){
+  $("nrMsg").textContent="";
+  if(!nrDept){ $("nrMsg").textContent="Choose a department."; return; }
+  var issue=$("nrIssue").value.trim();
+  if(!issue){ $("nrMsg").textContent="Describe the issue."; return; }
+  var proposal=$("nrProposal").value;
+  if(!proposal){ $("nrMsg").textContent="Choose a proposal."; return; }
+  var broken=null;
+  if(proposal==="sparepart"){
+    if(!draftBrokenPhoto){ $("nrMsg").textContent="Broken sparepart photo is required."; return; }
+    if(!$("nrBrokenName").value.trim()){ $("nrMsg").textContent="Broken part name is required."; return; }
+    broken={name:$("nrBrokenName").value.trim(), serial:$("nrBrokenSerial").value.trim(), photo:draftBrokenPhoto, video_url:$("nrBrokenVideo").value.trim()||null};
+  }
+  draftItems.push({department:nrDept, issue:issue, photos:draftPhotos.slice(), video_url:$("nrVideo").value.trim()||null, proposal:proposal, broken_part:broken});
+  nrDept=null; renderNrDeptWrap();
+  $("nrIssue").value=""; $("nrVideo").value=""; $("nrProposal").value=""; $("nrBrokenWrap").classList.add("hide");
+  draftPhotos=[]; draftBrokenPhoto=null;
+  renderThumbs($("nrPhotoPrev"),[],function(){}); renderThumbs($("nrBrokenPhotoPrev"),[],function(){});
+  $("nrBrokenName").value=""; $("nrBrokenSerial").value=""; $("nrBrokenVideo").value="";
+  renderNrList();
+});
+
+$("btnNrSubmit").addEventListener("click", async function(){
+  $("nrMsg").textContent="";
+  if(!draftItems.length){ $("nrMsg").textContent="Add at least one finding first."; return; }
+  $("btnNrSubmit").disabled=true; $("btnNrSubmit").textContent="Submitting…";
+  try{
+    var reportCode=await makeReportCode(currentLocation);
+    var itemRows=[];
+    for(var i=0;i<draftItems.length;i++){
+      var it=draftItems[i];
+      var seq=await nextItemSeq(currentLocation, it.department);
+      var code=makeItemCode(currentLocation, it.department, seq);
+      var photos=await uploadPhotos(it.photos, code);
+      var broken=it.broken_part;
+      if(broken){ broken=Object.assign({}, broken, {photo: await uploadPhoto(broken.photo, code+"_broken")}); }
+      var rules=approvalRules[currentLocation.type+"|"+it.department]||[];
+      var approvals=rules.map(function(role){ return {role:role, confirmed:false, by:null, by_name:null, at:null, proof:[]}; });
+      itemRows.push({
+        id:code, report_id:reportCode, location_id:currentLocation.id, seq:seq,
+        brand:currentLocation.brand, city:currentLocation.city, outlet:currentLocation.name, department:it.department,
+        issue:it.issue, photos:photos, video_url:it.video_url, proposal:it.proposal, broken_part:broken,
+        status:"open", progress:[], approvals:approvals,
+        created_by:me.id, created_name:me.name
+      });
+    }
+    var repIns=await sb.from("maint_reports").insert({
+      id:reportCode, location_id:currentLocation.id, brand:currentLocation.brand, city:currentLocation.city, outlet:currentLocation.name,
+      brand_code:currentLocation.brand_code, store_code:currentLocation.store_code,
+      submitted_by:me.id, submitted_name:me.name, item_count:itemRows.length, cached_status:"open"
+    });
+    if(repIns.error) throw repIns.error;
+    var itemIns=await sb.from("maint_items").insert(itemRows);
+    if(itemIns.error) throw itemIns.error;
+    draftItems=[];
+    openReportPrint(reportCode);
+  }catch(e){
+    $("nrMsg").textContent="Submit failed: "+(e.message||e);
+  }finally{
+    $("btnNrSubmit").disabled=false; $("btnNrSubmit").textContent="Submit report";
+  }
+});
+
+/* ---------------- printable: Maintenance Request (new report) ---------------- */
+async function openReportPrint(reportCode){
+  var rr=await sb.from("maint_reports").select("*").eq("id",reportCode).limit(1);
+  var items=await sb.from("maint_items").select("*").eq("report_id",reportCode).order("department").order("seq");
+  if(!rr.data || !rr.data.length) return;
+  var rep=rr.data[0], its=items.data||[];
+  var byDept={};
+  its.forEach(function(it){ (byDept[it.department]=byDept[it.department]||[]).push(it); });
+  var html='<div class="report-paper"><div class="report-page">'+
+    '<div class="rep-title"><span>MAINTENANCE REQUEST</span></div>'+
+    '<div class="rep-head"><div class="rr"><span><b>Brand:</b> '+rep.brand+'</span><span><b>Outlet:</b> '+rep.outlet+'</span></div>'+
+    '<div class="rr"><span><b>Request no:</b> '+rep.id+'</span><span><b>Date:</b> '+new Date(rep.submitted_at).toLocaleDateString()+'</span></div>'+
+    '<div><b>Submission by:</b> '+rep.submitted_name+'</div></div></div>';
+  Object.keys(byDept).forEach(function(dept, i){
+    html+='<div class="report-page'+(true?' pgbreak':'')+'"><div class="sec-h">'+dept+'</div><table class="rep"><thead><tr><th>No</th><th>Issue</th><th>Photo/Video</th><th>Proposal</th><th>Item code</th></tr></thead><tbody>';
+    byDept[dept].forEach(function(it, idx){
+      var media=(it.photos||[]).map(function(p){return '<img src="'+p+'">';}).join("")+(it.video_url?'<div><a href="'+it.video_url+'" target="_blank">video link</a></div>':"");
+      html+='<tr><td class="no">'+(idx+1)+'</td><td>'+escapeHtml(it.issue)+'</td><td class="ph">'+media+'</td><td>'+(it.proposal==="sparepart"?"Ask for sparepart":"Call technician/vendor")+'</td><td>'+it.id+'</td></tr>';
+    });
+    html+='</tbody></table></div>';
+  });
+  html+='</div>';
+  showPrintable(html, "Back to home", function(){ show("homeView"); renderHome(); });
+  await wireReportDeleteActions(rep);
+}
+
+function showPrintable(html, backLabel, backFn){
+  ["loginView","setpwView","homeView","newReportView","recallListView","itemDetailView","settingsView","requestsView"]
+    .forEach(function(x){$(x).classList.add("hide");});
+  var old=document.getElementById("printHost"); if(old) old.remove();
+  var host=document.createElement("section"); host.id="printHost";
+  document.querySelector(".wrap").appendChild(host);
+  window.scrollTo(0,0);
+  host.innerHTML='<div class="noprint card"><div class="btnrow2"><button class="btn preview" id="phPrint">Save as PDF / Print</button><button class="btn back" id="phBack">'+backLabel+'</button></div><div id="phExtra"></div></div>'+html;
+  host.querySelector("#phPrint").addEventListener("click", function(){ window.print(); });
+  host.querySelector("#phBack").addEventListener("click", function(){ host.remove(); backFn(); });
+}
+
+/* ---------------- request/manage deletion of a report ---------------- */
+async function wireReportDeleteActions(rep){
+  var host=document.querySelector("#printHost #phExtra");
+  if(!host) return;
+  var mine = rep.submitted_by===me.id;
+  var pend=await sb.from("maint_delete_requests").select("*").eq("report_id",rep.id).eq("status","pending").limit(1);
+  var existing=(pend.data && pend.data.length)? pend.data[0] : null;
+
+  if(existing){
+    var canCancel = existing.requester_id===me.id || isStaff();
+    host.innerHTML='<div class="msg" style="margin-top:10px">🕓 Deletion requested by '+existing.requester_name+' — pending review.'+(canCancel?' <a href="#" id="phCancelReq">cancel this request</a>':'')+'</div>';
+    var a=host.querySelector("#phCancelReq");
+    if(a) a.addEventListener("click", async function(e){ e.preventDefault(); await sb.from("maint_delete_requests").delete().eq("id",existing.id); openReportPrint(rep.id); });
+    return;
+  }
+
+  if(isStaff()){
+    host.innerHTML='<button class="btn cancel small" id="phDelete" style="width:auto;margin-top:10px">Delete report (admin — password required)</button>';
+    host.querySelector("#phDelete").addEventListener("click", async function(){
+      var pass=prompt("Re-enter your admin password to permanently delete report "+rep.id+":");
+      if(!pass) return;
+      var v=await sb.auth.signInWithPassword({email:me.email, password:pass});
+      if(v.error){ alert("Password incorrect."); return; }
+      await sb.from("maint_items").delete().eq("report_id", rep.id);
+      await sb.from("maint_reports").delete().eq("id", rep.id);
+      document.getElementById("printHost").remove();
+      show("homeView"); renderHome();
+    });
+  } else if(mine || (myAccessLocIds===null || myAccessLocIds.indexOf(rep.location_id)>=0)){
+    host.innerHTML='<button class="btn cancel small" id="phReqDelete" style="width:auto;margin-top:10px">Request deletion</button>';
+    host.querySelector("#phReqDelete").addEventListener("click", function(){ openDelModal(rep); });
+  }
+}
+function openDelModal(rep){
+  $("delReason").value=""; $("delMsg").textContent="";
+  $("delModal").classList.remove("hide");
+  $("delModal").dataset.reportId=rep.id;
+}
+$("delCancel").addEventListener("click", function(){ $("delModal").classList.add("hide"); });
+$("delSubmit").addEventListener("click", async function(){
+  var reportId=$("delModal").dataset.reportId;
+  var reason=$("delReason").value.trim();
+  if(!reason){ $("delMsg").textContent="Give a reason."; return; }
+  try{
+    var ins=await sb.from("maint_delete_requests").insert({report_id:reportId, requester_id:me.id, requester_name:me.name, reason:reason, status:"pending"});
+    if(ins.error) throw ins.error;
+    $("delModal").classList.add("hide");
+    openReportPrint(reportId);
+  }catch(e){ $("delMsg").textContent="Failed: "+(e.message||e); }
+});
+
+/* ---------------- recall list ---------------- */
+function openRecall(){
+  var sel=$("rlLocation"); sel.innerHTML="<option value=''>All accessible</option>";
+  visibleLocations().forEach(function(l){ var o=document.createElement("option"); o.value=l.id; o.textContent=l.brand+" — "+l.name; sel.appendChild(o); });
+  if(currentLocation) sel.value=currentLocation.id;
+  $("rlDept").value=""; $("rlOpenOnly").checked=true; $("rlSearch").value="";
+  runRecallSearch();
+  show("recallListView");
+}
+$("btnRecallBack").addEventListener("click", function(){ show("homeView"); });
+["rlLocation","rlDept","rlOpenOnly"].forEach(function(id){ $(id).addEventListener("change", runRecallSearch); });
+$("rlSearch").addEventListener("input", debounce(runRecallSearch, 250));
+function debounce(fn,ms){ var t; return function(){ clearTimeout(t); var a=arguments; t=setTimeout(function(){fn.apply(null,a);},ms); }; }
+
+async function runRecallSearch(){
+  var q=sb.from("maint_items").select("*").order("created_at",{ascending:false}).limit(100);
+  var loc=$("rlLocation").value; if(loc) q=q.eq("location_id",loc);
+  else if(myAccessLocIds!==null){ if(!myAccessLocIds.length){ renderRecallList([]); return; } q=q.in("location_id", myAccessLocIds); }
+  var dept=$("rlDept").value; if(dept) q=q.eq("department",dept);
+  if($("rlOpenOnly").checked) q=q.eq("status","open");
+  var r=await q;
+  var rows=r.data||[];
+  var term=$("rlSearch").value.trim().toLowerCase();
+  if(term) rows=rows.filter(function(it){ return it.id.toLowerCase().indexOf(term)>=0 || it.report_id.toLowerCase().indexOf(term)>=0 || (it.issue||"").toLowerCase().indexOf(term)>=0; });
+  renderRecallList(rows);
+}
+function renderRecallList(rows){
+  $("rlCount").textContent=rows.length+" item(s)";
+  var list=$("rlList"); list.innerHTML="";
+  $("rlEmpty").style.display = rows.length? "none":"block";
+  rows.forEach(function(it){
+    var d=document.createElement("div"); d.className="listcard";
+    d.innerHTML='<div class="t">'+it.id+' <span class="pill '+(it.status==="resolved"?"resolved":"open")+'">'+it.status+'</span></div>'+
+      '<div class="m">'+it.outlet+' · '+it.department+' · '+escapeHtml((it.issue||"").slice(0,80))+'</div>';
+    d.addEventListener("click", function(){ openItemDetail(it.id); });
+    list.appendChild(d);
+  });
+}
+
+/* ---------------- item detail ---------------- */
+async function openItemDetail(itemId){
+  var r=await sb.from("maint_items").select("*").eq("id",itemId).limit(1);
+  if(!r.data || !r.data.length) return;
+  currentItem=r.data[0];
+  var loc=locations.find(function(l){return l.id===currentItem.location_id;});
+  $("idTitle").textContent=currentItem.id;
+  $("idStatusBadge").innerHTML='<span class="statusbadge '+(currentItem.status==="resolved"?"resolved":"open")+'">'+(currentItem.status==="resolved"?"RESOLVED":"UNRESOLVED")+'</span>';
+  $("idHeader").innerHTML='<div class="rr"><span><b>Brand:</b> '+currentItem.brand+'</span><span><b>Outlet:</b> '+currentItem.outlet+'</span></div>'+
+    '<div class="rr"><span><b>Report no:</b> '+currentItem.report_id+'</span><span><b>Department:</b> '+currentItem.department+'</span></div>';
+  $("idFirstReport").innerHTML=firstReportBlockHtml(currentItem);
+  renderProgressList();
+  renderApprovals();
+  show("itemDetailView");
+}
+$("btnIdBack").addEventListener("click", function(){ show("recallListView"); runRecallSearch(); });
+
+function firstReportBlockHtml(it){
+  var media=(it.photos||[]).map(function(p){return '<img src="'+p+'" style="width:70px;height:70px;object-fit:cover;border-radius:8px;margin:3px">';}).join("")+
+    (it.video_url?'<div><a href="'+it.video_url+'" target="_blank">video link</a></div>':"");
+  var prop=it.proposal==="sparepart"?"Ask for sparepart":"Call technician/vendor";
+  var broken=it.broken_part? ('<div class="muted" style="margin-top:6px">Broken part: '+escapeHtml(it.broken_part.name||"")+(it.broken_part.serial?" (SN "+escapeHtml(it.broken_part.serial)+")":"")+(it.broken_part.photo?'<br><img src="'+it.broken_part.photo+'" style="width:70px;height:70px;object-fit:cover;border-radius:8px;margin-top:4px">':"")+'</div>') : "";
+  return '<div><b>Request no:</b> '+it.id+' &nbsp; <b>Date:</b> '+new Date(it.created_at).toLocaleString()+' &nbsp; <b>Submission by:</b> '+it.created_name+'</div>'+
+    '<div style="margin-top:6px">'+media+'</div>'+
+    '<div style="margin-top:6px"><b>Findings:</b> '+escapeHtml(it.issue)+'</div>'+
+    '<div style="margin-top:4px"><b>Proposal:</b> '+prop+'</div>'+broken;
+}
+
+function renderProgressList(){
+  var list=$("idProgList"); list.innerHTML="";
+  var prog=currentItem.progress||[];
+  $("idProgCount").textContent=prog.length;
+  $("idProgEmpty").style.display = prog.length? "none":"block";
+  prog.forEach(function(p, i){
+    var d=document.createElement("div"); d.className="progblock";
+    var head="Progress "+(i+1)+" — "+(p.type==="tech_visit"?"Technician's visit":"Repair by staff");
+    var media="";
+    if(p.type==="tech_visit"){
+      media='<div class="thumbrow">'+
+        (p.tech_photo?'<div class="t"><img src="'+p.tech_photo+'"></div>':"")+
+        (p.finding_photo?'<div class="t"><img src="'+p.finding_photo+'"></div>':"")+
+        (p.after_photo?'<div class="t"><img src="'+p.after_photo+'"></div>':"")+
+        (p.broken_photo?'<div class="t"><img src="'+p.broken_photo+'"></div>':"")+
+        (p.tech_form_photo?'<div class="t"><img src="'+p.tech_form_photo+'"></div>':"")+
+        '</div>'+
+        '<div style="margin-top:4px"><b>Finding:</b> '+escapeHtml(p.finding_text||"")+'</div>'+
+        '<div><b>Resolution:</b> '+p.resolution+'</div>'+
+        (p.resolution==="unresolved"? '<div><b>Next step:</b> '+escapeHtml(p.next_step==="__other__"?p.next_step_other:p.next_step||"")+'</div>'+
+          (p.broken_name? '<div><b>Broken part:</b> '+escapeHtml(p.broken_name)+(p.broken_serial?" (SN "+escapeHtml(p.broken_serial)+")":"")+'</div>':"") : "");
+    } else {
+      media='<div class="thumbrow">'+
+        (p.parts_photo?'<div class="t"><img src="'+p.parts_photo+'"></div>':"")+
+        (p.after_photo?'<div class="t"><img src="'+p.after_photo+'"></div>':"")+
+        '</div>'+
+        '<div><b>Resolution:</b> '+p.resolution+'</div>'+
+        (p.resolution==="unresolved"? '<div><b>Why:</b> '+escapeHtml(p.reason||"")+'</div>':"");
+    }
+    d.innerHTML='<div class="ph">'+head+'</div><div class="pm">'+p.by_name+' · '+new Date(p.at).toLocaleString()+'</div>'+media;
+    list.appendChild(d);
+  });
+}
+
+function renderApprovals(){
+  var host=$("idApprovals"); host.innerHTML="";
+  var apps=currentItem.approvals||[];
+  apps.forEach(function(a, idx){
+    var canAct = isStaff() || hasRole(a.role, currentItem.location_id);
+    var d=document.createElement("div"); d.className="approvalrow";
+    d.innerHTML='<div class="info"><div class="rn">'+(ROLE_LABEL[a.role]||a.role)+'</div>'+
+      '<div class="rm">'+(a.confirmed? ("Confirmed by "+a.by_name+" · "+new Date(a.at).toLocaleString()) : "Pending")+'</div></div>'+
+      (a.confirmed? '<span class="pill resolved">✓ Confirmed</span>' :
+        (canAct? '<button type="button" class="btn small proceed" style="width:auto">Confirm</button>' : '<span class="pill grey">Waiting</span>'));
+    if(!a.confirmed && canAct){
+      d.querySelector("button").addEventListener("click", function(){ openApproveModal(idx); });
+    }
+    host.appendChild(d);
+  });
+}
+
+/* ---------------- progress modal ---------------- */
+function resetProgressModal(){
+  $("pgType").value=""; $("pgTechFields").classList.add("hide"); $("pgStaffFields").classList.add("hide");
+  $("pgTechFinding").value=""; $("pgNextStep").value=""; $("pgNextStepOtherWrap").classList.add("hide"); $("pgNextStepOther").value="";
+  $("pgBrokenName").value=""; $("pgBrokenSerial").value=""; $("pgStaffWhy").value=""; $("pgStaffWhyWrap").classList.add("hide");
+  ["pgTechUnresolved","pgTechResolved"].forEach(function(id){$(id).classList.add("hide");});
+  pgPhotos={};
+  ["pgTechPhotoPrev","pgTechFindingPhotoPrev","pgBrokenPhotoPrev","pgAfterPhotoTechPrev","pgTechFormPrev","pgPartsPhotoPrev","pgAfterPhotoStaffPrev"].forEach(function(id){ $(id).innerHTML=""; });
+  $("pgMsg").textContent="";
+  [["pgTechResBtn1","tech_res"],["pgTechResBtn2","tech_res"],["pgStaffResBtn1","staff_res"],["pgStaffResBtn2","staff_res"]].forEach(function(p){ $(p[0]).classList.remove("on"); });
+  pgPhotos.tech_res=null; pgPhotos.staff_res=null;
+}
+$("btnAddProgress").addEventListener("click", function(){ resetProgressModal(); $("progressModal").classList.remove("hide"); });
+$("pgCancel").addEventListener("click", function(){ $("progressModal").classList.add("hide"); });
+$("pgType").addEventListener("change", function(){
+  var v=$("pgType").value;
+  $("pgTechFields").classList.toggle("hide", v!=="tech_visit");
+  $("pgStaffFields").classList.toggle("hide", v!=="repair_staff");
+});
+$("pgNextStep").addEventListener("change", function(){ $("pgNextStepOtherWrap").classList.toggle("hide", $("pgNextStep").value!=="__other__"); });
+
+function wirePhotoField(inputId, prevId, key, multi){
+  $(inputId).addEventListener("change", async function(){
+    var got=await pickCompressed($(inputId), !!multi);
+    pgPhotos[key]=got;
+    renderThumbs($(prevId), multi? got : (got?[got]:[]), function(i){
+      if(multi){ pgPhotos[key].splice(i,1); renderThumbs($(prevId), pgPhotos[key], arguments.callee); }
+      else { pgPhotos[key]=null; $(prevId).innerHTML=""; }
+    });
+    $(inputId).value="";
+  });
+}
+wirePhotoField("pgTechPhoto","pgTechPhotoPrev","tech_photo");
+wirePhotoField("pgTechFindingPhoto","pgTechFindingPhotoPrev","finding_photo");
+wirePhotoField("pgBrokenPhoto","pgBrokenPhotoPrev","broken_photo");
+wirePhotoField("pgAfterPhotoTech","pgAfterPhotoTechPrev","after_photo_tech");
+wirePhotoField("pgTechForm","pgTechFormPrev","tech_form_photo");
+wirePhotoField("pgPartsPhoto","pgPartsPhotoPrev","parts_photo");
+wirePhotoField("pgAfterPhotoStaff","pgAfterPhotoStaffPrev","after_photo_staff");
+
+function setResToggle(pairIds, key, val){
+  pairIds.forEach(function(id,i){ $(id).classList.toggle("on", (i===0&&val==="resolved")||(i===1&&val==="unresolved")); });
+  pgPhotos[key]=val;
+}
+$("pgTechResBtn1").addEventListener("click", function(){ setResToggle(["pgTechResBtn1","pgTechResBtn2"],"tech_res","resolved"); $("pgTechResolved").classList.remove("hide"); $("pgTechUnresolved").classList.add("hide"); });
+$("pgTechResBtn2").addEventListener("click", function(){ setResToggle(["pgTechResBtn1","pgTechResBtn2"],"tech_res","unresolved"); $("pgTechUnresolved").classList.remove("hide"); $("pgTechResolved").classList.add("hide"); });
+$("pgStaffResBtn1").addEventListener("click", function(){ setResToggle(["pgStaffResBtn1","pgStaffResBtn2"],"staff_res","resolved"); $("pgStaffWhyWrap").classList.add("hide"); });
+$("pgStaffResBtn2").addEventListener("click", function(){ setResToggle(["pgStaffResBtn1","pgStaffResBtn2"],"staff_res","unresolved"); $("pgStaffWhyWrap").classList.remove("hide"); });
+
+$("pgSubmit").addEventListener("click", async function(){
+  $("pgMsg").textContent="";
+  var type=$("pgType").value;
+  if(!type){ $("pgMsg").textContent="Choose a type."; return; }
+  var entry={type:type, by:me.id, by_name:me.name, at:new Date().toISOString()};
+  try{
+    if(type==="tech_visit"){
+      if(!pgPhotos.tech_photo){ $("pgMsg").textContent="Photo of technician at work is required."; return; }
+      if(!$("pgTechFinding").value.trim()){ $("pgMsg").textContent="Finding is required."; return; }
+      if(!pgPhotos.tech_res){ $("pgMsg").textContent="Choose Resolved or Unresolved."; return; }
+      if(!pgPhotos.tech_form_photo){ $("pgMsg").textContent="Tech visit form upload is required."; return; }
+      entry.resolution=pgPhotos.tech_res;
+      entry.finding_text=$("pgTechFinding").value.trim();
+      if(pgPhotos.tech_res==="unresolved"){
+        var ns=$("pgNextStep").value; if(!ns){ $("pgMsg").textContent="Choose a next step."; return; }
+        if(ns==="__other__" && !$("pgNextStepOther").value.trim()){ $("pgMsg").textContent="Specify the next step."; return; }
+        if(!pgPhotos.broken_photo){ $("pgMsg").textContent="Broken part photo is required."; return; }
+        if(!$("pgBrokenName").value.trim()){ $("pgMsg").textContent="Broken part name is required."; return; }
+        entry.next_step=ns; entry.next_step_other= ns==="__other__"?$("pgNextStepOther").value.trim():null;
+        entry.broken_name=$("pgBrokenName").value.trim(); entry.broken_serial=$("pgBrokenSerial").value.trim();
+      } else {
+        if(!pgPhotos.after_photo_tech){ $("pgMsg").textContent="Photo of 'after' is required."; return; }
+      }
+      $("pgSubmit").disabled=true;
+      var pfx=currentItem.id+"_p"+((currentItem.progress||[]).length+1);
+      entry.tech_photo=await uploadPhoto(pgPhotos.tech_photo, pfx);
+      entry.finding_photo=pgPhotos.finding_photo? await uploadPhoto(pgPhotos.finding_photo, pfx) : null;
+      entry.tech_form_photo=await uploadPhoto(pgPhotos.tech_form_photo, pfx);
+      if(pgPhotos.tech_res==="unresolved"){ entry.broken_photo=await uploadPhoto(pgPhotos.broken_photo, pfx); }
+      else { entry.after_photo=await uploadPhoto(pgPhotos.after_photo_tech, pfx); }
+    } else if(type==="repair_staff"){
+      if(!pgPhotos.parts_photo){ $("pgMsg").textContent="Photo of parts received is required."; return; }
+      if(!pgPhotos.after_photo_staff){ $("pgMsg").textContent="Photo of 'after' is required."; return; }
+      if(!pgPhotos.staff_res){ $("pgMsg").textContent="Choose Resolved or Unresolved."; return; }
+      entry.resolution=pgPhotos.staff_res;
+      if(pgPhotos.staff_res==="unresolved"){
+        if(!$("pgStaffWhy").value.trim()){ $("pgMsg").textContent="Explain why it's unresolved."; return; }
+        entry.reason=$("pgStaffWhy").value.trim();
+      }
+      $("pgSubmit").disabled=true;
+      var pfx2=currentItem.id+"_p"+((currentItem.progress||[]).length+1);
+      entry.parts_photo=await uploadPhoto(pgPhotos.parts_photo, pfx2);
+      entry.after_photo=await uploadPhoto(pgPhotos.after_photo_staff, pfx2);
+    }
+    var newProg=(currentItem.progress||[]).concat([entry]);
+    var upd=await sb.from("maint_items").update({progress:newProg}).eq("id",currentItem.id);
+    if(upd.error) throw upd.error;
+    currentItem.progress=newProg;
+    $("progressModal").classList.add("hide");
+    renderProgressList();
+  }catch(e){
+    $("pgMsg").textContent="Save failed: "+(e.message||e);
+  }finally{
+    $("pgSubmit").disabled=false;
+  }
+});
+
+/* ---------------- approval confirm modal ---------------- */
+function openApproveModal(idx){
+  apRoleCtx=idx; apPhotos=[];
+  var a=currentItem.approvals[idx];
+  $("apTitle").textContent="Confirm resolved — "+(ROLE_LABEL[a.role]||a.role);
+  $("apSub").textContent="Upload 1–3 proof files (photo). Item only shows Resolved once every required role has confirmed.";
+  $("apPhotoPrev").innerHTML=""; $("apMsg").textContent="";
+  $("approveModal").classList.remove("hide");
+}
+$("apCancel").addEventListener("click", function(){ $("approveModal").classList.add("hide"); });
+$("apPhoto").addEventListener("change", async function(){
+  var got=await pickCompressed($("apPhoto"), true);
+  apPhotos=apPhotos.concat(got).slice(0,3);
+  renderThumbs($("apPhotoPrev"), apPhotos, function(i){ apPhotos.splice(i,1); renderThumbs($("apPhotoPrev"), apPhotos, arguments.callee); });
+  $("apPhoto").value="";
+});
+$("apSubmit").addEventListener("click", async function(){
+  $("apMsg").textContent="";
+  if(!apPhotos.length){ $("apMsg").textContent="Add at least 1 proof file."; return; }
+  $("apSubmit").disabled=true;
+  try{
+    var a=currentItem.approvals[apRoleCtx];
+    var pfx=currentItem.id+"_approve_"+a.role;
+    var proof=await uploadPhotos(apPhotos, pfx);
+    var newApprovals=currentItem.approvals.slice();
+    newApprovals[apRoleCtx]=Object.assign({}, a, {confirmed:true, by:me.id, by_name:me.name, at:new Date().toISOString(), proof:proof});
+    var allConfirmed=newApprovals.every(function(x){return x.confirmed;});
+    var patch={approvals:newApprovals};
+    if(allConfirmed){ patch.status="resolved"; patch.resolved_at=new Date().toISOString(); }
+    var upd=await sb.from("maint_items").update(patch).eq("id",currentItem.id);
+    if(upd.error) throw upd.error;
+    Object.assign(currentItem, patch);
+    if(allConfirmed) await recomputeReportStatus(currentItem.report_id);
+    $("approveModal").classList.add("hide");
+    $("idStatusBadge").innerHTML='<span class="statusbadge '+(currentItem.status==="resolved"?"resolved":"open")+'">'+(currentItem.status==="resolved"?"RESOLVED":"UNRESOLVED")+'</span>';
+    renderApprovals();
+  }catch(e){
+    $("apMsg").textContent="Failed: "+(e.message||e);
+  }finally{
+    $("apSubmit").disabled=false;
+  }
+});
+async function recomputeReportStatus(reportId){
+  var r=await sb.from("maint_items").select("status").eq("report_id",reportId);
+  var allDone=(r.data||[]).every(function(x){return x.status==="resolved";});
+  await sb.from("maint_reports").update({cached_status: allDone?"finished":"open"}).eq("id",reportId);
+}
+
+/* ---------------- print progress report ---------------- */
+$("btnIdPrint").addEventListener("click", function(){
+  var it=currentItem;
+  var html='<div class="report-paper"><div class="report-page">'+
+    '<div class="rep-title"><span>Progress report for '+it.id+'</span><span class="statusbadge '+(it.status==="resolved"?"resolved":"open")+'">'+(it.status==="resolved"?"RESOLVED":"UNRESOLVED")+'</span></div>'+
+    '<div class="rep-head"><div class="rr"><span><b>Brand:</b> '+it.brand+'</span><span><b>Outlet:</b> '+it.outlet+'</span></div>'+
+    '<div class="rr"><span><b>Report no:</b> '+it.report_id+'</span><span><b>Date:</b> '+new Date(it.created_at).toLocaleDateString()+'</span></div>'+
+    '<div><b>Submission by:</b> '+it.created_name+'</div><div><b>Department:</b> '+it.department+'</div></div>'+
+    '<div class="sec-h">1st report</div>'+firstReportBlockHtml(it);
+  (it.progress||[]).forEach(function(p,i){
+    html+='<div class="sec-h">Progress '+(i+1)+'</div><div><b>Report no:</b> '+it.id+'-P'+(i+1)+' &nbsp; <b>Date:</b> '+new Date(p.at).toLocaleString()+' &nbsp; <b>Submission by:</b> '+p.by_name+'</div>';
+    html+='<div style="margin-top:4px">'+(p.type==="tech_visit"?"Technician's visit":"Repair by staff")+' — resolution: '+p.resolution+'</div>';
+  });
+  html+='</div></div>';
+  showPrintable(html, "← Back to item", function(){ openItemDetail(it.id); });
+});
+
+/* ---------------- settings (admin) ---------------- */
+$("btnInviteCreate").addEventListener("click", async function(){
+  var msg=$("invMsg"); msg.className="msg";
+  var first=$("invFirst").value.trim(), noLast=$("invNoLast").checked, last=noLast?"":$("invLast").value.trim(), email=$("invEmail").value.trim();
+  if(!first){ msg.className="msg err"; msg.textContent="Enter a first name."; return; }
+  if(!last && !noLast){ msg.className="msg err"; msg.textContent="Enter a last name (or tick 'No last name')."; return; }
+  var name=[first,last].filter(Boolean).join(" ");
+  msg.textContent="Creating account...";
+  try{
+    var r=await sb.rpc("create_invite",{p_name:name,p_email:email,p_no_last:noLast});
+    if(r.error) throw r.error;
+    var d=r.data||{};
+    var link=location.origin+location.pathname+"#setpw="+encodeURIComponent(d.token||"");
+    $("invUser").textContent=d.username||"—";
+    $("invLink").value=link;
+    $("invResult").classList.remove("hide");
+    msg.className="msg ok"; msg.textContent="Account created. Copy the link and send it to them, then set their location access & titles below.";
+    $("invFirst").value=""; $("invLast").value=""; $("invEmail").value=""; $("invNoLast").checked=false;
+    await refreshMemberDropdown();
+  }catch(e){ msg.className="msg err"; msg.textContent=(e&&e.message)||String(e); }
+});
+$("btnCopyInvite").addEventListener("click", function(){
+  var ta=$("invLink"); ta.focus(); ta.select(); try{ ta.setSelectionRange(0,99999); }catch(e){}
+  var done=function(){ var b=$("btnCopyInvite"), t=b.textContent; b.textContent="✓ Copied"; setTimeout(function(){b.textContent=t;},1500); };
+  if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(ta.value).then(done,function(){ try{document.execCommand("copy");done();}catch(e){} }); }
+  else { try{document.execCommand("copy");done();}catch(e){} }
+});
+
+var allMembers=[];
+async function refreshMemberDropdown(){
+  var r=await sb.from("profiles").select("id,name,role,username").order("name");
+  allMembers=r.data||[];
+  var sel=$("setMember"); var prev=sel.value; sel.innerHTML="";
+  allMembers.forEach(function(m){ var o=document.createElement("option"); o.value=m.id; o.textContent=m.name+" ("+m.role+")"; sel.appendChild(o); });
+  if(prev && allMembers.some(function(m){return m.id===prev;})) sel.value=prev;
+  if(sel.value) await loadMemberSettings();
+}
+$("setMember").addEventListener("change", loadMemberSettings);
+async function openSettings(){
+  $("invMsg").textContent=""; $("invResult").classList.add("hide");
+  await loadLocations();   // refresh so "uncoded outlets" reflects the latest Store Visit tree
+  renderUncodedOutlets();
+  await refreshMemberDropdown();
+  show("settingsView");
+}
+$("btnSetBack").addEventListener("click", function(){ show("homeView"); });
+
+function renderUncodedOutlets(){
+  $("uncodedCard").classList.toggle("hide", uncodedOutlets.length===0);
+  var host=$("uncodedList"); host.innerHTML=""; $("uncodedMsg").textContent="";
+  uncodedOutlets.forEach(function(o, idx){
+    var row=document.createElement("div"); row.style.cssText="border:1px solid var(--line);border-radius:10px;padding:10px;margin-bottom:8px";
+    var suggestedBrand=(o.brand.match(/[A-Za-z]/g)||[]).slice(0,3).join("").toUpperCase();
+    var suggestedStore=(o.outlet.match(/[A-Za-z]/g)||[]).slice(0,3).join("").toUpperCase();
+    row.innerHTML='<div style="font-weight:700;margin-bottom:6px">'+o.brand+' — '+o.outlet+' ('+o.city+')</div>'+
+      '<div class="two">'+
+        '<div class="row" style="margin-bottom:6px"><label>Brand code</label><input type="text" id="ucBrand_'+idx+'" value="'+suggestedBrand+'" style="padding:8px"></div>'+
+        '<div class="row" style="margin-bottom:6px"><label>Store code</label><input type="text" id="ucStore_'+idx+'" value="'+suggestedStore+'" style="padding:8px"></div>'+
+      '</div>'+
+      '<button type="button" class="btn small add" style="width:auto" id="ucAdd_'+idx+'">+ Add code</button>';
+    host.appendChild(row);
+    row.querySelector("#ucAdd_"+idx).addEventListener("click", async function(){
+      var bc=$("ucBrand_"+idx).value.trim().toUpperCase(), sc=$("ucStore_"+idx).value.trim().toUpperCase();
+      if(!bc||!sc){ $("uncodedMsg").className="msg err"; $("uncodedMsg").textContent="Both codes are required."; return; }
+      var id=bc+sc;
+      try{
+        var ins=await sb.from("maint_locations").insert({
+          id:id, type:"STORE", match_key:o.matchKey, brand:o.brand, city:o.city, name:o.outlet, brand_code:bc, store_code:sc
+        });
+        if(ins.error) throw ins.error;
+        await loadLocations();
+        renderUncodedOutlets();
+        $("uncodedMsg").className="msg ok"; $("uncodedMsg").textContent="Added "+id+".";
+      }catch(e){ $("uncodedMsg").className="msg err"; $("uncodedMsg").textContent="Failed (code may already exist): "+(e.message||e); }
+    });
+  });
+}
+
+async function loadMemberSettings(){
+  var uid=$("setMember").value; if(!uid) return;
+  var loc=$("setLocList"); loc.innerHTML="";
+  var acc=await sb.from("maint_access").select("location_ids").eq("user_id",uid).limit(1);
+  var accIds=(acc.data && acc.data.length)? (acc.data[0].location_ids||[]) : [];
+  locations.forEach(function(l){
+    var id="loc_"+l.id;
+    var wrap=document.createElement("label"); wrap.style.cssText="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:4px";
+    wrap.innerHTML='<input type="checkbox" id="'+id+'" style="width:auto" '+(accIds.indexOf(l.id)>=0?"checked":"")+'> '+l.brand+' — '+l.name+' ('+l.type+')';
+    loc.appendChild(wrap);
+  });
+  var rr=await sb.from("maint_roles").select("*").eq("user_id",uid);
+  var have=rr.data||[];
+  var roleHost=$("setRoleList"); roleHost.innerHTML="";
+  Object.keys(ROLE_LABEL).forEach(function(role){
+    var scoped=["store_manager_spv","barista","kitchen_leader","pastry_leader"].indexOf(role)>=0;
+    var existing=have.find(function(x){return x.role===role;});
+    var wrap=document.createElement("div"); wrap.style.cssText="border:1px solid var(--line);border-radius:8px;padding:8px;margin-bottom:6px";
+    var checkboxId="role_"+role;
+    var selId="roleloc_"+role;
+    wrap.innerHTML='<label style="display:flex;align-items:center;gap:8px;font-size:13px"><input type="checkbox" id="'+checkboxId+'" style="width:auto" '+(existing?"checked":"")+'> '+ROLE_LABEL[role]+'</label>'+
+      (scoped? '<select id="'+selId+'" style="margin-top:6px"><option value="">— which location —</option>'+locations.map(function(l){return '<option value="'+l.id+'" '+(existing&&existing.location_id===l.id?"selected":"")+'>'+l.brand+" — "+l.name+'</option>';}).join("")+'</select>' : '<div class="muted" style="font-size:12px;margin-top:4px">Global role — not tied to one location</div>');
+    roleHost.appendChild(wrap);
+  });
+  $("setMsg").textContent="";
+}
+
+$("btnSetSave").addEventListener("click", async function(){
+  var uid=$("setMember").value; if(!uid) return;
+  $("setMsg").textContent="";
+  try{
+    var ids=locations.filter(function(l){ var cb=$("loc_"+l.id); return cb && cb.checked; }).map(function(l){return l.id;});
+    var up=await sb.from("maint_access").upsert({user_id:uid, location_ids:ids, updated_by:me.id, updated_at:new Date().toISOString()});
+    if(up.error) throw up.error;
+    await sb.from("maint_roles").delete().eq("user_id",uid);
+    var rows=[];
+    Object.keys(ROLE_LABEL).forEach(function(role){
+      var cb=$("role_"+role); if(!cb || !cb.checked) return;
+      var scoped=["store_manager_spv","barista","kitchen_leader","pastry_leader"].indexOf(role)>=0;
+      var locId=null;
+      if(scoped){ var s=$("roleloc_"+role); locId=s&&s.value?s.value:null; }
+      rows.push({user_id:uid, role:role, location_id:locId});
+    });
+    if(rows.length){ var ins=await sb.from("maint_roles").insert(rows); if(ins.error) throw ins.error; }
+    $("setMsg").className="msg ok"; $("setMsg").textContent="Saved.";
+  }catch(e){ $("setMsg").className="msg err"; $("setMsg").textContent="Save failed: "+(e.message||e); }
+});
+
+/* ---------------- delete requests ---------------- */
+async function openRequests(){
+  var r=await sb.from("maint_delete_requests").select("*").eq("status","pending").order("created_at",{ascending:false});
+  var rows=r.data||[];
+  var list=$("reqList"); list.innerHTML="";
+  $("reqEmpty").style.display=rows.length?"none":"block";
+  rows.forEach(function(rq){
+    var d=document.createElement("div"); d.className="listcard";
+    d.innerHTML='<div class="t">Report '+rq.report_id+'</div><div class="m">Requested by '+rq.requester_name+' · '+escapeHtml(rq.reason||"")+'</div>'+
+      '<div class="btnrow2 noprint" style="margin-top:8px"><button class="btn cancel small" style="width:auto">Approve (delete)</button><button class="btn grey small" style="width:auto">Reject</button></div>';
+    var btns=d.querySelectorAll("button");
+    btns[0].addEventListener("click", function(e){ e.stopPropagation(); approveDeleteRequest(rq); });
+    btns[1].addEventListener("click", function(e){ e.stopPropagation(); rejectDeleteRequest(rq); });
+    list.appendChild(d);
+  });
+  show("requestsView");
+}
+$("btnReqBack").addEventListener("click", function(){ show("homeView"); renderHome(); });
+
+async function approveDeleteRequest(rq){
+  var pass=prompt("Re-enter your admin password to permanently delete report "+rq.report_id+":");
+  if(!pass) return;
+  var v=await sb.auth.signInWithPassword({email:me.email, password:pass});
+  if(v.error){ alert("Password incorrect."); return; }
+  await sb.from("maint_items").delete().eq("report_id", rq.report_id);
+  await sb.from("maint_reports").delete().eq("id", rq.report_id);
+  await sb.from("maint_delete_requests").delete().eq("id", rq.id);
+  openRequests();
+}
+async function rejectDeleteRequest(rq){
+  await sb.from("maint_delete_requests").delete().eq("id", rq.id);
+  openRequests();
+}
+
+/* ---------------- boot ---------------- */
+(async function boot(){
+  initSupabase();
+  if(!sb){ return; }
+  var tok=detectInvite();
+  if(tok){
+    inviteToken=tok;
+    $("setpwNew").value=""; $("setpwConfirm").value=""; $("setpwMsg").textContent="";
+    show("setpwView");
+    return;
+  }
+  var s=await sb.auth.getSession();
+  if(s.data && s.data.session){ await afterLogin(); }
+  else { show("loginView"); }
+})();
+</script>
+</body>
+</html>
