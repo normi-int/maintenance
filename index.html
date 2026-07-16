@@ -71,7 +71,7 @@
   .listcard .t{font-weight:700}.listcard .m{font-size:13px;color:var(--muted);margin-top:2px}
   .approvalrow{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:10px;padding:10px;margin-bottom:8px}
   .approvalrow .info{flex:1;min-width:0}
-  .approvalrow .rn{font-weight:700;font-size:14px;text-transform:capitalize}
+  .approvalrow .rn{font-weight:700;font-size:14px}
   .approvalrow .rm{font-size:12px;color:var(--muted)}
   .progblock{border-left:3px solid var(--accent);padding:10px 12px;margin-bottom:12px;background:#fbfcfd;border-radius:0 10px 10px 0}
   .progblock .ph{font-weight:800;font-size:13px;margin-bottom:2px}
@@ -186,11 +186,11 @@
         <input type="file" id="nrVideoFile" accept="video/*" class="hide">
         <div id="nrVideoPrev" style="margin-top:8px"></div>
       </div>
-      <div class="row"><label>Proposal</label>
+      <div class="row"><label>Proposed Action</label>
         <select id="nrProposal">
           <option value="">— choose —</option>
-          <option value="sparepart">Ask for sparepart</option>
-          <option value="technician">Call technician/vendor</option>
+          <option value="sparepart">Request Spare Part</option>
+          <option value="technician">Call Technician / Vendor</option>
         </select>
       </div>
       <div class="row hide" id="nrBrokenWrap" style="border:1px solid #fde68a;background:#fffdf5;border-radius:10px;padding:12px">
@@ -251,7 +251,7 @@
       <div class="rep-head" id="idHeader" style="margin-top:8px"></div>
     </div>
     <div class="card">
-      <h2 class="section">1st report</h2>
+      <h2 class="section">Initial Report</h2>
       <div id="idFirstReport"></div>
     </div>
     <div class="card">
@@ -274,15 +274,12 @@
   <section id="settingsView" class="hide">
     <div class="card">
       <div class="sec-head"><h2 class="section" style="margin:0;border:none">Settings</h2><button class="btn back small" id="btnSetBack">← Back</button></div>
-      <p class="muted" style="font-size:13px">Everything here is the same shared backend as Store Visit Report — changes made in either app apply to both instantly.</p>
       <h2 class="section" style="margin-top:10px">Team &amp; account levels</h2>
-      <p class="muted" style="font-size:13px;margin-bottom:10px">Same team as Store Visit Report — change someone's level here or there, it's the same account either way.</p>
       <div id="teamList" style="overflow-x:auto"></div>
       <div class="msg" id="teamMsg"></div>
     </div>
     <div class="card">
       <h2 class="section">Outlets</h2>
-      <p class="muted" style="font-size:13px;margin-bottom:10px">Same outlet list as Store Visit Report — tap a brand or city to expand. Adding/renaming/removing an outlet here applies there too (owner only, matches Store Visit's own restriction). Maintenance code &amp; visibility are settings layered on top, only used in this app.</p>
       <div class="row"><label>Add a brand</label>
         <div class="mgmt-row"><input type="text" id="newBrand" class="n" placeholder="e.g. Devon"><button class="btn small add" id="addBrandBtn">Add</button></div>
       </div>
@@ -294,17 +291,17 @@
       <p class="muted" style="font-size:13px;margin-bottom:10px">Not retail outlets, so they're not part of Store Visit's list — managed only here.</p>
       <div id="ckList"></div>
       <div class="row" style="margin-top:10px;border-top:1px solid var(--line);padding-top:10px"><label>Add a Central Kitchen</label>
-        <div class="two" style="margin-bottom:8px">
-          <input type="text" id="ckNewName" placeholder="Name, e.g. Central Kitchen 3">
-          <input type="text" id="ckNewCity" placeholder="City">
+        <div class="mgmt-row">
+          <input type="text" id="ckNewName" class="n" placeholder="Name, e.g. Central Kitchen 3">
+          <input type="text" id="ckNewCity" class="n" placeholder="City">
+          <input type="text" id="ckNewCode" class="n" placeholder="Code, e.g. GW21">
+          <button class="btn small add" id="btnCkAdd">Add</button>
         </div>
-        <div class="mgmt-row"><input type="text" id="ckNewCode" class="n" placeholder="Code, e.g. GW21"><button class="btn small add" id="btnCkAdd">Add</button></div>
       </div>
       <div class="msg" id="ckMsg"></div>
     </div>
     <div class="card">
       <h2 class="section" style="margin-top:10px">Invite a new member</h2>
-      <p class="muted" style="font-size:13px;margin-bottom:10px">Same account system as Store Visit Report — one login works for both apps. Creates the profile; they set their own password via the link (or set it yourself on their behalf right after).</p>
       <div class="row"><label>First name</label><input type="text" id="invFirst"></div>
       <div class="row"><label>Last name</label><input type="text" id="invLast"></div>
       <label style="display:flex;align-items:center;gap:8px;font-size:14px;margin-bottom:8px"><input type="checkbox" id="invNoLast" style="width:auto"> No last name</label>
@@ -330,8 +327,10 @@
         <div id="setLocTree" style="max-height:260px;overflow:auto;border:1px solid var(--line);border-radius:10px;padding:8px"></div>
       </div>
       <div class="row"><label>Functional titles <span class="muted" style="font-weight:400">(applies at every location checked above; independent of owner/admin/member)</span></label>
-        <select id="setRoleSelect" multiple style="min-height:140px"></select>
-        <small class="hint">Ctrl/Cmd-click (or tap each) to select more than one.</small>
+        <div style="position:relative">
+          <button type="button" class="btn back" id="setRoleDropdownBtn" style="justify-content:flex-start;text-align:left">Select titles…</button>
+          <div id="setRoleDropdownPanel" class="hide" style="position:absolute;z-index:5;top:100%;left:0;right:0;background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px;margin-top:4px;max-height:260px;overflow:auto;box-shadow:0 4px 14px rgba(0,0,0,.15)"></div>
+        </div>
       </div>
       <div class="msg" id="setMsg"></div>
       <div class="btnrow2" style="margin-top:8px">
@@ -500,16 +499,43 @@
    All maint_* tables are new and separate. See Maintenance_Project_Plan.md
    and Maintenance_Project_Schema.sql for the full spec this implements.
 ===================================================================== */
+var APP_VERSION="v1.6"; // bump this with each build so it's visible which version is deployed (shown top-right of the header)
 var BUILTIN={url:"https://clprrwuizmlsddxmlvrh.supabase.co", key:"sb_publishable_bY46Emu9VVzYZEhpjxnr2A_9_ranhHt"};
 var sb=null;
 var $=function(id){return document.getElementById(id);};
+$("barSub").textContent=APP_VERSION;
 var DEPTS=["FOH","BAR","BOH","PASTRY"];
 var LS={insp:"mp_insp_v1"};
 
+// These 6 keys are the approval "slots" the resolution-approval matrix (maint_approval_rules)
+// is built on — unchanged since launch, no SQL migration needed for what follows below.
 var ROLE_LABEL={
   store_manager_spv:"Store Leader", barista:"Barista", kitchen_leader:"Kitchen Leader",
-  pastry_leader:"Pastry Team/Leader", maintenance_team:"Maintenance", om:"Operations Manager (OM)"
+  pastry_leader:"Pastry Team/Leader", maintenance_team:"Maintenance", om:"Operational Manager"
 };
+
+// Granular functional titles a member can actually be assigned (shown in the member-access
+// modal / Team table). Each maps to one of the 6 slot keys above via GRANULAR_TO_SLOT --
+// holding ANY title in a group satisfies that slot's approval requirement (see hasRole()).
+// This keeps job titles specific without the approval matrix needing to know about them.
+var GRANULAR_LABEL={
+  foh_area_manager:"FOH - Area Manager", foh_store_manager:"FOH - Store Manager", foh_spv:"FOH - SPV", foh_captain:"FOH - Captain",
+  bar_head:"BAR - Head Bar", bar_senior_barista:"BAR - Senior Barista", bar_barista:"BAR - Barista",
+  boh_head_chef:"BOH - Head Chef", boh_sous_chef:"BOH - Sous Chef", boh_cdp:"BOH - CDP",
+  pastry:"Pastry", maintenance_team:"Maintenance", om:"Operational Manager"
+};
+var GRANULAR_TO_SLOT={
+  foh_area_manager:"store_manager_spv", foh_store_manager:"store_manager_spv", foh_spv:"store_manager_spv", foh_captain:"store_manager_spv",
+  bar_head:"barista", bar_senior_barista:"barista", bar_barista:"barista",
+  boh_head_chef:"kitchen_leader", boh_sous_chef:"kitchen_leader", boh_cdp:"kitchen_leader",
+  pastry:"pastry_leader", maintenance_team:"maintenance_team", om:"om"
+};
+var ROLE_GROUPS=[
+  {label:"FOH", keys:["foh_area_manager","foh_store_manager","foh_spv","foh_captain"]},
+  {label:"BAR", keys:["bar_head","bar_senior_barista","bar_barista"]},
+  {label:"BOH", keys:["boh_head_chef","boh_sous_chef","boh_cdp"]},
+  {label:"Other", keys:["pastry","maintenance_team","om"]}
+];
 
 function show(v){
   ["loginView","setpwView","homeView","newReportView","recallListView","itemDetailView","settingsView","requestsView"]
@@ -663,7 +689,10 @@ async function afterLogin(){
 function isStaff(){ return me && (me.role==="owner"||me.role==="admin"); }
 function hasRole(role, locId){
   if(!myRoles) return false;
-  return myRoles.some(function(r){ return r.role===role && (r.location_id===null || r.location_id===locId); });
+  // r.role is a granular title (e.g. "foh_spv") stored in maint_roles; translate it to the
+  // slot it satisfies before comparing. Falls back to r.role itself so any row already
+  // stored with an old slot key directly still works with no migration needed.
+  return myRoles.some(function(r){ return (GRANULAR_TO_SLOT[r.role]||r.role)===role && (r.location_id===null || r.location_id===locId); });
 }
 
 async function loadAccessAndRoles(){
@@ -783,7 +812,7 @@ function selectedHomeLocation(){
 }
 
 function renderHome(){
-  $("authBarText").textContent="Signed in as "+me.name+" ("+me.role+(myRoles.length?", "+myRoles.map(function(r){return ROLE_LABEL[r.role]||r.role;}).join(", "):"")+")";
+  $("authBarText").textContent="Signed in as "+me.name+" ("+me.role+(myRoles.length?", "+myRoles.map(function(r){return GRANULAR_LABEL[r.role]||ROLE_LABEL[r.role]||r.role;}).join(", "):"")+")";
   fillHomeBrands();
   if(isStaff() && uncodedOutlets.length){
     $("homeHint").textContent="⚠ "+uncodedOutlets.length+" outlet(s) in Store Visit have no maintenance code yet — add them in Settings.";
@@ -965,7 +994,7 @@ function renderNrDeptWrap(){
 }
 function openNewReport(){
   draftItems=[]; draftPhotos=[]; draftBrokenPhoto=null; draftVideoFile=null; draftBrokenVideoFile=null; nrDept=null;
-  $("nrHeader").innerHTML="<b>Location:</b> "+currentLocation.brand+" — "+currentLocation.name+" ("+currentLocation.city+")<br><b>Date:</b> "+new Date().toLocaleDateString()+"<br><b>Submission by:</b> "+me.name;
+  $("nrHeader").innerHTML="<b>Location:</b> "+currentLocation.brand+" — "+currentLocation.name+" ("+currentLocation.city+")<br><b>Date:</b> "+new Date().toLocaleDateString()+"<br><b>Submitted by:</b> "+me.name;
   $("nrIssue").value=""; $("nrProposal").value="";
   $("nrBrokenWrap").classList.add("hide"); $("nrBrokenName").value=""; $("nrBrokenSerial").value="";
   renderThumbs($("nrPhotoPrev"), [], function(){});
@@ -1094,15 +1123,15 @@ async function openReportPrint(reportCode){
   var html='<div class="report-paper"><div class="report-page">'+
     '<div class="rep-title"><span>MAINTENANCE REQUEST</span></div>'+
     '<div class="rep-head"><div class="rr"><span><b>Brand:</b> '+rep.brand+'</span><span><b>Outlet:</b> '+rep.outlet+'</span></div>'+
-    '<div class="rr"><span><b>Request no:</b> '+rep.id+'</span><span><b>Date:</b> '+new Date(rep.submitted_at).toLocaleDateString()+'</span></div>'+
-    '<div><b>Submission by:</b> '+rep.submitted_name+'</div></div></div>';
+    '<div class="rr"><span><b>Request No.:</b> '+rep.id+'</span><span><b>Date:</b> '+new Date(rep.submitted_at).toLocaleDateString()+'</span></div>'+
+    '<div><b>Submitted by:</b> '+rep.submitted_name+'</div></div></div>';
   Object.keys(byDept).forEach(function(dept, i){
     // No forced page break here — content flows onto page 1 and only spills to
     // further pages if it's actually too long to fit (natural print pagination).
-    html+='<div class="report-page"><div class="sec-h">'+dept+'</div><table class="rep"><thead><tr><th>No</th><th>Issue</th><th>Photo/Video</th><th>Proposal</th><th>Item code</th></tr></thead><tbody>';
+    html+='<div class="report-page"><div class="sec-h">'+dept+'</div><table class="rep"><thead><tr><th>No</th><th>Issue</th><th>Photo / Video</th><th>Proposed Action</th><th>Item Code</th></tr></thead><tbody>';
     byDept[dept].forEach(function(it, idx){
       var media=(it.photos||[]).map(function(p){return '<img src="'+p+'">';}).join("")+(it.video_url?'<div><a href="'+it.video_url+'" target="_blank">▶ video</a></div>':"");
-      html+='<tr><td class="no">'+(idx+1)+'</td><td>'+escapeHtml(it.issue)+'</td><td class="ph">'+media+'</td><td>'+(it.proposal==="sparepart"?"Ask for sparepart":"Call technician/vendor")+'</td><td>'+it.id+'</td></tr>';
+      html+='<tr><td class="no">'+(idx+1)+'</td><td>'+escapeHtml(it.issue)+'</td><td class="ph">'+media+'</td><td>'+(it.proposal==="sparepart"?"Request Spare Part":"Call Technician / Vendor")+'</td><td>'+it.id+'</td></tr>';
     });
     html+='</tbody></table></div>';
   });
@@ -1267,7 +1296,7 @@ async function openItemDetail(itemId){
   $("idTitle").textContent=currentItem.id;
   $("idStatusBadge").innerHTML='<span class="statusbadge '+(currentItem.status==="resolved"?"resolved":"open")+'">'+(currentItem.status==="resolved"?"RESOLVED":"UNRESOLVED")+'</span>';
   $("idHeader").innerHTML='<div class="rr"><span><b>Brand:</b> '+currentItem.brand+'</span><span><b>Outlet:</b> '+currentItem.outlet+'</span></div>'+
-    '<div class="rr"><span><b>Report no:</b> '+currentItem.report_id+'</span><span><b>Department:</b> '+currentItem.department+'</span></div>';
+    '<div class="rr"><span><b>Report No.:</b> '+currentItem.report_id+'</span><span><b>Department:</b> '+currentItem.department+'</span></div>';
   $("idFirstReport").innerHTML=firstReportBlockHtml(currentItem);
   renderProgressList();
   renderApprovals();
@@ -1278,12 +1307,12 @@ $("btnIdBack").addEventListener("click", function(){ show("recallListView"); run
 function firstReportBlockHtml(it){
   var media=(it.photos||[]).map(function(p){return '<img src="'+p+'" style="width:70px;height:70px;object-fit:cover;border-radius:8px;margin:3px">';}).join("")+
     (it.video_url?'<div><a href="'+it.video_url+'" target="_blank">▶ video</a></div>':"");
-  var prop=it.proposal==="sparepart"?"Ask for sparepart":"Call technician/vendor";
+  var prop=it.proposal==="sparepart"?"Request Spare Part":"Call Technician / Vendor";
   var broken=it.broken_part? ('<div class="muted" style="margin-top:6px">Broken part: '+escapeHtml(it.broken_part.name||"")+(it.broken_part.serial?" (SN "+escapeHtml(it.broken_part.serial)+")":"")+(it.broken_part.photo?'<br><img src="'+it.broken_part.photo+'" style="width:70px;height:70px;object-fit:cover;border-radius:8px;margin-top:4px">':"")+'</div>') : "";
-  return '<div><b>Request no:</b> '+it.id+' &nbsp; <b>Date:</b> '+new Date(it.created_at).toLocaleString()+' &nbsp; <b>Submission by:</b> '+it.created_name+'</div>'+
+  return '<div><b>Request No.:</b> '+it.id+' &nbsp; <b>Date:</b> '+new Date(it.created_at).toLocaleString()+' &nbsp; <b>Submitted by:</b> '+it.created_name+'</div>'+
     '<div style="margin-top:6px">'+media+'</div>'+
     '<div style="margin-top:6px"><b>Findings:</b> '+escapeHtml(it.issue)+'</div>'+
-    '<div style="margin-top:4px"><b>Proposal:</b> '+prop+'</div>'+broken;
+    '<div style="margin-top:4px"><b>Proposed Action:</b> '+prop+'</div>'+broken;
 }
 
 function renderProgressList(){
@@ -1323,10 +1352,11 @@ function renderProgressList(){
 function renderApprovals(){
   var host=$("idApprovals"); host.innerHTML="";
   var apps=currentItem.approvals||[];
+  var loc=locations.find(function(l){ return l.id===currentItem.location_id; });
   apps.forEach(function(a, idx){
     var canAct = isStaff() || hasRole(a.role, currentItem.location_id);
     var d=document.createElement("div"); d.className="approvalrow";
-    d.innerHTML='<div class="info"><div class="rn">'+(ROLE_LABEL[a.role]||a.role)+'</div>'+
+    d.innerHTML='<div class="info"><div class="rn">'+escapeHtml(approvalLabelFor(a.role, currentItem, loc))+'</div>'+
       '<div class="rm">'+(a.confirmed? ("Confirmed by "+a.by_name+" · "+new Date(a.at).toLocaleString()) : "Pending")+'</div></div>'+
       (a.confirmed? '<span class="pill resolved">✓ Confirmed</span>' :
         (canAct? '<button type="button" class="btn small proceed" style="width:auto">Confirm</button>' : '<span class="pill grey">Waiting</span>'));
@@ -1484,8 +1514,8 @@ $("apSubmit").addEventListener("click", async function(){
     var okRole = isPersonStaff || myRolesFor(person.id, a.role, currentItem.location_id);
     // fall back to a direct DB check if this isn't the currently-logged-in person (myRoles is only cached for `me`)
     if(!okRole && person.id!==me.id){
-      var rr=await sb.from("maint_roles").select("role,location_id").eq("user_id",person.id).eq("role",a.role);
-      okRole=(rr.data||[]).some(function(x){ return x.location_id===null || x.location_id===currentItem.location_id; });
+      var rr=await sb.from("maint_roles").select("role,location_id").eq("user_id",person.id);
+      okRole=(rr.data||[]).some(function(x){ return (GRANULAR_TO_SLOT[x.role]||x.role)===a.role && (x.location_id===null || x.location_id===currentItem.location_id); });
     }
     if(!okRole){ $("apMsg").textContent=person.name+" doesn't hold the \""+(ROLE_LABEL[a.role]||a.role)+"\" title for this location."; $("apSubmit").disabled=false; return; }
     var newApprovals=currentItem.approvals.slice();
@@ -1522,11 +1552,11 @@ $("btnIdPrint").addEventListener("click", function(){
   var html='<div class="report-paper"><div class="report-page">'+
     '<div class="rep-title"><span>Progress report for '+it.id+'</span><span class="statusbadge '+(it.status==="resolved"?"resolved":"open")+'">'+(it.status==="resolved"?"RESOLVED":"UNRESOLVED")+'</span></div>'+
     '<div class="rep-head"><div class="rr"><span><b>Brand:</b> '+it.brand+'</span><span><b>Outlet:</b> '+it.outlet+'</span></div>'+
-    '<div class="rr"><span><b>Report no:</b> '+it.report_id+'</span><span><b>Date:</b> '+new Date(it.created_at).toLocaleDateString()+'</span></div>'+
-    '<div><b>Submission by:</b> '+it.created_name+'</div><div><b>Department:</b> '+it.department+'</div></div>'+
-    '<div class="sec-h">1st report</div>'+firstReportBlockHtml(it);
+    '<div class="rr"><span><b>Report No.:</b> '+it.report_id+'</span><span><b>Date:</b> '+new Date(it.created_at).toLocaleDateString()+'</span></div>'+
+    '<div><b>Submitted by:</b> '+it.created_name+'</div><div><b>Department:</b> '+it.department+'</div></div>'+
+    '<div class="sec-h">Initial Report</div>'+firstReportBlockHtml(it);
   (it.progress||[]).forEach(function(p,i){
-    html+='<div class="sec-h">Progress '+(i+1)+'</div><div><b>Report no:</b> '+it.id+'-P'+(i+1)+' &nbsp; <b>Date:</b> '+new Date(p.at).toLocaleString()+' &nbsp; <b>Submission by:</b> '+p.by_name+'</div>';
+    html+='<div class="sec-h">Progress '+(i+1)+'</div><div><b>Report No.:</b> '+it.id+'-P'+(i+1)+' &nbsp; <b>Date:</b> '+new Date(p.at).toLocaleString()+' &nbsp; <b>Submitted by:</b> '+p.by_name+'</div>';
     html+=progressPrintBlockHtml(p);
   });
   html+=approvalSignatureBlockHtml(it);
@@ -1633,7 +1663,7 @@ async function renderTeam(){
     var acc=await sb.from("maint_access").select("location_ids").eq("user_id",p.id).limit(1);
     var ids=(acc.data&&acc.data.length)?(acc.data[0].location_ids||[]):[];
     var rr=await sb.from("maint_roles").select("role").eq("user_id",p.id);
-    var titles=(rr.data||[]).map(function(x){return ROLE_LABEL[x.role]||x.role;}).filter(function(v,i,a){return a.indexOf(v)===i;});
+    var titles=(rr.data||[]).map(function(x){return GRANULAR_LABEL[x.role]||ROLE_LABEL[x.role]||x.role;}).filter(function(v,i,a){return a.indexOf(v)===i;});
     if(el) el.textContent=ids.length+" location(s)"+(titles.length? " · "+titles.join(", ") : "");
   });
 }
@@ -1944,26 +1974,49 @@ $("setLocAll").addEventListener("change", function(){
   Array.prototype.forEach.call($("setLocTree").querySelectorAll(".setLocCb"), function(cb){ cb.checked=on; });
   recomputeLocTreeChecks();
 });
+function updateRoleDropdownBtnLabel(){
+  var checked=Array.prototype.filter.call($("setRoleDropdownPanel").querySelectorAll(".setRoleCb"), function(cb){return cb.checked;});
+  $("setRoleDropdownBtn").textContent = checked.length ? (checked.map(function(cb){return GRANULAR_LABEL[cb.value];}).join(", ")) : "Select titles…";
+}
+function renderRoleDropdown(selectedKeys){
+  var panel=$("setRoleDropdownPanel"); panel.innerHTML="";
+  ROLE_GROUPS.forEach(function(g){
+    var gTitle=document.createElement("div"); gTitle.className="muted";
+    gTitle.style.cssText="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;margin:8px 2px 2px";
+    gTitle.textContent=g.label;
+    panel.appendChild(gTitle);
+    g.keys.forEach(function(k){
+      var lbl=document.createElement("label"); lbl.style.cssText="display:flex;align-items:center;gap:8px;font-size:13px;padding:5px 2px";
+      var cb=document.createElement("input"); cb.type="checkbox"; cb.className="setRoleCb"; cb.value=k; cb.style.width="auto";
+      cb.checked = selectedKeys.indexOf(k)>=0;
+      lbl.appendChild(cb); lbl.appendChild(document.createTextNode(" "+GRANULAR_LABEL[k]));
+      panel.appendChild(lbl);
+    });
+  });
+  panel.querySelectorAll(".setRoleCb").forEach(function(cb){ cb.addEventListener("change", updateRoleDropdownBtnLabel); });
+  updateRoleDropdownBtnLabel();
+}
+$("setRoleDropdownBtn").addEventListener("click", function(e){ e.stopPropagation(); $("setRoleDropdownPanel").classList.toggle("hide"); });
+document.addEventListener("click", function(e){
+  var panel=$("setRoleDropdownPanel");
+  if(panel && !panel.classList.contains("hide") && !panel.contains(e.target) && e.target!==$("setRoleDropdownBtn")){ panel.classList.add("hide"); }
+});
 async function openMemberAccessModal(m){
   maCurrentMember=m;
   $("maTitle").textContent=m.name||m.username||"Member";
   $("setMsg").textContent="";
   $("setLocTree").innerHTML="Loading…";
-  $("setRoleSelect").innerHTML="";
+  $("setRoleDropdownPanel").innerHTML=""; $("setRoleDropdownPanel").classList.add("hide");
+  $("setRoleDropdownBtn").textContent="Select titles…";
   $("memberAccessModal").classList.remove("hide");
 
   var acc=await sb.from("maint_access").select("location_ids").eq("user_id",m.id).limit(1);
   var accIds=(acc.data && acc.data.length)? (acc.data[0].location_ids||[]) : [];
   renderSetLocTree(accIds);
 
-  var rr=await sb.from("maint_roles").select("*").eq("user_id",m.id);
-  var have=rr.data||[];
-  var sel=$("setRoleSelect"); sel.innerHTML="";
-  Object.keys(ROLE_LABEL).forEach(function(role){
-    var o=document.createElement("option"); o.value=role; o.textContent=ROLE_LABEL[role];
-    if(have.some(function(x){return x.role===role;})) o.selected=true;
-    sel.appendChild(o);
-  });
+  var rr=await sb.from("maint_roles").select("role").eq("user_id",m.id);
+  var haveKeys=(rr.data||[]).map(function(x){return x.role;});
+  renderRoleDropdown(haveKeys);
 }
 $("btnSetCancel").addEventListener("click", function(){ $("memberAccessModal").classList.add("hide"); });
 $("btnSetSave").addEventListener("click", async function(){
@@ -1975,7 +2028,7 @@ $("btnSetSave").addEventListener("click", async function(){
     var up=await sb.from("maint_access").upsert({user_id:uid, location_ids:ids, updated_by:me.id, updated_at:new Date().toISOString()});
     if(up.error) throw up.error;
     await sb.from("maint_roles").delete().eq("user_id",uid);
-    var selectedRoles=Array.prototype.slice.call($("setRoleSelect").selectedOptions).map(function(o){return o.value;});
+    var selectedRoles=Array.prototype.filter.call($("setRoleDropdownPanel").querySelectorAll(".setRoleCb"), function(cb){return cb.checked;}).map(function(cb){return cb.value;});
     var rows=[];
     // Title applies at every location checked above — no separate "which location" picker.
     selectedRoles.forEach(function(role){
