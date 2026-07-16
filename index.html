@@ -56,6 +56,12 @@
   .finding .code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;color:var(--muted)}
   .tag{font-size:11px;font-weight:700;background:#eef2ff;color:#3730a3;padding:2px 8px;border-radius:6px;display:inline-block}
   .del{background:none;border:none;color:var(--red);font-size:13px;cursor:pointer;padding:4px}
+  .teamtab{border-collapse:collapse;width:100%;font-size:13px;min-width:520px}
+  .teamtab th,.teamtab td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:middle}
+  .teamtab th{background:#3b2314;color:#fff;font-weight:700;white-space:nowrap;font-size:12px}
+  .teamtab td .tcell-in{width:100%;padding:5px 6px;border:1px solid var(--line);border-radius:6px;font-size:13px;box-sizing:border-box}
+  .teamtab .uname{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px}
+  .mgmt-row{display:flex;gap:8px;align-items:center;margin-bottom:8px}.mgmt-row .n{flex:1;font-size:14px}
   .msg{font-size:13px;margin-top:8px}.msg.err{color:var(--red)}.msg.ok{color:var(--green)}
   .authbar{display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:12px;padding:10px 12px;border-radius:10px;background:#eef2ff;color:#3730a3}
   .authbar .grow{flex:1}
@@ -142,7 +148,9 @@
     <button class="btn hide" id="btnRequestsBanner" style="background:#fef3c7;color:#92400e;border:1px solid #fcd34d;margin-bottom:16px">🔔 Delete requests pending: <span id="reqCount">0</span> — review</button>
     <div class="card">
       <h2 class="section">Pick a location</h2>
-      <div class="row"><label>Location</label><select id="selLocation"></select></div>
+      <div class="row"><label>Brand</label><select id="selBrand"></select></div>
+      <div class="row"><label>City</label><select id="selCity" disabled></select></div>
+      <div class="row"><label>Outlet</label><select id="selOutlet" disabled></select></div>
       <div class="btnrow2">
         <button class="btn add" id="btnNewReport">🆕 New report</button>
         <button class="btn preview" id="btnRecall">🔎 Recall report</button>
@@ -170,7 +178,11 @@
         <input type="file" id="nrPhoto" accept="image/*" multiple class="hide">
         <div class="thumbrow" id="nrPhotoPrev"></div>
       </div>
-      <div class="row"><label>Video link <span class="muted" style="font-weight:400">(optional — paste a Drive/YouTube-unlisted link; compress before uploading)</span></label><input type="url" id="nrVideo" placeholder="https://..."></div>
+      <div class="row"><label>Video <span class="muted" style="font-weight:400">(optional, max 20MB — keep clips short, ~15–20 sec)</span></label>
+        <label class="add-photo-lbl" for="nrVideoFile">🎥 Add video (camera or gallery)</label>
+        <input type="file" id="nrVideoFile" accept="video/*" class="hide">
+        <div id="nrVideoPrev" style="margin-top:8px"></div>
+      </div>
       <div class="row"><label>Proposal</label>
         <select id="nrProposal">
           <option value="">— choose —</option>
@@ -185,7 +197,11 @@
         <label class="add-photo-lbl" for="nrBrokenPhoto">📷 Add photo</label>
         <input type="file" id="nrBrokenPhoto" accept="image/*" class="hide">
         <div class="thumbrow" id="nrBrokenPhotoPrev"></div>
-        <div class="row" style="margin-top:10px"><label>Video link <span class="muted" style="font-weight:400">(optional)</span></label><input type="url" id="nrBrokenVideo" placeholder="https://..."></div>
+        <div class="row" style="margin-top:10px"><label>Video <span class="muted" style="font-weight:400">(optional, max 20MB)</span></label>
+          <label class="add-photo-lbl" for="nrBrokenVideoFile">🎥 Add video</label>
+          <input type="file" id="nrBrokenVideoFile" accept="video/*" class="hide">
+          <div id="nrBrokenVideoPrev" style="margin-top:8px"></div>
+        </div>
       </div>
       <button class="btn add" id="btnNrAdd">+ Add finding to report</button>
       <div class="msg err" id="nrMsg"></div>
@@ -256,7 +272,30 @@
       <div class="msg" id="uncodedMsg"></div>
     </div>
     <div class="card">
+      <h2 class="section">Outlet visibility in Maintenance Project</h2>
+      <p class="muted" style="font-size:13px;margin-bottom:10px">Turn any outlet off here to hide it from everyone's location picker in this app — Store Visit is unaffected either way.</p>
+      <div id="visList"></div>
+      <p class="muted" id="visEmpty">No coded outlets yet.</p>
+      <div class="msg" id="visMsg"></div>
+    </div>
+    <div class="card">
       <div class="sec-head"><h2 class="section" style="margin:0;border:none">Settings</h2><button class="btn back small" id="btnSetBack">← Back</button></div>
+      <p class="muted" style="font-size:13px">Everything here is the same shared backend as Store Visit Report — changes made in either app apply to both instantly.</p>
+      <h2 class="section" style="margin-top:10px">Team &amp; account levels</h2>
+      <p class="muted" style="font-size:13px;margin-bottom:10px">Same team as Store Visit Report — change someone's level here or there, it's the same account either way.</p>
+      <div id="teamList" style="overflow-x:auto"></div>
+      <div class="msg" id="teamMsg"></div>
+    </div>
+    <div class="card">
+      <h2 class="section">Outlets (brand / city / outlet)</h2>
+      <p class="muted" style="font-size:13px;margin-bottom:10px">Same outlet list as Store Visit Report — add/rename/remove here or there, both apps see it instantly. Owner only (matches Store Visit's own restriction).</p>
+      <div class="row"><label>Add a brand</label>
+        <div class="mgmt-row"><input type="text" id="newBrand" class="n" placeholder="e.g. Devon"><button class="btn small add" id="addBrandBtn">Add</button></div>
+      </div>
+      <div id="brandTree"></div>
+      <div class="msg" id="brandMsg"></div>
+    </div>
+    <div class="card">
       <h2 class="section" style="margin-top:10px">Invite a new member</h2>
       <p class="muted" style="font-size:13px;margin-bottom:10px">Same account system as Store Visit Report — one login works for both apps. Creates the profile; they set their own password via the link (or set it yourself on their behalf right after).</p>
       <div class="row"><label>First name</label><input type="text" id="invFirst"></div>
@@ -464,6 +503,7 @@ var approvalRules={};        // key "type|dept" -> [roles]
 var currentLocation=null;    // location row chosen on home
 var draftItems=[];           // findings queued in newReportView, not yet submitted
 var draftPhotos=[], draftBrokenPhoto=null;
+var draftVideoFile=null, draftBrokenVideoFile=null;
 var currentItem=null;        // loaded maint_items row for itemDetailView
 var pgPhotos={};             // temp holder of data URLs keyed by field id, for progress modal
 var apRoleCtx=null;          // {role, idx} being confirmed
@@ -665,22 +705,64 @@ async function loadApprovalRules(){
 }
 
 function visibleLocations(){
-  if(myAccessLocIds===null) return locations;
-  return locations.filter(function(l){ return myAccessLocIds.indexOf(l.id)>=0; });
+  var active=locations.filter(function(l){ return l.active!==false; });
+  if(myAccessLocIds===null) return active;
+  return active.filter(function(l){ return myAccessLocIds.indexOf(l.id)>=0; });
 }
 
-/* ---------------- home ---------------- */
-function renderHome(){
-  $("authBarText").textContent="Signed in as "+me.name+" ("+me.role+(myRoles.length?", "+myRoles.map(function(r){return ROLE_LABEL[r.role]||r.role;}).join(", "):"")+")";
-  var sel=$("selLocation"); sel.innerHTML="";
+/* ---------------- home: cascading Brand / City / Outlet picker ---------------- */
+function homeBrandOptions(){
   var vl=visibleLocations();
-  if(!vl.length){ sel.innerHTML="<option value=''>No locations assigned — ask your admin</option>"; }
-  vl.forEach(function(l){
+  var brands=[]; vl.forEach(function(l){ if(brands.indexOf(l.brand)<0) brands.push(l.brand); });
+  brands.sort();
+  return brands;
+}
+function homeCityOptions(brand){
+  var vl=visibleLocations().filter(function(l){ return l.brand===brand; });
+  var cities=[]; vl.forEach(function(l){ if(cities.indexOf(l.city)<0) cities.push(l.city); });
+  cities.sort();
+  return cities;
+}
+function homeOutletOptions(brand,city){
+  return visibleLocations().filter(function(l){ return l.brand===brand && l.city===city; })
+    .sort(function(a,b){ return a.name.localeCompare(b.name); });
+}
+function fillHomeBrands(){
+  var s=$("selBrand"); s.innerHTML="";
+  var brands=homeBrandOptions();
+  if(!brands.length){ s.innerHTML="<option value=''>No locations assigned — ask your admin</option>"; }
+  else{
+    s.innerHTML="<option value=''>— choose brand —</option>";
+    brands.forEach(function(b){ var o=document.createElement("option"); o.value=b; o.textContent=b; s.appendChild(o); });
+  }
+  fillHomeCities();
+}
+function fillHomeCities(){
+  var brand=$("selBrand").value, s=$("selCity");
+  s.innerHTML="<option value=''>— choose city —</option>"; s.disabled=!brand;
+  if(brand) homeCityOptions(brand).forEach(function(c){ var o=document.createElement("option"); o.value=c; o.textContent=c; s.appendChild(o); });
+  fillHomeOutlets();
+}
+function fillHomeOutlets(){
+  var brand=$("selBrand").value, city=$("selCity").value, s=$("selOutlet");
+  s.innerHTML="<option value=''>— choose outlet —</option>"; s.disabled=!city;
+  if(city) homeOutletOptions(brand,city).forEach(function(l){
     var o=document.createElement("option"); o.value=l.id;
     var stale=staleLocationIds.indexOf(l.id)>=0;
-    o.textContent=l.brand+" — "+l.name+" ("+l.city+") ["+l.id+"]"+(stale?" ⚠ not in Store Visit's list anymore":"");
-    sel.appendChild(o);
+    o.textContent=l.name+(stale?" ⚠ not in Store Visit's list anymore":"");
+    s.appendChild(o);
   });
+}
+$("selBrand").addEventListener("change", fillHomeCities);
+$("selCity").addEventListener("change", fillHomeOutlets);
+function selectedHomeLocation(){
+  var id=$("selOutlet").value;
+  return id ? locations.find(function(l){return l.id===id;}) : null;
+}
+
+function renderHome(){
+  $("authBarText").textContent="Signed in as "+me.name+" ("+me.role+(myRoles.length?", "+myRoles.map(function(r){return ROLE_LABEL[r.role]||r.role;}).join(", "):"")+")";
+  fillHomeBrands();
   if(isStaff() && uncodedOutlets.length){
     $("homeHint").textContent="⚠ "+uncodedOutlets.length+" outlet(s) in Store Visit have no maintenance code yet — add them in Settings.";
   } else { $("homeHint").textContent=""; }
@@ -712,20 +794,18 @@ async function loadMyReports(){
   });
 }
 
-$("selLocation").addEventListener("change", function(){});
 $("btnLogout").addEventListener("click", async function(){ await sb.auth.signOut(); me=null; show("loginView"); });
 $("btnAuthGo").addEventListener("click", doSignIn);
 $("btnSettings").addEventListener("click", function(){ openSettings(); });
 $("btnRequestsBanner").addEventListener("click", function(){ openRequests(); });
 
 $("btnNewReport").addEventListener("click", function(){
-  var id=$("selLocation").value; if(!id){ return; }
-  currentLocation=locations.find(function(l){return l.id===id;});
+  var loc=selectedHomeLocation(); if(!loc){ return; }
+  currentLocation=loc;
   openNewReport();
 });
 $("btnRecall").addEventListener("click", function(){
-  var id=$("selLocation").value;
-  currentLocation = id ? locations.find(function(l){return l.id===id;}) : null;
+  currentLocation=selectedHomeLocation();
   openRecall();
 });
 
@@ -803,6 +883,37 @@ async function uploadPhotos(arr, pathPrefix){
   return out;
 }
 
+/* ---------------- video: direct upload (no external link needed), size-capped client-side ---------------- */
+var MAX_VIDEO_BYTES=20*1024*1024; // ~20MB — browsers can't transcode/compress video client-side, so we cap instead
+function fmtBytes(n){ return n>1024*1024 ? (n/1024/1024).toFixed(1)+"MB" : Math.round(n/1024)+"KB"; }
+async function uploadVideo(file, pathPrefix){
+  if(!file) return null;
+  var ext=(file.name.split(".").pop()||"mp4").toLowerCase();
+  var path=pathPrefix+"/video_"+Date.now()+"_"+Math.random().toString(36).slice(2,8)+"."+ext;
+  var up=await sb.storage.from("maint-photos").upload(path, file, {contentType:file.type||"video/mp4"});
+  if(up.error) throw up.error;
+  var pub=sb.storage.from("maint-photos").getPublicUrl(path);
+  return pub.data.publicUrl;
+}
+function renderVideoPrev(container, file, onRemove){
+  container.innerHTML="";
+  if(!file) return;
+  var d=document.createElement("div");
+  d.style.cssText="display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:13px";
+  d.innerHTML='🎥 <span style="flex:1">'+escapeHtml(file.name)+' ('+fmtBytes(file.size)+')</span><button type="button" class="x" style="position:static;background:var(--red);color:#fff;border:none;border-radius:999px;width:24px;height:24px;font-size:14px;cursor:pointer">×</button>';
+  d.querySelector(".x").addEventListener("click", onRemove);
+  container.appendChild(d);
+}
+function wireVideoPicker(inputId, prevId, onPicked){
+  $(inputId).addEventListener("change", function(){
+    var f=$(inputId).files && $(inputId).files[0];
+    $(inputId).value="";
+    if(!f) return;
+    if(f.size>MAX_VIDEO_BYTES){ alert("That video is "+fmtBytes(f.size)+" — max is 20MB. Record a shorter clip (15–20 sec) and try again."); return; }
+    onPicked(f);
+  });
+}
+
 function renderThumbs(container, urls, onRemove){
   container.innerHTML="";
   urls.forEach(function(u,i){
@@ -829,12 +940,14 @@ function renderNrDeptWrap(){
   });
 }
 function openNewReport(){
-  draftItems=[]; draftPhotos=[]; draftBrokenPhoto=null; nrDept=null;
+  draftItems=[]; draftPhotos=[]; draftBrokenPhoto=null; draftVideoFile=null; draftBrokenVideoFile=null; nrDept=null;
   $("nrHeader").innerHTML="<b>Location:</b> "+currentLocation.brand+" — "+currentLocation.name+" ("+currentLocation.city+")<br><b>Date:</b> "+new Date().toLocaleDateString()+"<br><b>Submission by:</b> "+me.name;
-  $("nrIssue").value=""; $("nrVideo").value=""; $("nrProposal").value="";
-  $("nrBrokenWrap").classList.add("hide"); $("nrBrokenName").value=""; $("nrBrokenSerial").value=""; $("nrBrokenVideo").value="";
+  $("nrIssue").value=""; $("nrProposal").value="";
+  $("nrBrokenWrap").classList.add("hide"); $("nrBrokenName").value=""; $("nrBrokenSerial").value="";
   renderThumbs($("nrPhotoPrev"), [], function(){});
   renderThumbs($("nrBrokenPhotoPrev"), [], function(){});
+  renderVideoPrev($("nrVideoPrev"), null, function(){});
+  renderVideoPrev($("nrBrokenVideoPrev"), null, function(){});
   renderNrDeptWrap(); renderNrList();
   $("nrMsg").textContent="";
   show("newReportView");
@@ -851,6 +964,14 @@ $("nrBrokenPhoto").addEventListener("change", async function(){
   draftBrokenPhoto=await pickCompressed($("nrBrokenPhoto"), false);
   renderThumbs($("nrBrokenPhotoPrev"), draftBrokenPhoto?[draftBrokenPhoto]:[], function(){ draftBrokenPhoto=null; renderThumbs($("nrBrokenPhotoPrev"),[],function(){}); });
   $("nrBrokenPhoto").value="";
+});
+wireVideoPicker("nrVideoFile","nrVideoPrev", function(f){
+  draftVideoFile=f;
+  renderVideoPrev($("nrVideoPrev"), draftVideoFile, function(){ draftVideoFile=null; renderVideoPrev($("nrVideoPrev"), null, function(){}); });
+});
+wireVideoPicker("nrBrokenVideoFile","nrBrokenVideoPrev", function(f){
+  draftBrokenVideoFile=f;
+  renderVideoPrev($("nrBrokenVideoPrev"), draftBrokenVideoFile, function(){ draftBrokenVideoFile=null; renderVideoPrev($("nrBrokenVideoPrev"), null, function(){}); });
 });
 
 function renderNrList(){
@@ -881,14 +1002,15 @@ $("btnNrAdd").addEventListener("click", function(){
   if(proposal==="sparepart"){
     if(!draftBrokenPhoto){ $("nrMsg").textContent="Broken sparepart photo is required."; return; }
     if(!$("nrBrokenName").value.trim()){ $("nrMsg").textContent="Broken part name is required."; return; }
-    broken={name:$("nrBrokenName").value.trim(), serial:$("nrBrokenSerial").value.trim(), photo:draftBrokenPhoto, video_url:$("nrBrokenVideo").value.trim()||null};
+    broken={name:$("nrBrokenName").value.trim(), serial:$("nrBrokenSerial").value.trim(), photo:draftBrokenPhoto, videoFile:draftBrokenVideoFile};
   }
-  draftItems.push({department:nrDept, issue:issue, photos:draftPhotos.slice(), video_url:$("nrVideo").value.trim()||null, proposal:proposal, broken_part:broken});
+  draftItems.push({department:nrDept, issue:issue, photos:draftPhotos.slice(), videoFile:draftVideoFile, proposal:proposal, broken_part:broken});
   nrDept=null; renderNrDeptWrap();
-  $("nrIssue").value=""; $("nrVideo").value=""; $("nrProposal").value=""; $("nrBrokenWrap").classList.add("hide");
-  draftPhotos=[]; draftBrokenPhoto=null;
+  $("nrIssue").value=""; $("nrProposal").value=""; $("nrBrokenWrap").classList.add("hide");
+  draftPhotos=[]; draftBrokenPhoto=null; draftVideoFile=null; draftBrokenVideoFile=null;
   renderThumbs($("nrPhotoPrev"),[],function(){}); renderThumbs($("nrBrokenPhotoPrev"),[],function(){});
-  $("nrBrokenName").value=""; $("nrBrokenSerial").value=""; $("nrBrokenVideo").value="";
+  renderVideoPrev($("nrVideoPrev"), null, function(){}); renderVideoPrev($("nrBrokenVideoPrev"), null, function(){});
+  $("nrBrokenName").value=""; $("nrBrokenSerial").value="";
   renderNrList();
 });
 
@@ -904,14 +1026,18 @@ $("btnNrSubmit").addEventListener("click", async function(){
       var seq=await nextItemSeq(currentLocation, it.department);
       var code=makeItemCode(currentLocation, it.department, seq);
       var photos=await uploadPhotos(it.photos, code);
+      var videoUrl=await uploadVideo(it.videoFile, code);
       var broken=it.broken_part;
-      if(broken){ broken=Object.assign({}, broken, {photo: await uploadPhoto(broken.photo, code+"_broken")}); }
+      if(broken){
+        var brokenVideoUrl=await uploadVideo(broken.videoFile, code+"_broken");
+        broken={name:broken.name, serial:broken.serial, photo: await uploadPhoto(broken.photo, code+"_broken"), video_url:brokenVideoUrl};
+      }
       var rules=approvalRules[currentLocation.type+"|"+it.department]||[];
       var approvals=rules.map(function(role){ return {role:role, confirmed:false, by:null, by_name:null, at:null, proof:[]}; });
       itemRows.push({
         id:code, report_id:reportCode, location_id:currentLocation.id, seq:seq,
         brand:currentLocation.brand, city:currentLocation.city, outlet:currentLocation.name, department:it.department,
-        issue:it.issue, photos:photos, video_url:it.video_url, proposal:it.proposal, broken_part:broken,
+        issue:it.issue, photos:photos, video_url:videoUrl, proposal:it.proposal, broken_part:broken,
         status:"open", progress:[], approvals:approvals,
         created_by:me.id, created_name:me.name
       });
@@ -949,7 +1075,7 @@ async function openReportPrint(reportCode){
   Object.keys(byDept).forEach(function(dept, i){
     html+='<div class="report-page'+(true?' pgbreak':'')+'"><div class="sec-h">'+dept+'</div><table class="rep"><thead><tr><th>No</th><th>Issue</th><th>Photo/Video</th><th>Proposal</th><th>Item code</th></tr></thead><tbody>';
     byDept[dept].forEach(function(it, idx){
-      var media=(it.photos||[]).map(function(p){return '<img src="'+p+'">';}).join("")+(it.video_url?'<div><a href="'+it.video_url+'" target="_blank">video link</a></div>':"");
+      var media=(it.photos||[]).map(function(p){return '<img src="'+p+'">';}).join("")+(it.video_url?'<div><a href="'+it.video_url+'" target="_blank">▶ video</a></div>':"");
       html+='<tr><td class="no">'+(idx+1)+'</td><td>'+escapeHtml(it.issue)+'</td><td class="ph">'+media+'</td><td>'+(it.proposal==="sparepart"?"Ask for sparepart":"Call technician/vendor")+'</td><td>'+it.id+'</td></tr>';
     });
     html+='</tbody></table></div>';
@@ -1080,7 +1206,7 @@ $("btnIdBack").addEventListener("click", function(){ show("recallListView"); run
 
 function firstReportBlockHtml(it){
   var media=(it.photos||[]).map(function(p){return '<img src="'+p+'" style="width:70px;height:70px;object-fit:cover;border-radius:8px;margin:3px">';}).join("")+
-    (it.video_url?'<div><a href="'+it.video_url+'" target="_blank">video link</a></div>':"");
+    (it.video_url?'<div><a href="'+it.video_url+'" target="_blank">▶ video</a></div>':"");
   var prop=it.proposal==="sparepart"?"Ask for sparepart":"Call technician/vendor";
   var broken=it.broken_part? ('<div class="muted" style="margin-top:6px">Broken part: '+escapeHtml(it.broken_part.name||"")+(it.broken_part.serial?" (SN "+escapeHtml(it.broken_part.serial)+")":"")+(it.broken_part.photo?'<br><img src="'+it.broken_part.photo+'" style="width:70px;height:70px;object-fit:cover;border-radius:8px;margin-top:4px">':"")+'</div>') : "";
   return '<div><b>Request no:</b> '+it.id+' &nbsp; <b>Date:</b> '+new Date(it.created_at).toLocaleString()+' &nbsp; <b>Submission by:</b> '+it.created_name+'</div>'+
@@ -1311,6 +1437,114 @@ $("btnIdPrint").addEventListener("click", function(){
   showPrintable(html, "← Back to item", function(){ openItemDetail(it.id); });
 });
 
+/* ---------------- team & account levels (shared profiles table — same as Store Visit) ---------------- */
+async function renderTeam(){
+  var box=$("teamList"), msg=$("teamMsg"); msg.textContent=""; box.innerHTML="Loading...";
+  var r=await sb.from("profiles").select("id,email,name,role,username").order("created_at",{ascending:true});
+  if(r.error){ box.innerHTML=""; msg.className="msg err"; msg.textContent=r.error.message; return; }
+  var rows=r.data||[];
+  if(!rows.length){ box.innerHTML="<p class='muted'>No team members yet.</p>"; return; }
+  var tbl=document.createElement("table"); tbl.className="teamtab";
+  tbl.innerHTML="<thead><tr><th>Name</th><th>E-mail</th><th>Username</th><th>Role</th></tr></thead>";
+  var tb=document.createElement("tbody");
+  rows.forEach(function(p){
+    var isMe=(me && p.id===me.id);
+    var tr=document.createElement("tr");
+    var tdName=document.createElement("td");
+    var ni=document.createElement("input"); ni.type="text"; ni.className="tcell-in"; ni.value=p.name||""; tdName.appendChild(ni);
+    if(isMe){ var tag=document.createElement("div"); tag.className="muted"; tag.style.fontSize="11px"; tag.textContent="(you)"; tdName.appendChild(tag); }
+    tr.appendChild(tdName);
+    ni.addEventListener("change", async function(){
+      var nm=ni.value.trim(); if(!nm||nm===p.name) return;
+      msg.className="msg"; msg.textContent="Saving...";
+      var u=await sb.from("profiles").update({name:nm}).eq("id",p.id);
+      if(u.error){ msg.className="msg err"; msg.textContent=u.error.message; return; }
+      p.name=nm; if(isMe){ me.name=nm; renderHome(); }
+      msg.className="msg ok"; msg.textContent="Saved name for "+escapeHtml(nm)+".";
+    });
+    var tdEmail=document.createElement("td"); tdEmail.textContent=p.email||""; tdEmail.style.fontSize="12px"; tr.appendChild(tdEmail);
+    var tdUser=document.createElement("td"); var us=document.createElement("span"); us.className="uname"; us.textContent=p.username||"—"; tdUser.appendChild(us); tr.appendChild(tdUser);
+    var tdRole=document.createElement("td"); var sel=document.createElement("select"); sel.className="tcell-in";
+    ["member","admin","owner"].forEach(function(role){ var o=document.createElement("option"); o.value=role; o.textContent=role; if(p.role===role) o.selected=true; sel.appendChild(o); });
+    sel.addEventListener("change", async function(){
+      msg.className="msg"; msg.textContent="Saving...";
+      var u=await sb.from("profiles").update({role:sel.value}).eq("id",p.id);
+      if(u.error){ msg.className="msg err"; msg.textContent=u.error.message; sel.value=p.role; return; }
+      p.role=sel.value; if(isMe){ me.role=sel.value; }
+      msg.className="msg ok"; msg.textContent="Updated "+escapeHtml(p.name||p.email)+" → "+sel.value+" (applies in Store Visit too).";
+    });
+    tdRole.appendChild(sel); tr.appendChild(tdRole);
+    tb.appendChild(tr);
+  });
+  tbl.appendChild(tb);
+  box.innerHTML=""; box.appendChild(tbl);
+}
+
+/* ---------------- outlets: brand/city/outlet tree (same app_config "outlets" key Store Visit uses) ---------------- */
+var cfgTree=null;
+async function loadCfgTree(){
+  var r=await sb.from("app_config").select("data").eq("key","outlets").limit(1);
+  cfgTree=(r.data && r.data.length && r.data[0].data) ? r.data[0].data : {brands:[]};
+  if(!cfgTree.brands) cfgTree.brands=[];
+}
+async function pushCfgTree(){
+  if(!(me && me.role==="owner")) return;
+  try{ await sb.from("app_config").upsert({key:"outlets", data:cfgTree, updated:Date.now(), updated_by:me.id}); }catch(e){}
+}
+function renderBrandTree(){
+  var root=$("brandTree"); root.innerHTML="";
+  var isOwner=(me && me.role==="owner");
+  $("newBrand").disabled=!isOwner; $("addBrandBtn").disabled=!isOwner;
+  if(!isOwner){ $("brandMsg").className="msg"; $("brandMsg").textContent="Only the owner can add/rename/remove outlets."; }
+  cfgTree.brands.forEach(function(b,bi){
+    var box=document.createElement("div"); box.className="card"; box.style.cssText="padding:12px;margin:0 0 10px";
+    box.innerHTML="<div class='mgmt-row'><b class='n'>🏷 "+escapeHtml(b.name)+"</b>"+(isOwner?"<button class='del' data-b='"+bi+"' data-act='delB'>delete brand</button>":"")+"</div>";
+    (b.cities||[]).forEach(function(c,ci){
+      var cd=document.createElement("div"); cd.style.margin="6px 0 6px 10px";
+      cd.innerHTML="<div class='mgmt-row'><span class='n'>📍 "+escapeHtml(c.name)+"</span>"+(isOwner?"<button class='del' data-b='"+bi+"' data-c='"+ci+"' data-act='delC'>delete city</button>":"")+"</div>";
+      (c.outlets||[]).forEach(function(o,oi){
+        var od=document.createElement("div"); od.className="mgmt-row"; od.style.margin="2px 0 2px 20px";
+        od.innerHTML="<span class='n muted'>🏬 "+escapeHtml(o)+"</span>"+(isOwner?"<button class='del' data-b='"+bi+"' data-c='"+ci+"' data-o='"+oi+"' data-act='delO'>remove</button>":"");
+        cd.appendChild(od);
+      });
+      if(isOwner){
+        var addO=document.createElement("div"); addO.className="mgmt-row"; addO.style.marginLeft="20px";
+        addO.innerHTML="<input type='text' class='n' placeholder='add outlet in "+escapeHtml(c.name)+"'><button class='btn small' data-b='"+bi+"' data-c='"+ci+"' data-act='addO'>Add</button>";
+        cd.appendChild(addO);
+      }
+      box.appendChild(cd);
+    });
+    if(isOwner){
+      var addC=document.createElement("div"); addC.className="mgmt-row"; addC.style.marginLeft="10px";
+      addC.innerHTML="<input type='text' class='n' placeholder='add city in "+escapeHtml(b.name)+"'><button class='btn small' data-b='"+bi+"' data-act='addC'>Add</button>";
+      box.appendChild(addC);
+    }
+    root.appendChild(box);
+  });
+  root.querySelectorAll("[data-act]").forEach(function(btn){
+    btn.addEventListener("click", async function(){
+      var bi=+btn.getAttribute("data-b"), ci=btn.hasAttribute("data-c")?+btn.getAttribute("data-c"):null, oi=btn.hasAttribute("data-o")?+btn.getAttribute("data-o"):null;
+      var act=btn.getAttribute("data-act");
+      if(act==="delB"){ if(!confirm("Delete brand and all its cities/outlets?")) return; cfgTree.brands.splice(bi,1); }
+      else if(act==="delC"){ if(!confirm("Delete this city?")) return; cfgTree.brands[bi].cities.splice(ci,1); }
+      else if(act==="delO"){ cfgTree.brands[bi].cities[ci].outlets.splice(oi,1); }
+      else if(act==="addC"){ var v=btn.previousElementSibling.value.trim(); if(!v) return; cfgTree.brands[bi].cities.push({name:v,outlets:[]}); }
+      else if(act==="addO"){ var v2=btn.previousElementSibling.value.trim(); if(!v2) return; cfgTree.brands[bi].cities[ci].outlets.push(v2); }
+      await pushCfgTree();
+      renderBrandTree();
+      await loadLocations(); renderUncodedOutlets(); renderVisibilityList();
+    });
+  });
+}
+$("addBrandBtn").addEventListener("click", async function(){
+  var n=$("newBrand").value.trim(); if(!n) return;
+  if(cfgTree.brands.some(function(b){ return b.name.toLowerCase()===n.toLowerCase(); })){ alert("Brand exists."); return; }
+  cfgTree.brands.push({name:n, cities:[]});
+  $("newBrand").value="";
+  await pushCfgTree();
+  renderBrandTree();
+});
+
 /* ---------------- settings (admin) ---------------- */
 $("btnInviteCreate").addEventListener("click", async function(){
   var msg=$("invMsg"); msg.className="msg";
@@ -1351,12 +1585,38 @@ async function refreshMemberDropdown(){
 $("setMember").addEventListener("change", loadMemberSettings);
 async function openSettings(){
   $("invMsg").textContent=""; $("invResult").classList.add("hide");
+  await renderTeam();
+  await loadCfgTree(); renderBrandTree();
   await loadLocations();   // refresh so "uncoded outlets" reflects the latest Store Visit tree
   renderUncodedOutlets();
+  renderVisibilityList();
   await refreshMemberDropdown();
   show("settingsView");
 }
 $("btnSetBack").addEventListener("click", function(){ show("homeView"); });
+
+function renderVisibilityList(){
+  var host=$("visList"); host.innerHTML=""; $("visMsg").textContent="";
+  $("visEmpty").style.display = locations.length? "none":"block";
+  locations.forEach(function(l){
+    var row=document.createElement("label");
+    row.style.cssText="display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-bottom:6px;font-size:13px";
+    row.innerHTML='<input type="checkbox" style="width:auto" '+(l.active!==false?"checked":"")+'> '+
+      '<span style="flex:1">'+l.brand+' — '+l.name+' ('+l.city+') <span class="muted">'+l.type+'</span></span>';
+    var cb=row.querySelector("input");
+    cb.addEventListener("change", async function(){
+      cb.disabled=true;
+      try{
+        var upd=await sb.from("maint_locations").update({active:cb.checked}).eq("id",l.id);
+        if(upd.error) throw upd.error;
+        l.active=cb.checked;
+        $("visMsg").className="msg ok"; $("visMsg").textContent=(cb.checked?"Shown: ":"Hidden: ")+l.name;
+      }catch(e){ cb.checked=!cb.checked; $("visMsg").className="msg err"; $("visMsg").textContent="Failed: "+(e.message||e); }
+      cb.disabled=false;
+    });
+    host.appendChild(row);
+  });
+}
 
 function renderUncodedOutlets(){
   $("uncodedCard").classList.toggle("hide", uncodedOutlets.length===0);
@@ -1394,10 +1654,10 @@ async function loadMemberSettings(){
   var loc=$("setLocList"); loc.innerHTML="";
   var acc=await sb.from("maint_access").select("location_ids").eq("user_id",uid).limit(1);
   var accIds=(acc.data && acc.data.length)? (acc.data[0].location_ids||[]) : [];
-  locations.forEach(function(l){
+  locations.filter(function(l){ return l.active!==false; }).forEach(function(l){
     var id="loc_"+l.id;
     var wrap=document.createElement("label"); wrap.style.cssText="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:4px";
-    wrap.innerHTML='<input type="checkbox" id="'+id+'" style="width:auto" '+(accIds.indexOf(l.id)>=0?"checked":"")+'> '+l.brand+' — '+l.name+' ('+l.type+')';
+    wrap.innerHTML='<input type="checkbox" id="'+id+'" style="width:auto" '+(accIds.indexOf(l.id)>=0?"checked":"")+'> '+l.brand+' — '+l.name+' ('+l.city+', '+l.type+')';
     loc.appendChild(wrap);
   });
   var rr=await sb.from("maint_roles").select("*").eq("user_id",uid);
