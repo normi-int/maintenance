@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#1f2937">
-<title>Maintenance Project</title>
+<title>Maintenance Report</title>
 <style>
   :root{--bg:#f4f5f7;--card:#fff;--ink:#1f2937;--muted:#6b7280;--line:#e5e7eb;--accent:#2563eb;--green:#16a34a;--red:#dc2626;--amber:#d97706;--radius:14px;}
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -53,14 +53,14 @@
   .thumbrow .t .x{position:absolute;top:-8px;right:-8px;background:var(--red);color:#fff;border:none;border-radius:999px;width:24px;height:24px;font-size:14px;cursor:pointer}
   .finding{border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px;background:#fbfcfd;}
   .finding .no{font-weight:700;color:var(--accent)}
-  .finding .code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;color:var(--muted)}
+  .finding .code{font-family:Arial,Helvetica,sans-serif;font-size:12px;color:var(--muted)}
   .tag{font-size:11px;font-weight:700;background:#eef2ff;color:#3730a3;padding:2px 8px;border-radius:6px;display:inline-block}
   .del{background:none;border:none;color:var(--red);font-size:13px;cursor:pointer;padding:4px}
   .teamtab{border-collapse:collapse;width:100%;font-size:13px;min-width:520px}
   .teamtab th,.teamtab td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:middle}
   .teamtab th{background:#3b2314;color:#fff;font-weight:700;white-space:nowrap;font-size:12px}
   .teamtab td .tcell-in{width:100%;padding:5px 6px;border:1px solid var(--line);border-radius:6px;font-size:13px;box-sizing:border-box}
-  .teamtab .uname{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px}
+  .teamtab .uname{font-family:Arial,Helvetica,sans-serif;font-size:12px}
   .mgmt-row{display:flex;gap:8px;align-items:center;margin-bottom:8px}.mgmt-row .n{flex:1;font-size:14px}
   .msg{font-size:13px;margin-top:8px}.msg.err{color:var(--red)}.msg.ok{color:var(--green)}
   .authbar{display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:12px;padding:10px 12px;border-radius:10px;background:#eef2ff;color:#3730a3}
@@ -85,7 +85,8 @@
   .rep-title{font-size:18px;font-weight:800;letter-spacing:.05em;border-bottom:3px solid var(--ink);padding-bottom:5px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:baseline}
   .rep-head{font-size:14px;line-height:1.6}.rep-head b{font-weight:700}
   .rep-head .rr{display:flex;justify-content:space-between}
-  .sec-h{font-size:15px;margin:14px 0 4px;padding:3px 8px;background:#eef2f7;border-left:4px solid var(--ink)}
+  .sec-h{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;color:#fff;margin:14px 0 4px;padding:5px 8px;background:#6b7280}
+  code{font-family:Arial,Helvetica,sans-serif}
   table.rep{width:100%;border-collapse:collapse;margin-top:6px}
   table.rep th,table.rep td{border:1px solid #9aa2ad;padding:6px;vertical-align:top;font-size:13px;text-align:left;overflow-wrap:break-word}
   table.rep th{background:#f1f5f9;font-weight:700;text-align:center}
@@ -103,13 +104,15 @@
     .report-page.pgbreak{ break-before:page; page-break-before:always }
     #reportView .report-paper{border:none;border-radius:0;padding:0}
     table.rep th,table.rep td{border:1px solid #333;padding:3px 6px;font-size:11px}
+    table.rep tr{ break-inside:avoid; page-break-inside:avoid }
+    .sec-h{ break-after:avoid; page-break-after:avoid }
   }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 <header class="appbar">
-  <h1>Maintenance Project <span class="sub" id="barSub"></span></h1>
+  <h1>Maintenance Report <span class="sub" id="barSub"></span></h1>
   <button class="iconbtn noprint hide" id="btnSettings">⚙ Settings</button>
   <button class="iconbtn noprint hide" id="btnLogout">Sign out</button>
 </header>
@@ -225,10 +228,14 @@
       <div class="sec-head"><h2 class="section" style="margin:0;border:none">Recall report</h2><button class="btn back small" id="btnRecallBack">← Back</button></div>
       <input type="text" id="rlSearch" placeholder="🔎 Search by item code, report code, or issue text…" style="width:100%;box-sizing:border-box;padding:9px 11px;border:1px solid var(--line);border-radius:10px;font-size:14px;margin:6px 0 10px">
       <div class="filterbar">
-        <div class="two">
-          <div class="row"><label>Location</label><select id="rlLocation"></select></div>
-          <div class="row"><label>Department</label><select id="rlDept"><option value="">All</option><option value="FOH">FOH</option><option value="BAR">BAR</option><option value="BOH">BOH</option><option value="PASTRY">PASTRY</option></select></div>
+        <div class="row"><label>Location</label>
+          <div class="two" style="margin-bottom:8px">
+            <select id="rlBrand"></select>
+            <select id="rlCity" disabled></select>
+          </div>
+          <select id="rlOutlet" disabled></select>
         </div>
+        <div class="row"><label>Department</label><select id="rlDept"><option value="">All</option><option value="FOH">FOH</option><option value="BAR">BAR</option><option value="BOH">BOH</option><option value="PASTRY">PASTRY</option></select></div>
         <label style="display:flex;align-items:center;gap:8px;font-size:14px"><input type="checkbox" id="rlOpenOnly" checked style="width:auto"> Unresolved only</label>
       </div>
       <p class="muted" id="rlCount" style="font-size:12px"></p>
@@ -265,19 +272,6 @@
 
   <!-- ============ SETTINGS (admin) ============ -->
   <section id="settingsView" class="hide">
-    <div class="card hide" id="uncodedCard">
-      <h2 class="section">Outlets needing a maintenance code</h2>
-      <p class="muted" style="font-size:13px;margin-bottom:10px">These exist in Store Visit's outlet list but don't have a maintenance brand/store code yet, so they can't be picked on Home until coded here. Outlet names/cities always come live from Store Visit — this only adds the code.</p>
-      <div id="uncodedList"></div>
-      <div class="msg" id="uncodedMsg"></div>
-    </div>
-    <div class="card">
-      <h2 class="section">Outlet visibility in Maintenance Project</h2>
-      <p class="muted" style="font-size:13px;margin-bottom:10px">Turn any outlet off here to hide it from everyone's location picker in this app — Store Visit is unaffected either way.</p>
-      <div id="visList"></div>
-      <p class="muted" id="visEmpty">No coded outlets yet.</p>
-      <div class="msg" id="visMsg"></div>
-    </div>
     <div class="card">
       <div class="sec-head"><h2 class="section" style="margin:0;border:none">Settings</h2><button class="btn back small" id="btnSetBack">← Back</button></div>
       <p class="muted" style="font-size:13px">Everything here is the same shared backend as Store Visit Report — changes made in either app apply to both instantly.</p>
@@ -287,13 +281,26 @@
       <div class="msg" id="teamMsg"></div>
     </div>
     <div class="card">
-      <h2 class="section">Outlets (brand / city / outlet)</h2>
-      <p class="muted" style="font-size:13px;margin-bottom:10px">Same outlet list as Store Visit Report — add/rename/remove here or there, both apps see it instantly. Owner only (matches Store Visit's own restriction).</p>
+      <h2 class="section">Outlets</h2>
+      <p class="muted" style="font-size:13px;margin-bottom:10px">Same outlet list as Store Visit Report — tap a brand or city to expand. Adding/renaming/removing an outlet here applies there too (owner only, matches Store Visit's own restriction). Maintenance code &amp; visibility are settings layered on top, only used in this app.</p>
       <div class="row"><label>Add a brand</label>
         <div class="mgmt-row"><input type="text" id="newBrand" class="n" placeholder="e.g. Devon"><button class="btn small add" id="addBrandBtn">Add</button></div>
       </div>
       <div id="brandTree"></div>
       <div class="msg" id="brandMsg"></div>
+    </div>
+    <div class="card">
+      <h2 class="section">Central Kitchens</h2>
+      <p class="muted" style="font-size:13px;margin-bottom:10px">Not retail outlets, so they're not part of Store Visit's list — managed only here.</p>
+      <div id="ckList"></div>
+      <div class="row" style="margin-top:10px;border-top:1px solid var(--line);padding-top:10px"><label>Add a Central Kitchen</label>
+        <div class="two" style="margin-bottom:8px">
+          <input type="text" id="ckNewName" placeholder="Name, e.g. Central Kitchen 3">
+          <input type="text" id="ckNewCity" placeholder="City">
+        </div>
+        <div class="mgmt-row"><input type="text" id="ckNewCode" class="n" placeholder="Code, e.g. GW21"><button class="btn small add" id="btnCkAdd">Add</button></div>
+      </div>
+      <div class="msg" id="ckMsg"></div>
     </div>
     <div class="card">
       <h2 class="section" style="margin-top:10px">Invite a new member</h2>
@@ -310,15 +317,29 @@
         <div class="row"><textarea id="invLink" rows="2" readonly></textarea></div>
         <button class="btn small proceed" id="btnCopyInvite" style="width:auto">Copy link</button>
       </div>
-      <div class="spacer"></div>
-      <h2 class="section" style="margin-top:10px">Member location access &amp; titles</h2>
-      <div class="row"><label>Member</label><select id="setMember"></select></div>
-      <div class="row"><label>Locations this member can report against</label><div id="setLocList" style="max-height:220px;overflow:auto;border:1px solid var(--line);border-radius:10px;padding:8px"></div></div>
-      <div class="row"><label>Functional titles (independent of owner/admin/member)</label><div id="setRoleList"></div></div>
-      <button class="btn proceed" id="btnSetSave">Save member settings</button>
-      <div class="msg" id="setMsg"></div>
     </div>
   </section>
+
+  <!-- ============ MEMBER ACCESS MODAL ============ -->
+  <div id="memberAccessModal" class="hide modal-overlay">
+    <div class="card modal-card">
+      <h2 class="section" id="maTitle">Member</h2>
+      <div class="row">
+        <label>Locations this member can report against</label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;margin-bottom:6px"><input type="checkbox" id="setLocAll" style="width:auto"> Select all locations</label>
+        <div id="setLocTree" style="max-height:260px;overflow:auto;border:1px solid var(--line);border-radius:10px;padding:8px"></div>
+      </div>
+      <div class="row"><label>Functional titles <span class="muted" style="font-weight:400">(applies at every location checked above; independent of owner/admin/member)</span></label>
+        <select id="setRoleSelect" multiple style="min-height:140px"></select>
+        <small class="hint">Ctrl/Cmd-click (or tap each) to select more than one.</small>
+      </div>
+      <div class="msg" id="setMsg"></div>
+      <div class="btnrow2" style="margin-top:8px">
+        <button class="btn back" id="btnSetCancel">Cancel</button>
+        <button class="btn proceed" id="btnSetSave">Save</button>
+      </div>
+    </div>
+  </div>
 
   <!-- ============ DELETE REQUESTS (admin) ============ -->
   <section id="requestsView" class="hide">
@@ -421,10 +442,12 @@
     <div class="card modal-card">
       <h2 class="section" id="apTitle">Confirm resolved</h2>
       <p class="muted" style="font-size:13px" id="apSub"></p>
-      <div class="row"><label>Proof (1–3 files — photo, or reference an existing upload)</label>
-        <label class="add-photo-lbl" for="apPhoto">📷 Add photo</label>
-        <input type="file" id="apPhoto" accept="image/*" multiple class="hide">
-        <div class="thumbrow" id="apPhotoPrev"></div>
+      <div class="row">
+        <label>Your own username &amp; password <span class="muted" style="font-weight:400">(to record who confirmed — this device may be shared)</span></label>
+        <div class="two">
+          <input type="text" id="apUser" placeholder="Username" autocomplete="off">
+          <input type="password" id="apPass" placeholder="Password" autocomplete="off">
+        </div>
       </div>
       <div class="msg err" id="apMsg"></div>
       <div class="btnrow2" style="margin-top:10px">
@@ -484,8 +507,8 @@ var DEPTS=["FOH","BAR","BOH","PASTRY"];
 var LS={insp:"mp_insp_v1"};
 
 var ROLE_LABEL={
-  store_manager_spv:"Store Manager / SPV", barista:"Barista", kitchen_leader:"Kitchen Leader",
-  pastry_leader:"Pastry Team/Leader", maintenance_team:"Maintenance Team", om:"Operations Manager (OM)"
+  store_manager_spv:"Store Leader", barista:"Barista", kitchen_leader:"Kitchen Leader",
+  pastry_leader:"Pastry Team/Leader", maintenance_team:"Maintenance", om:"Operations Manager (OM)"
 };
 
 function show(v){
@@ -506,8 +529,7 @@ var draftPhotos=[], draftBrokenPhoto=null;
 var draftVideoFile=null, draftBrokenVideoFile=null;
 var currentItem=null;        // loaded maint_items row for itemDetailView
 var pgPhotos={};             // temp holder of data URLs keyed by field id, for progress modal
-var apRoleCtx=null;          // {role, idx} being confirmed
-var apPhotos=[];
+var apRoleCtx=null;          // index into currentItem.approvals being confirmed
 
 /* ---------------- supabase / auth plumbing ---------------- */
 function initSupabase(){ try{ sb=window.supabase.createClient(BUILTIN.url, BUILTIN.key);}catch(e){} }
@@ -599,7 +621,7 @@ function forgotUsername(){
       var acct=pr.data && pr.data[0];
       return {done:function(){
         showInfo("Your username",
-          "Your username is:<div style='font-family:ui-monospace,Menlo,Consolas,monospace;font-weight:800;font-size:22px;margin:8px 0'>"+escapeHtml((acct&&acct.username)||"—")+"</div>"+
+          "Your username is:<div style='font-family:Arial,Helvetica,sans-serif;font-weight:800;font-size:22px;margin:8px 0'>"+escapeHtml((acct&&acct.username)||"—")+"</div>"+
           "Use this to sign in from now on.",
           function(){ afterLogin(); });
       }};
@@ -810,8 +832,9 @@ $("btnRecall").addEventListener("click", function(){
 });
 
 /* ---------------- numbering ---------------- */
-function pad5(n){ n=""+n; while(n.length<5) n="0"+n; return n; }
+function pad3(n){ n=""+n; while(n.length<3) n="0"+n; return n; }
 function todayYmd(){ var d=new Date(); return ""+d.getFullYear()+String(d.getMonth()+1).padStart(2,"0")+String(d.getDate()).padStart(2,"0"); }
+function todayYy2mmdd(){ var d=new Date(); return String(d.getFullYear()%100).padStart(2,"0")+String(d.getMonth()+1).padStart(2,"0")+String(d.getDate()).padStart(2,"0"); }
 function randCode5(){
   var digits="123456789", letters="ABCDEFGHIJKLMNOPQRSTUVWXYZ", pool=digits+letters, out="";
   for(var i=0;i<5;i++) out+=pool[Math.floor(Math.random()*pool.length)];
@@ -832,7 +855,8 @@ async function makeReportCode(loc){
   throw new Error("Could not generate a unique report code, try again.");
 }
 function makeItemCode(loc, dept, seq){
-  return loc.brand_code+loc.store_code+dept+todayYmd()+pad5(seq);
+  // e.g. TEMOIFOH-260716-001 — the seq portion resets daily per location+department (see nextItemSeq)
+  return loc.brand_code+loc.store_code+dept+"-"+todayYy2mmdd()+"-"+pad3(seq);
 }
 
 /* ---------------- photo compression / upload ---------------- */
@@ -1073,7 +1097,9 @@ async function openReportPrint(reportCode){
     '<div class="rr"><span><b>Request no:</b> '+rep.id+'</span><span><b>Date:</b> '+new Date(rep.submitted_at).toLocaleDateString()+'</span></div>'+
     '<div><b>Submission by:</b> '+rep.submitted_name+'</div></div></div>';
   Object.keys(byDept).forEach(function(dept, i){
-    html+='<div class="report-page'+(true?' pgbreak':'')+'"><div class="sec-h">'+dept+'</div><table class="rep"><thead><tr><th>No</th><th>Issue</th><th>Photo/Video</th><th>Proposal</th><th>Item code</th></tr></thead><tbody>';
+    // No forced page break here — content flows onto page 1 and only spills to
+    // further pages if it's actually too long to fit (natural print pagination).
+    html+='<div class="report-page"><div class="sec-h">'+dept+'</div><table class="rep"><thead><tr><th>No</th><th>Issue</th><th>Photo/Video</th><th>Proposal</th><th>Item code</th></tr></thead><tbody>';
     byDept[dept].forEach(function(it, idx){
       var media=(it.photos||[]).map(function(p){return '<img src="'+p+'">';}).join("")+(it.video_url?'<div><a href="'+it.video_url+'" target="_blank">▶ video</a></div>':"");
       html+='<tr><td class="no">'+(idx+1)+'</td><td>'+escapeHtml(it.issue)+'</td><td class="ph">'+media+'</td><td>'+(it.proposal==="sparepart"?"Ask for sparepart":"Call technician/vendor")+'</td><td>'+it.id+'</td></tr>';
@@ -1120,8 +1146,13 @@ async function wireReportDeleteActions(rep){
       if(!pass) return;
       var v=await sb.auth.signInWithPassword({email:me.email, password:pass});
       if(v.error){ alert("Password incorrect."); return; }
-      await sb.from("maint_items").delete().eq("report_id", rep.id);
-      await sb.from("maint_reports").delete().eq("id", rep.id);
+      try{
+        var d1=await sb.from("maint_items").delete().eq("report_id", rep.id).select("id");
+        if(d1.error) throw d1.error;
+        var d2=await sb.from("maint_reports").delete().eq("id", rep.id).select("id");
+        if(d2.error) throw d2.error;
+        if(!d2.data || !d2.data.length){ alert("Delete was blocked (no rows removed) — check that the maint_reports_delete RLS policy exists (re-run Maintenance_Project_Schema.sql v4)."); return; }
+      }catch(e){ alert("Delete failed: "+(e.message||e)); return; }
       document.getElementById("printHost").remove();
       show("homeView"); renderHome();
     });
@@ -1149,22 +1180,62 @@ $("delSubmit").addEventListener("click", async function(){
 });
 
 /* ---------------- recall list ---------------- */
+function rlBrandOptions(){
+  var vl=visibleLocations();
+  var brands=[]; vl.forEach(function(l){ if(brands.indexOf(l.brand)<0) brands.push(l.brand); });
+  brands.sort();
+  return brands;
+}
+function rlCityOptions(brand){
+  var vl=visibleLocations().filter(function(l){ return l.brand===brand; });
+  var cities=[]; vl.forEach(function(l){ if(cities.indexOf(l.city)<0) cities.push(l.city); });
+  cities.sort();
+  return cities;
+}
+function rlOutletOptions(brand,city){
+  return visibleLocations().filter(function(l){ return l.brand===brand && l.city===city; })
+    .sort(function(a,b){ return a.name.localeCompare(b.name); });
+}
+function fillRlBrands(){
+  var s=$("rlBrand"); s.innerHTML="<option value=''>All brands</option>";
+  rlBrandOptions().forEach(function(b){ var o=document.createElement("option"); o.value=b; o.textContent=b; s.appendChild(o); });
+  fillRlCities();
+}
+function fillRlCities(){
+  var brand=$("rlBrand").value, s=$("rlCity");
+  s.innerHTML="<option value=''>All cities</option>"; s.disabled=!brand;
+  if(brand) rlCityOptions(brand).forEach(function(c){ var o=document.createElement("option"); o.value=c; o.textContent=c; s.appendChild(o); });
+  fillRlOutlets();
+}
+function fillRlOutlets(){
+  var brand=$("rlBrand").value, city=$("rlCity").value, s=$("rlOutlet");
+  s.innerHTML="<option value=''>All outlets</option>"; s.disabled=!city;
+  if(city) rlOutletOptions(brand,city).forEach(function(l){ var o=document.createElement("option"); o.value=l.id; o.textContent=l.name; s.appendChild(o); });
+}
 function openRecall(){
-  var sel=$("rlLocation"); sel.innerHTML="<option value=''>All accessible</option>";
-  visibleLocations().forEach(function(l){ var o=document.createElement("option"); o.value=l.id; o.textContent=l.brand+" — "+l.name; sel.appendChild(o); });
-  if(currentLocation) sel.value=currentLocation.id;
+  fillRlBrands();
+  if(currentLocation){
+    $("rlBrand").value=currentLocation.brand; fillRlCities();
+    $("rlCity").value=currentLocation.city; fillRlOutlets();
+    $("rlOutlet").value=currentLocation.id;
+  }
   $("rlDept").value=""; $("rlOpenOnly").checked=true; $("rlSearch").value="";
   runRecallSearch();
   show("recallListView");
 }
 $("btnRecallBack").addEventListener("click", function(){ show("homeView"); });
-["rlLocation","rlDept","rlOpenOnly"].forEach(function(id){ $(id).addEventListener("change", runRecallSearch); });
+$("rlBrand").addEventListener("change", function(){ fillRlCities(); runRecallSearch(); });
+$("rlCity").addEventListener("change", function(){ fillRlOutlets(); runRecallSearch(); });
+["rlOutlet","rlDept","rlOpenOnly"].forEach(function(id){ $(id).addEventListener("change", runRecallSearch); });
 $("rlSearch").addEventListener("input", debounce(runRecallSearch, 250));
 function debounce(fn,ms){ var t; return function(){ clearTimeout(t); var a=arguments; t=setTimeout(function(){fn.apply(null,a);},ms); }; }
 
 async function runRecallSearch(){
   var q=sb.from("maint_items").select("*").order("created_at",{ascending:false}).limit(100);
-  var loc=$("rlLocation").value; if(loc) q=q.eq("location_id",loc);
+  var outlet=$("rlOutlet").value, city=$("rlCity").value, brand=$("rlBrand").value;
+  if(outlet) q=q.eq("location_id",outlet);
+  else if(city){ var ids1=rlOutletOptions(brand,city).map(function(l){return l.id;}); if(!ids1.length){ renderRecallList([]); return; } q=q.in("location_id", ids1); }
+  else if(brand){ var ids2=visibleLocations().filter(function(l){return l.brand===brand;}).map(function(l){return l.id;}); if(!ids2.length){ renderRecallList([]); return; } q=q.in("location_id", ids2); }
   else if(myAccessLocIds!==null){ if(!myAccessLocIds.length){ renderRecallList([]); return; } q=q.in("location_id", myAccessLocIds); }
   var dept=$("rlDept").value; if(dept) q=q.eq("department",dept);
   if($("rlOpenOnly").checked) q=q.eq("status","open");
@@ -1373,31 +1444,52 @@ $("pgSubmit").addEventListener("click", async function(){
 });
 
 /* ---------------- approval confirm modal ---------------- */
+var verifySb=null;
+function getVerifySb(){
+  if(!verifySb){ try{ verifySb=window.supabase.createClient(BUILTIN.url, BUILTIN.key, {auth:{storageKey:"mp_verify_tmp", persistSession:false, autoRefreshToken:false}}); }catch(e){} }
+  return verifySb;
+}
+// Checks a username+password without disturbing the browser's main logged-in session
+// (uses a second, non-persisted Supabase client), and returns that person's profile.
+async function verifyCredentials(username, password){
+  var email=await emailForUsername(username);
+  if(!email) throw new Error("Unknown username.");
+  var vsb=getVerifySb();
+  var r=await vsb.auth.signInWithPassword({email:email, password:password});
+  if(r.error) throw new Error("Incorrect username or password.");
+  var uid=r.data.user.id;
+  var p=await sb.from("profiles").select("id,name,role").eq("id",uid).limit(1);
+  try{ await vsb.auth.signOut(); }catch(e){}
+  if(!p.data || !p.data.length) throw new Error("Account not found.");
+  return p.data[0];
+}
 function openApproveModal(idx){
-  apRoleCtx=idx; apPhotos=[];
+  apRoleCtx=idx;
   var a=currentItem.approvals[idx];
   $("apTitle").textContent="Confirm resolved — "+(ROLE_LABEL[a.role]||a.role);
-  $("apSub").textContent="Upload 1–3 proof files (photo). Item only shows Resolved once every required role has confirmed.";
-  $("apPhotoPrev").innerHTML=""; $("apMsg").textContent="";
+  $("apSub").textContent="Item only shows Resolved once every required role has confirmed.";
+  $("apUser").value=""; $("apPass").value=""; $("apMsg").textContent="";
   $("approveModal").classList.remove("hide");
 }
 $("apCancel").addEventListener("click", function(){ $("approveModal").classList.add("hide"); });
-$("apPhoto").addEventListener("change", async function(){
-  var got=await pickCompressed($("apPhoto"), true);
-  apPhotos=apPhotos.concat(got).slice(0,3);
-  renderThumbs($("apPhotoPrev"), apPhotos, function(i){ apPhotos.splice(i,1); renderThumbs($("apPhotoPrev"), apPhotos, arguments.callee); });
-  $("apPhoto").value="";
-});
 $("apSubmit").addEventListener("click", async function(){
   $("apMsg").textContent="";
-  if(!apPhotos.length){ $("apMsg").textContent="Add at least 1 proof file."; return; }
+  var uname=$("apUser").value.trim(), pass=$("apPass").value;
+  if(!uname||!pass){ $("apMsg").textContent="Enter username and password."; return; }
   $("apSubmit").disabled=true;
   try{
+    var person=await verifyCredentials(uname, pass);
     var a=currentItem.approvals[apRoleCtx];
-    var pfx=currentItem.id+"_approve_"+a.role;
-    var proof=await uploadPhotos(apPhotos, pfx);
+    var isPersonStaff = person.role==="owner"||person.role==="admin";
+    var okRole = isPersonStaff || myRolesFor(person.id, a.role, currentItem.location_id);
+    // fall back to a direct DB check if this isn't the currently-logged-in person (myRoles is only cached for `me`)
+    if(!okRole && person.id!==me.id){
+      var rr=await sb.from("maint_roles").select("role,location_id").eq("user_id",person.id).eq("role",a.role);
+      okRole=(rr.data||[]).some(function(x){ return x.location_id===null || x.location_id===currentItem.location_id; });
+    }
+    if(!okRole){ $("apMsg").textContent=person.name+" doesn't hold the \""+(ROLE_LABEL[a.role]||a.role)+"\" title for this location."; $("apSubmit").disabled=false; return; }
     var newApprovals=currentItem.approvals.slice();
-    newApprovals[apRoleCtx]=Object.assign({}, a, {confirmed:true, by:me.id, by_name:me.name, at:new Date().toISOString(), proof:proof});
+    newApprovals[apRoleCtx]=Object.assign({}, a, {confirmed:true, by:person.id, by_name:person.name, at:new Date().toISOString()});
     var allConfirmed=newApprovals.every(function(x){return x.confirmed;});
     var patch={approvals:newApprovals};
     if(allConfirmed){ patch.status="resolved"; patch.resolved_at=new Date().toISOString(); }
@@ -1414,6 +1506,10 @@ $("apSubmit").addEventListener("click", async function(){
     $("apSubmit").disabled=false;
   }
 });
+function myRolesFor(uid, role, locId){
+  if(uid!==me.id || !myRoles) return false;
+  return myRoles.some(function(r){ return r.role===role && (r.location_id===null || r.location_id===locId); });
+}
 async function recomputeReportStatus(reportId){
   var r=await sb.from("maint_items").select("status").eq("report_id",reportId);
   var allDone=(r.data||[]).every(function(x){return x.status==="resolved";});
@@ -1431,21 +1527,64 @@ $("btnIdPrint").addEventListener("click", function(){
     '<div class="sec-h">1st report</div>'+firstReportBlockHtml(it);
   (it.progress||[]).forEach(function(p,i){
     html+='<div class="sec-h">Progress '+(i+1)+'</div><div><b>Report no:</b> '+it.id+'-P'+(i+1)+' &nbsp; <b>Date:</b> '+new Date(p.at).toLocaleString()+' &nbsp; <b>Submission by:</b> '+p.by_name+'</div>';
-    html+='<div style="margin-top:4px">'+(p.type==="tech_visit"?"Technician's visit":"Repair by staff")+' — resolution: '+p.resolution+'</div>';
+    html+=progressPrintBlockHtml(p);
   });
+  html+=approvalSignatureBlockHtml(it);
   html+='</div></div>';
   showPrintable(html, "← Back to item", function(){ openItemDetail(it.id); });
 });
+// Store-level titles (Store Leader/Barista/Kitchen Leader/Pastry Team-Leader) print as the
+// item's department code (FOH/BAR/BOH/PASTRY) for STORE locations, or "CK" for Central
+// Kitchen locations, instead of the person's functional title. Maintenance/OM keep their
+// own labels either way.
+var STORE_LEVEL_ROLES=["store_manager_spv","barista","kitchen_leader","pastry_leader"];
+function approvalLabelFor(role, it, loc){
+  if(STORE_LEVEL_ROLES.indexOf(role)<0) return ROLE_LABEL[role]||role;
+  return (loc && loc.type==="CENTRAL_KITCHEN") ? "CK" : it.department;
+}
+function approvalSignatureBlockHtml(it){
+  var apps=it.approvals||[];
+  if(!apps.length) return "";
+  var loc=locations.find(function(l){ return l.id===it.location_id; });
+  var rows=apps.map(function(a){
+    var label=approvalLabelFor(a.role, it, loc);
+    var status=a.confirmed
+      ? escapeHtml(a.by_name||"")+' &nbsp; <span class="muted">'+new Date(a.at).toLocaleString()+'</span>'
+      : '<span class="muted">Pending</span>';
+    return '<div style="display:flex;justify-content:space-between;gap:10px;font-size:13px;padding:6px 0;border-bottom:1px solid var(--line)"><b>'+escapeHtml(label)+'</b><span>'+status+'</span></div>';
+  }).join("");
+  return '<div class="sec-h">Approval</div>'+rows;
+}
+function progressPrintBlockHtml(p){
+  var imgs = p.type==="tech_visit"
+    ? [p.tech_photo,p.finding_photo,p.after_photo,p.broken_photo,p.tech_form_photo]
+    : [p.parts_photo,p.after_photo];
+  var media=imgs.filter(Boolean).map(function(u){return '<img src="'+u+'" style="width:70px;height:70px;object-fit:cover;border-radius:8px;margin:3px">';}).join("");
+  var html='<div style="margin-top:6px">'+media+'</div>'+
+    '<div style="margin-top:4px">'+(p.type==="tech_visit"?"Technician's visit":"Repair by staff")+' — resolution: '+p.resolution+'</div>';
+  if(p.type==="tech_visit"){
+    html+='<div style="margin-top:4px"><b>Finding:</b> '+escapeHtml(p.finding_text||"")+'</div>';
+    if(p.resolution==="unresolved"){
+      html+='<div><b>Next step:</b> '+escapeHtml(p.next_step==="__other__"?(p.next_step_other||""):(p.next_step||""))+'</div>';
+      if(p.broken_name) html+='<div><b>Broken part:</b> '+escapeHtml(p.broken_name)+(p.broken_serial?" (SN "+escapeHtml(p.broken_serial)+")":"")+'</div>';
+    }
+  } else {
+    if(p.resolution==="unresolved") html+='<div><b>Why:</b> '+escapeHtml(p.reason||"")+'</div>';
+  }
+  return html;
+}
 
 /* ---------------- team & account levels (shared profiles table — same as Store Visit) ---------------- */
+var allMembers=[];
 async function renderTeam(){
   var box=$("teamList"), msg=$("teamMsg"); msg.textContent=""; box.innerHTML="Loading...";
   var r=await sb.from("profiles").select("id,email,name,role,username").order("created_at",{ascending:true});
   if(r.error){ box.innerHTML=""; msg.className="msg err"; msg.textContent=r.error.message; return; }
   var rows=r.data||[];
+  allMembers=rows;
   if(!rows.length){ box.innerHTML="<p class='muted'>No team members yet.</p>"; return; }
   var tbl=document.createElement("table"); tbl.className="teamtab";
-  tbl.innerHTML="<thead><tr><th>Name</th><th>E-mail</th><th>Username</th><th>Role</th></tr></thead>";
+  tbl.innerHTML="<thead><tr><th>Name</th><th>E-mail</th><th>Username</th><th>Role</th><th>Location access &amp; titles</th></tr></thead>";
   var tb=document.createElement("tbody");
   rows.forEach(function(p){
     var isMe=(me && p.id===me.id);
@@ -1474,14 +1613,34 @@ async function renderTeam(){
       msg.className="msg ok"; msg.textContent="Updated "+escapeHtml(p.name||p.email)+" → "+sel.value+" (applies in Store Visit too).";
     });
     tdRole.appendChild(sel); tr.appendChild(tdRole);
+    var tdAccess=document.createElement("td");
+    if(p.role==="member"){
+      var accBtn=document.createElement("button"); accBtn.type="button"; accBtn.className="btn small proceed"; accBtn.style.width="auto"; accBtn.textContent="Edit access";
+      accBtn.addEventListener("click", function(){ openMemberAccessModal(p); });
+      tdAccess.appendChild(accBtn);
+      var sum=document.createElement("div"); sum.className="muted"; sum.style.cssText="font-size:11px;margin-top:3px"; sum.id="maSum_"+p.id; sum.textContent="Loading…";
+      tdAccess.appendChild(sum);
+    } else {
+      var full=document.createElement("span"); full.className="muted"; full.style.fontSize="12px"; full.textContent="Full access — every location"; tdAccess.appendChild(full);
+    }
+    tr.appendChild(tdAccess);
     tb.appendChild(tr);
   });
   tbl.appendChild(tb);
   box.innerHTML=""; box.appendChild(tbl);
+  rows.filter(function(p){ return p.role==="member"; }).forEach(async function(p){
+    var el=$("maSum_"+p.id); if(!el) return;
+    var acc=await sb.from("maint_access").select("location_ids").eq("user_id",p.id).limit(1);
+    var ids=(acc.data&&acc.data.length)?(acc.data[0].location_ids||[]):[];
+    var rr=await sb.from("maint_roles").select("role").eq("user_id",p.id);
+    var titles=(rr.data||[]).map(function(x){return ROLE_LABEL[x.role]||x.role;}).filter(function(v,i,a){return a.indexOf(v)===i;});
+    if(el) el.textContent=ids.length+" location(s)"+(titles.length? " · "+titles.join(", ") : "");
+  });
 }
 
 /* ---------------- outlets: brand/city/outlet tree (same app_config "outlets" key Store Visit uses) ---------------- */
 var cfgTree=null;
+var treeExpand={brands:{}, cities:{}};
 async function loadCfgTree(){
   var r=await sb.from("app_config").select("data").eq("key","outlets").limit(1);
   cfgTree=(r.data && r.data.length && r.data[0].data) ? r.data[0].data : {brands:[]};
@@ -1491,58 +1650,206 @@ async function pushCfgTree(){
   if(!(me && me.role==="owner")) return;
   try{ await sb.from("app_config").upsert({key:"outlets", data:cfgTree, updated:Date.now(), updated_by:me.id}); }catch(e){}
 }
+function codeInfoFor(brand,city,outlet){
+  var mk=brand+"|"+city+"|"+outlet;
+  return locations.find(function(l){ return l.match_key===mk; }) || null;
+}
 function renderBrandTree(){
   var root=$("brandTree"); root.innerHTML="";
   var isOwner=(me && me.role==="owner");
   $("newBrand").disabled=!isOwner; $("addBrandBtn").disabled=!isOwner;
-  if(!isOwner){ $("brandMsg").className="msg"; $("brandMsg").textContent="Only the owner can add/rename/remove outlets."; }
+  $("brandMsg").className="msg";
+  $("brandMsg").textContent = isOwner ? "" : "Only the owner can add/rename/remove outlets or change their maintenance code/visibility.";
+  if(staleLocationIds.length){
+    var warn=document.createElement("p"); warn.className="msg err";
+    warn.textContent=staleLocationIds.length+" coded location(s) no longer match Store Visit's outlet list (renamed or removed there) — check maint_locations.";
+    root.appendChild(warn);
+  }
   cfgTree.brands.forEach(function(b,bi){
-    var box=document.createElement("div"); box.className="card"; box.style.cssText="padding:12px;margin:0 0 10px";
-    box.innerHTML="<div class='mgmt-row'><b class='n'>🏷 "+escapeHtml(b.name)+"</b>"+(isOwner?"<button class='del' data-b='"+bi+"' data-act='delB'>delete brand</button>":"")+"</div>";
-    (b.cities||[]).forEach(function(c,ci){
-      var cd=document.createElement("div"); cd.style.margin="6px 0 6px 10px";
-      cd.innerHTML="<div class='mgmt-row'><span class='n'>📍 "+escapeHtml(c.name)+"</span>"+(isOwner?"<button class='del' data-b='"+bi+"' data-c='"+ci+"' data-act='delC'>delete city</button>":"")+"</div>";
-      (c.outlets||[]).forEach(function(o,oi){
-        var od=document.createElement("div"); od.className="mgmt-row"; od.style.margin="2px 0 2px 20px";
-        od.innerHTML="<span class='n muted'>🏬 "+escapeHtml(o)+"</span>"+(isOwner?"<button class='del' data-b='"+bi+"' data-c='"+ci+"' data-o='"+oi+"' data-act='delO'>remove</button>":"");
-        cd.appendChild(od);
+    var bKey=b.name;
+    var bOpen=!!treeExpand.brands[bKey];
+    var totalOutlets=0; (b.cities||[]).forEach(function(c){ totalOutlets+=(c.outlets||[]).length; });
+    var box=document.createElement("div"); box.className="card"; box.style.cssText="padding:0;margin:0 0 8px;overflow:hidden";
+
+    var head=document.createElement("div");
+    head.style.cssText="display:flex;align-items:center;gap:8px;padding:10px 12px;cursor:pointer;background:#faf8f5";
+    head.innerHTML="<span style='width:14px;flex:none'>"+(bOpen?"▾":"▸")+"</span><b style='flex:1'>"+escapeHtml(b.name)+"</b><span class='muted' style='font-size:12px'>"+totalOutlets+" outlet(s)</span>";
+    if(isOwner){ var delB=document.createElement("button"); delB.className="del"; delB.textContent="delete"; delB.style.marginLeft="8px";
+      delB.addEventListener("click", async function(e){ e.stopPropagation(); if(!confirm("Delete brand and all its cities/outlets?")) return; cfgTree.brands.splice(bi,1); await pushCfgTree(); await loadLocations(); renderBrandTree(); });
+      head.appendChild(delB);
+    }
+    head.addEventListener("click", function(e){ if(e.target.closest("button")) return; treeExpand.brands[bKey]=!bOpen; renderBrandTree(); });
+    box.appendChild(head);
+
+    if(bOpen){
+      var body=document.createElement("div"); body.style.cssText="padding:8px 12px 12px";
+      (b.cities||[]).forEach(function(c,ci){
+        var cKey=bKey+"|"+c.name;
+        var cOpen=!!treeExpand.cities[cKey];
+        var cd=document.createElement("div"); cd.style.cssText="border:1px solid var(--line);border-radius:8px;margin-bottom:6px;overflow:hidden";
+        var chead=document.createElement("div");
+        chead.style.cssText="display:flex;align-items:center;gap:8px;padding:8px 10px;cursor:pointer";
+        chead.innerHTML="<span style='width:14px;flex:none'>"+(cOpen?"▾":"▸")+"</span><span style='flex:1'>"+escapeHtml(c.name)+"</span><span class='muted' style='font-size:12px'>"+(c.outlets||[]).length+"</span>";
+        if(isOwner){ var delC=document.createElement("button"); delC.className="del"; delC.textContent="delete"; delC.style.marginLeft="8px";
+          delC.addEventListener("click", async function(e){ e.stopPropagation(); if(!confirm("Delete this city?")) return; cfgTree.brands[bi].cities.splice(ci,1); await pushCfgTree(); await loadLocations(); renderBrandTree(); });
+          chead.appendChild(delC);
+        }
+        chead.addEventListener("click", function(e){ if(e.target.closest("button")) return; treeExpand.cities[cKey]=!cOpen; renderBrandTree(); });
+        cd.appendChild(chead);
+
+        if(cOpen){
+          var cbody=document.createElement("div"); cbody.style.cssText="padding:2px 10px 10px";
+          (c.outlets||[]).forEach(function(o,oi){
+            var info=codeInfoFor(b.name,c.name,o);
+            var row=document.createElement("div"); row.style.cssText="display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:7px 0;border-top:1px solid var(--line)";
+            var left=document.createElement("span"); left.style.cssText="flex:1;min-width:110px;font-size:13px"; left.textContent=o; row.appendChild(left);
+            if(info){
+              var codeTag=document.createElement("code"); codeTag.style.cssText="font-size:11px;background:#f2f0ec;padding:2px 6px;border-radius:6px"; codeTag.textContent=info.id; row.appendChild(codeTag);
+              var visLbl=document.createElement("label"); visLbl.style.cssText="display:flex;align-items:center;gap:4px;font-size:12px";
+              visLbl.innerHTML="<input type='checkbox' style='width:auto' "+(info.active!==false?"checked":"")+"> visible";
+              var cb=visLbl.querySelector("input");
+              cb.disabled=!isOwner;
+              cb.addEventListener("change", async function(){
+                cb.disabled=true;
+                try{
+                  var upd=await sb.from("maint_locations").update({active:cb.checked}).eq("id",info.id);
+                  if(upd.error) throw upd.error;
+                  info.active=cb.checked;
+                  $("brandMsg").className="msg ok"; $("brandMsg").textContent=(cb.checked?"Shown: ":"Hidden: ")+o;
+                }catch(e){ cb.checked=!cb.checked; $("brandMsg").className="msg err"; $("brandMsg").textContent="Failed: "+(e.message||e); }
+                cb.disabled=!isOwner;
+              });
+              row.appendChild(visLbl);
+            } else if(isOwner){
+              var codeWrap=document.createElement("span"); codeWrap.style.cssText="display:flex;gap:4px;align-items:center";
+              var sB=(b.name.match(/[A-Za-z]/g)||[]).slice(0,3).join("").toUpperCase();
+              var sS=(o.match(/[A-Za-z]/g)||[]).slice(0,3).join("").toUpperCase();
+              codeWrap.innerHTML="<input type='text' class='n' style='width:54px;padding:5px;font-size:12px' value='"+sB+"' placeholder='brand'>"+
+                "<input type='text' class='n' style='width:54px;padding:5px;font-size:12px' value='"+sS+"' placeholder='store'>"+
+                "<button type='button' class='btn small add' style='width:auto;padding:5px 8px'>+ code</button>";
+              row.appendChild(codeWrap);
+              var ins2=codeWrap.querySelectorAll("input");
+              codeWrap.querySelector("button").addEventListener("click", async function(){
+                var bc=ins2[0].value.trim().toUpperCase(), sc=ins2[1].value.trim().toUpperCase();
+                if(!bc||!sc){ $("brandMsg").className="msg err"; $("brandMsg").textContent="Both codes are required."; return; }
+                try{
+                  var ins=await sb.from("maint_locations").insert({id:bc+sc, type:"STORE", match_key:b.name+"|"+c.name+"|"+o, brand:b.name, city:c.name, name:o, brand_code:bc, store_code:sc});
+                  if(ins.error) throw ins.error;
+                  await loadLocations(); renderBrandTree();
+                  $("brandMsg").className="msg ok"; $("brandMsg").textContent="Added "+bc+sc+".";
+                }catch(e){ $("brandMsg").className="msg err"; $("brandMsg").textContent="Failed (code may already exist): "+(e.message||e); }
+              });
+            } else {
+              var noCode=document.createElement("span"); noCode.className="muted"; noCode.style.fontSize="12px"; noCode.textContent="no code yet"; row.appendChild(noCode);
+            }
+            if(isOwner){
+              var rm=document.createElement("button"); rm.className="del"; rm.textContent="remove";
+              rm.addEventListener("click", async function(){
+                if(!confirm("Remove "+o+" from Store Visit's outlet list too?")) return;
+                cfgTree.brands[bi].cities[ci].outlets.splice(oi,1);
+                await pushCfgTree(); await loadLocations(); renderBrandTree();
+              });
+              row.appendChild(rm);
+            }
+            cbody.appendChild(row);
+          });
+          if(isOwner){
+            var addO=document.createElement("div"); addO.className="mgmt-row"; addO.style.marginTop="6px";
+            addO.innerHTML="<input type='text' class='n' placeholder='add outlet'><button type='button' class='btn small add'>Add</button>";
+            addO.querySelector("button").addEventListener("click", async function(){
+              var v=addO.querySelector("input").value.trim(); if(!v) return;
+              cfgTree.brands[bi].cities[ci].outlets.push(v);
+              await pushCfgTree(); treeExpand.cities[cKey]=true; renderBrandTree();
+            });
+            cbody.appendChild(addO);
+          }
+          cd.appendChild(cbody);
+        }
+        body.appendChild(cd);
       });
       if(isOwner){
-        var addO=document.createElement("div"); addO.className="mgmt-row"; addO.style.marginLeft="20px";
-        addO.innerHTML="<input type='text' class='n' placeholder='add outlet in "+escapeHtml(c.name)+"'><button class='btn small' data-b='"+bi+"' data-c='"+ci+"' data-act='addO'>Add</button>";
-        cd.appendChild(addO);
+        var addC=document.createElement("div"); addC.className="mgmt-row"; addC.style.marginTop="4px";
+        addC.innerHTML="<input type='text' class='n' placeholder='add city'><button type='button' class='btn small add'>Add</button>";
+        addC.querySelector("button").addEventListener("click", async function(){
+          var v=addC.querySelector("input").value.trim(); if(!v) return;
+          cfgTree.brands[bi].cities.push({name:v,outlets:[]});
+          await pushCfgTree(); treeExpand.brands[bKey]=true; renderBrandTree();
+        });
+        body.appendChild(addC);
       }
-      box.appendChild(cd);
-    });
-    if(isOwner){
-      var addC=document.createElement("div"); addC.className="mgmt-row"; addC.style.marginLeft="10px";
-      addC.innerHTML="<input type='text' class='n' placeholder='add city in "+escapeHtml(b.name)+"'><button class='btn small' data-b='"+bi+"' data-act='addC'>Add</button>";
-      box.appendChild(addC);
+      box.appendChild(body);
     }
     root.appendChild(box);
-  });
-  root.querySelectorAll("[data-act]").forEach(function(btn){
-    btn.addEventListener("click", async function(){
-      var bi=+btn.getAttribute("data-b"), ci=btn.hasAttribute("data-c")?+btn.getAttribute("data-c"):null, oi=btn.hasAttribute("data-o")?+btn.getAttribute("data-o"):null;
-      var act=btn.getAttribute("data-act");
-      if(act==="delB"){ if(!confirm("Delete brand and all its cities/outlets?")) return; cfgTree.brands.splice(bi,1); }
-      else if(act==="delC"){ if(!confirm("Delete this city?")) return; cfgTree.brands[bi].cities.splice(ci,1); }
-      else if(act==="delO"){ cfgTree.brands[bi].cities[ci].outlets.splice(oi,1); }
-      else if(act==="addC"){ var v=btn.previousElementSibling.value.trim(); if(!v) return; cfgTree.brands[bi].cities.push({name:v,outlets:[]}); }
-      else if(act==="addO"){ var v2=btn.previousElementSibling.value.trim(); if(!v2) return; cfgTree.brands[bi].cities[ci].outlets.push(v2); }
-      await pushCfgTree();
-      renderBrandTree();
-      await loadLocations(); renderUncodedOutlets(); renderVisibilityList();
-    });
   });
 }
 $("addBrandBtn").addEventListener("click", async function(){
   var n=$("newBrand").value.trim(); if(!n) return;
   if(cfgTree.brands.some(function(b){ return b.name.toLowerCase()===n.toLowerCase(); })){ alert("Brand exists."); return; }
   cfgTree.brands.push({name:n, cities:[]});
+  treeExpand.brands[n]=true;
   $("newBrand").value="";
   await pushCfgTree();
   renderBrandTree();
+});
+
+/* ---------------- Central Kitchens (not part of Store Visit's tree — managed only here) ---------------- */
+function renderCkList(){
+  var host=$("ckList"); host.innerHTML=""; $("ckMsg").textContent="";
+  var isOwner=(me && me.role==="owner");
+  ["ckNewName","ckNewCity","ckNewCode","btnCkAdd"].forEach(function(id){ $(id).disabled=!isOwner; });
+  var cks=locations.filter(function(l){ return l.type==="CENTRAL_KITCHEN"; });
+  if(!cks.length){ host.innerHTML="<p class='muted'>No Central Kitchens yet.</p>"; return; }
+  cks.forEach(function(l){
+    var row=document.createElement("div"); row.style.cssText="border:1px solid var(--line);border-radius:10px;padding:10px;margin-bottom:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap";
+    row.innerHTML="<code style='font-size:11px;background:#f2f0ec;padding:2px 6px;border-radius:6px'>"+l.id+"</code>"+
+      "<input type='text' class='n ckName' style='flex:1;min-width:140px;padding:7px' value='"+escapeHtml(l.name)+"'>"+
+      "<input type='text' class='n ckCity' style='width:130px;padding:7px' value='"+escapeHtml(l.city)+"'>"+
+      "<label style='display:flex;align-items:center;gap:4px;font-size:12px'><input type='checkbox' class='ckVis' style='width:auto' "+(l.active!==false?"checked":"")+"> visible</label>";
+    host.appendChild(row);
+    var nameI=row.querySelector(".ckName"), cityI=row.querySelector(".ckCity"), visI=row.querySelector(".ckVis");
+    nameI.disabled=!isOwner; cityI.disabled=!isOwner; visI.disabled=!isOwner;
+    nameI.addEventListener("change", async function(){
+      var v=nameI.value.trim(); if(!v||v===l.name){ nameI.value=l.name; return; }
+      var upd=await sb.from("maint_locations").update({name:v}).eq("id",l.id);
+      if(upd.error){ $("ckMsg").className="msg err"; $("ckMsg").textContent=upd.error.message; nameI.value=l.name; return; }
+      l.name=v; $("ckMsg").className="msg ok"; $("ckMsg").textContent="Saved.";
+    });
+    cityI.addEventListener("change", async function(){
+      var v=cityI.value.trim(); if(!v||v===l.city){ cityI.value=l.city; return; }
+      var upd=await sb.from("maint_locations").update({city:v}).eq("id",l.id);
+      if(upd.error){ $("ckMsg").className="msg err"; $("ckMsg").textContent=upd.error.message; cityI.value=l.city; return; }
+      l.city=v; $("ckMsg").className="msg ok"; $("ckMsg").textContent="Saved.";
+    });
+    visI.addEventListener("change", async function(){
+      visI.disabled=true;
+      var upd=await sb.from("maint_locations").update({active:visI.checked}).eq("id",l.id);
+      if(upd.error){ visI.checked=!visI.checked; $("ckMsg").className="msg err"; $("ckMsg").textContent=upd.error.message; }
+      else { l.active=visI.checked; $("ckMsg").className="msg ok"; $("ckMsg").textContent=(visI.checked?"Shown: ":"Hidden: ")+l.name; }
+      visI.disabled=!isOwner;
+    });
+    if(isOwner){
+      var delBtn=document.createElement("button"); delBtn.className="del"; delBtn.textContent="delete";
+      delBtn.addEventListener("click", async function(){
+        if(!confirm("Delete "+l.name+"? Existing reports filed against it are not deleted.")) return;
+        var del=await sb.from("maint_locations").delete().eq("id",l.id).select("id");
+        if(del.error || !del.data || !del.data.length){ $("ckMsg").className="msg err"; $("ckMsg").textContent="Delete failed: "+((del.error&&del.error.message)||"blocked"); return; }
+        await loadLocations(); renderCkList();
+      });
+      row.appendChild(delBtn);
+    }
+  });
+}
+$("btnCkAdd").addEventListener("click", async function(){
+  var name=$("ckNewName").value.trim(), city=$("ckNewCity").value.trim(), code=$("ckNewCode").value.trim().toUpperCase();
+  $("ckMsg").className="msg";
+  if(!name||!city||!code){ $("ckMsg").className="msg err"; $("ckMsg").textContent="Name, city, and code are all required."; return; }
+  try{
+    var ins=await sb.from("maint_locations").insert({id:code, type:"CENTRAL_KITCHEN", match_key:null, brand:"Central Kitchen", city:city, name:name, brand_code:"", store_code:code});
+    if(ins.error) throw ins.error;
+    $("ckNewName").value=""; $("ckNewCity").value=""; $("ckNewCode").value="";
+    await loadLocations(); renderCkList();
+    $("ckMsg").className="msg ok"; $("ckMsg").textContent="Added "+code+".";
+  }catch(e){ $("ckMsg").className="msg err"; $("ckMsg").textContent="Failed (code may already exist): "+(e.message||e); }
 });
 
 /* ---------------- settings (admin) ---------------- */
@@ -1563,139 +1870,135 @@ $("btnInviteCreate").addEventListener("click", async function(){
     $("invResult").classList.remove("hide");
     msg.className="msg ok"; msg.textContent="Account created. Copy the link and send it to them, then set their location access & titles below.";
     $("invFirst").value=""; $("invLast").value=""; $("invEmail").value=""; $("invNoLast").checked=false;
-    await refreshMemberDropdown();
+    await renderMemberAccessList();
   }catch(e){ msg.className="msg err"; msg.textContent=(e&&e.message)||String(e); }
 });
 $("btnCopyInvite").addEventListener("click", function(){
   var ta=$("invLink"); ta.focus(); ta.select(); try{ ta.setSelectionRange(0,99999); }catch(e){}
-  var done=function(){ var b=$("btnCopyInvite"), t=b.textContent; b.textContent="✓ Copied"; setTimeout(function(){b.textContent=t;},1500); };
+  var done=function(){ var b=$("btnCopyInvite"), t=b.textContent; b.textContent="Copied"; setTimeout(function(){b.textContent=t;},1500); };
   if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(ta.value).then(done,function(){ try{document.execCommand("copy");done();}catch(e){} }); }
   else { try{document.execCommand("copy");done();}catch(e){} }
 });
 
-var allMembers=[];
-async function refreshMemberDropdown(){
-  var r=await sb.from("profiles").select("id,name,role,username").order("name");
-  allMembers=r.data||[];
-  var sel=$("setMember"); var prev=sel.value; sel.innerHTML="";
-  allMembers.forEach(function(m){ var o=document.createElement("option"); o.value=m.id; o.textContent=m.name+" ("+m.role+")"; sel.appendChild(o); });
-  if(prev && allMembers.some(function(m){return m.id===prev;})) sel.value=prev;
-  if(sel.value) await loadMemberSettings();
+/* ---------------- member location access & titles: modal opened from the Team table ---------------- */
+var maCurrentMember=null;
+function recomputeLocTreeChecks(){
+  var host=$("setLocTree");
+  var allCb=Array.prototype.slice.call(host.querySelectorAll(".setLocCb"));
+  Array.prototype.forEach.call(host.querySelectorAll(".setCityAll"), function(cityCb){
+    var b=cityCb.dataset.brand, c=cityCb.dataset.city;
+    var leaves=allCb.filter(function(cb){ return cb.dataset.brand===b && cb.dataset.city===c; });
+    cityCb.checked = leaves.length>0 && leaves.every(function(cb){return cb.checked;});
+  });
+  Array.prototype.forEach.call(host.querySelectorAll(".setBrandAll"), function(brandCb){
+    var b=brandCb.dataset.brand;
+    var leaves=allCb.filter(function(cb){ return cb.dataset.brand===b; });
+    brandCb.checked = leaves.length>0 && leaves.every(function(cb){return cb.checked;});
+  });
+  $("setLocAll").checked = allCb.length>0 && allCb.every(function(cb){return cb.checked;});
 }
-$("setMember").addEventListener("change", loadMemberSettings);
-async function openSettings(){
-  $("invMsg").textContent=""; $("invResult").classList.add("hide");
-  await renderTeam();
-  await loadCfgTree(); renderBrandTree();
-  await loadLocations();   // refresh so "uncoded outlets" reflects the latest Store Visit tree
-  renderUncodedOutlets();
-  renderVisibilityList();
-  await refreshMemberDropdown();
-  show("settingsView");
-}
-$("btnSetBack").addEventListener("click", function(){ show("homeView"); });
-
-function renderVisibilityList(){
-  var host=$("visList"); host.innerHTML=""; $("visMsg").textContent="";
-  $("visEmpty").style.display = locations.length? "none":"block";
-  locations.forEach(function(l){
-    var row=document.createElement("label");
-    row.style.cssText="display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-bottom:6px;font-size:13px";
-    row.innerHTML='<input type="checkbox" style="width:auto" '+(l.active!==false?"checked":"")+'> '+
-      '<span style="flex:1">'+l.brand+' — '+l.name+' ('+l.city+') <span class="muted">'+l.type+'</span></span>';
-    var cb=row.querySelector("input");
-    cb.addEventListener("change", async function(){
-      cb.disabled=true;
-      try{
-        var upd=await sb.from("maint_locations").update({active:cb.checked}).eq("id",l.id);
-        if(upd.error) throw upd.error;
-        l.active=cb.checked;
-        $("visMsg").className="msg ok"; $("visMsg").textContent=(cb.checked?"Shown: ":"Hidden: ")+l.name;
-      }catch(e){ cb.checked=!cb.checked; $("visMsg").className="msg err"; $("visMsg").textContent="Failed: "+(e.message||e); }
-      cb.disabled=false;
+function renderSetLocTree(accIds){
+  var host=$("setLocTree"); host.innerHTML="";
+  var vl=locations.filter(function(l){ return l.active!==false; });
+  var byBrand={};
+  vl.forEach(function(l){ byBrand[l.brand]=byBrand[l.brand]||{}; byBrand[l.brand][l.city]=(byBrand[l.brand][l.city]||[]).concat([l]); });
+  Object.keys(byBrand).sort().forEach(function(brand){
+    var bWrap=document.createElement("div"); bWrap.style.cssText="margin-bottom:10px";
+    var bHead=document.createElement("label"); bHead.style.cssText="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;margin-bottom:4px";
+    var bcb=document.createElement("input"); bcb.type="checkbox"; bcb.className="setBrandAll"; bcb.style.width="auto"; bcb.dataset.brand=brand;
+    bHead.appendChild(bcb); bHead.appendChild(document.createTextNode(" "+brand));
+    bWrap.appendChild(bHead);
+    Object.keys(byBrand[brand]).sort().forEach(function(city){
+      var locs=byBrand[brand][city];
+      var cWrap=document.createElement("div"); cWrap.style.cssText="margin-left:16px;margin-bottom:2px";
+      var cHead=document.createElement("label"); cHead.style.cssText="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:2px";
+      var ccb=document.createElement("input"); ccb.type="checkbox"; ccb.className="setCityAll"; ccb.style.width="auto"; ccb.dataset.brand=brand; ccb.dataset.city=city;
+      cHead.appendChild(ccb); cHead.appendChild(document.createTextNode(" "+city));
+      cWrap.appendChild(cHead);
+      locs.forEach(function(l){
+        var lWrap=document.createElement("label"); lWrap.style.cssText="display:flex;align-items:center;gap:6px;font-size:13px;margin:2px 0 2px 16px";
+        var lcb=document.createElement("input"); lcb.type="checkbox"; lcb.className="setLocCb"; lcb.style.width="auto";
+        lcb.dataset.brand=brand; lcb.dataset.city=city; lcb.dataset.id=l.id; lcb.checked = accIds.indexOf(l.id)>=0;
+        lWrap.appendChild(lcb); lWrap.appendChild(document.createTextNode(" "+l.name+" ("+l.type+")"));
+        cWrap.appendChild(lWrap);
+      });
+      bWrap.appendChild(cWrap);
     });
-    host.appendChild(row);
+    host.appendChild(bWrap);
   });
+  host.onchange=function(e){
+    var t=e.target;
+    if(t.classList.contains("setCityAll")){
+      var b=t.dataset.brand,c=t.dataset.city, on=t.checked;
+      Array.prototype.forEach.call(host.querySelectorAll(".setLocCb"), function(cb){ if(cb.dataset.brand===b && cb.dataset.city===c) cb.checked=on; });
+    } else if(t.classList.contains("setBrandAll")){
+      var b2=t.dataset.brand, on2=t.checked;
+      Array.prototype.forEach.call(host.querySelectorAll(".setLocCb"), function(cb){ if(cb.dataset.brand===b2) cb.checked=on2; });
+    }
+    recomputeLocTreeChecks();
+  };
+  recomputeLocTreeChecks();
 }
-
-function renderUncodedOutlets(){
-  $("uncodedCard").classList.toggle("hide", uncodedOutlets.length===0);
-  var host=$("uncodedList"); host.innerHTML=""; $("uncodedMsg").textContent="";
-  uncodedOutlets.forEach(function(o, idx){
-    var row=document.createElement("div"); row.style.cssText="border:1px solid var(--line);border-radius:10px;padding:10px;margin-bottom:8px";
-    var suggestedBrand=(o.brand.match(/[A-Za-z]/g)||[]).slice(0,3).join("").toUpperCase();
-    var suggestedStore=(o.outlet.match(/[A-Za-z]/g)||[]).slice(0,3).join("").toUpperCase();
-    row.innerHTML='<div style="font-weight:700;margin-bottom:6px">'+o.brand+' — '+o.outlet+' ('+o.city+')</div>'+
-      '<div class="two">'+
-        '<div class="row" style="margin-bottom:6px"><label>Brand code</label><input type="text" id="ucBrand_'+idx+'" value="'+suggestedBrand+'" style="padding:8px"></div>'+
-        '<div class="row" style="margin-bottom:6px"><label>Store code</label><input type="text" id="ucStore_'+idx+'" value="'+suggestedStore+'" style="padding:8px"></div>'+
-      '</div>'+
-      '<button type="button" class="btn small add" style="width:auto" id="ucAdd_'+idx+'">+ Add code</button>';
-    host.appendChild(row);
-    row.querySelector("#ucAdd_"+idx).addEventListener("click", async function(){
-      var bc=$("ucBrand_"+idx).value.trim().toUpperCase(), sc=$("ucStore_"+idx).value.trim().toUpperCase();
-      if(!bc||!sc){ $("uncodedMsg").className="msg err"; $("uncodedMsg").textContent="Both codes are required."; return; }
-      var id=bc+sc;
-      try{
-        var ins=await sb.from("maint_locations").insert({
-          id:id, type:"STORE", match_key:o.matchKey, brand:o.brand, city:o.city, name:o.outlet, brand_code:bc, store_code:sc
-        });
-        if(ins.error) throw ins.error;
-        await loadLocations();
-        renderUncodedOutlets();
-        $("uncodedMsg").className="msg ok"; $("uncodedMsg").textContent="Added "+id+".";
-      }catch(e){ $("uncodedMsg").className="msg err"; $("uncodedMsg").textContent="Failed (code may already exist): "+(e.message||e); }
-    });
-  });
-}
-
-async function loadMemberSettings(){
-  var uid=$("setMember").value; if(!uid) return;
-  var loc=$("setLocList"); loc.innerHTML="";
-  var acc=await sb.from("maint_access").select("location_ids").eq("user_id",uid).limit(1);
-  var accIds=(acc.data && acc.data.length)? (acc.data[0].location_ids||[]) : [];
-  locations.filter(function(l){ return l.active!==false; }).forEach(function(l){
-    var id="loc_"+l.id;
-    var wrap=document.createElement("label"); wrap.style.cssText="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:4px";
-    wrap.innerHTML='<input type="checkbox" id="'+id+'" style="width:auto" '+(accIds.indexOf(l.id)>=0?"checked":"")+'> '+l.brand+' — '+l.name+' ('+l.city+', '+l.type+')';
-    loc.appendChild(wrap);
-  });
-  var rr=await sb.from("maint_roles").select("*").eq("user_id",uid);
-  var have=rr.data||[];
-  var roleHost=$("setRoleList"); roleHost.innerHTML="";
-  Object.keys(ROLE_LABEL).forEach(function(role){
-    var scoped=["store_manager_spv","barista","kitchen_leader","pastry_leader"].indexOf(role)>=0;
-    var existing=have.find(function(x){return x.role===role;});
-    var wrap=document.createElement("div"); wrap.style.cssText="border:1px solid var(--line);border-radius:8px;padding:8px;margin-bottom:6px";
-    var checkboxId="role_"+role;
-    var selId="roleloc_"+role;
-    wrap.innerHTML='<label style="display:flex;align-items:center;gap:8px;font-size:13px"><input type="checkbox" id="'+checkboxId+'" style="width:auto" '+(existing?"checked":"")+'> '+ROLE_LABEL[role]+'</label>'+
-      (scoped? '<select id="'+selId+'" style="margin-top:6px"><option value="">— which location —</option>'+locations.map(function(l){return '<option value="'+l.id+'" '+(existing&&existing.location_id===l.id?"selected":"")+'>'+l.brand+" — "+l.name+'</option>';}).join("")+'</select>' : '<div class="muted" style="font-size:12px;margin-top:4px">Global role — not tied to one location</div>');
-    roleHost.appendChild(wrap);
-  });
+$("setLocAll").addEventListener("change", function(){
+  var on=this.checked;
+  Array.prototype.forEach.call($("setLocTree").querySelectorAll(".setLocCb"), function(cb){ cb.checked=on; });
+  recomputeLocTreeChecks();
+});
+async function openMemberAccessModal(m){
+  maCurrentMember=m;
+  $("maTitle").textContent=m.name||m.username||"Member";
   $("setMsg").textContent="";
-}
+  $("setLocTree").innerHTML="Loading…";
+  $("setRoleSelect").innerHTML="";
+  $("memberAccessModal").classList.remove("hide");
 
+  var acc=await sb.from("maint_access").select("location_ids").eq("user_id",m.id).limit(1);
+  var accIds=(acc.data && acc.data.length)? (acc.data[0].location_ids||[]) : [];
+  renderSetLocTree(accIds);
+
+  var rr=await sb.from("maint_roles").select("*").eq("user_id",m.id);
+  var have=rr.data||[];
+  var sel=$("setRoleSelect"); sel.innerHTML="";
+  Object.keys(ROLE_LABEL).forEach(function(role){
+    var o=document.createElement("option"); o.value=role; o.textContent=ROLE_LABEL[role];
+    if(have.some(function(x){return x.role===role;})) o.selected=true;
+    sel.appendChild(o);
+  });
+}
+$("btnSetCancel").addEventListener("click", function(){ $("memberAccessModal").classList.add("hide"); });
 $("btnSetSave").addEventListener("click", async function(){
-  var uid=$("setMember").value; if(!uid) return;
+  if(!maCurrentMember) return;
+  var uid=maCurrentMember.id;
   $("setMsg").textContent="";
   try{
-    var ids=locations.filter(function(l){ var cb=$("loc_"+l.id); return cb && cb.checked; }).map(function(l){return l.id;});
+    var ids=Array.prototype.slice.call($("setLocTree").querySelectorAll(".setLocCb")).filter(function(cb){return cb.checked;}).map(function(cb){return cb.dataset.id;});
     var up=await sb.from("maint_access").upsert({user_id:uid, location_ids:ids, updated_by:me.id, updated_at:new Date().toISOString()});
     if(up.error) throw up.error;
     await sb.from("maint_roles").delete().eq("user_id",uid);
+    var selectedRoles=Array.prototype.slice.call($("setRoleSelect").selectedOptions).map(function(o){return o.value;});
     var rows=[];
-    Object.keys(ROLE_LABEL).forEach(function(role){
-      var cb=$("role_"+role); if(!cb || !cb.checked) return;
-      var scoped=["store_manager_spv","barista","kitchen_leader","pastry_leader"].indexOf(role)>=0;
-      var locId=null;
-      if(scoped){ var s=$("roleloc_"+role); locId=s&&s.value?s.value:null; }
-      rows.push({user_id:uid, role:role, location_id:locId});
+    // Title applies at every location checked above — no separate "which location" picker.
+    selectedRoles.forEach(function(role){
+      if(ids.length){ ids.forEach(function(locId){ rows.push({user_id:uid, role:role, location_id:locId}); }); }
+      else { rows.push({user_id:uid, role:role, location_id:null}); } // no locations checked yet -> global for now
     });
     if(rows.length){ var ins=await sb.from("maint_roles").insert(rows); if(ins.error) throw ins.error; }
     $("setMsg").className="msg ok"; $("setMsg").textContent="Saved.";
+    await renderTeam();
+    setTimeout(function(){ $("memberAccessModal").classList.add("hide"); }, 500);
   }catch(e){ $("setMsg").className="msg err"; $("setMsg").textContent="Save failed: "+(e.message||e); }
 });
+
+async function openSettings(){
+  $("invMsg").textContent=""; $("invResult").classList.add("hide");
+  await renderTeam();
+  await loadCfgTree();
+  await loadLocations();   // refresh so codes/visibility reflect the latest Store Visit tree
+  renderBrandTree();
+  renderCkList();
+  show("settingsView");
+}
+$("btnSetBack").addEventListener("click", function(){ show("homeView"); });
 
 /* ---------------- delete requests ---------------- */
 async function openRequests(){
@@ -1721,9 +2024,14 @@ async function approveDeleteRequest(rq){
   if(!pass) return;
   var v=await sb.auth.signInWithPassword({email:me.email, password:pass});
   if(v.error){ alert("Password incorrect."); return; }
-  await sb.from("maint_items").delete().eq("report_id", rq.report_id);
-  await sb.from("maint_reports").delete().eq("id", rq.report_id);
-  await sb.from("maint_delete_requests").delete().eq("id", rq.id);
+  try{
+    var d1=await sb.from("maint_items").delete().eq("report_id", rq.report_id).select("id");
+    if(d1.error) throw d1.error;
+    var d2=await sb.from("maint_reports").delete().eq("id", rq.report_id).select("id");
+    if(d2.error) throw d2.error;
+    if(!d2.data || !d2.data.length){ alert("Delete was blocked (no rows removed) — check that the maint_reports_delete RLS policy exists (re-run Maintenance_Project_Schema.sql v4)."); return; }
+    await sb.from("maint_delete_requests").delete().eq("id", rq.id);
+  }catch(e){ alert("Delete failed: "+(e.message||e)); return; }
   openRequests();
 }
 async function rejectDeleteRequest(rq){
