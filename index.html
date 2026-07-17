@@ -346,6 +346,10 @@
           <div id="setRoleDropdownPanel" class="hide" style="position:absolute;z-index:5;top:100%;left:0;right:0;background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px;margin-top:4px;max-height:260px;overflow:auto;box-shadow:0 4px 14px rgba(0,0,0,.15)"></div>
         </div>
       </div>
+      <div class="row" style="border-top:1px solid var(--line);padding-top:10px">
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600"><input type="checkbox" id="setViewOnly" style="width:auto"> <span data-i18n="ma.view_only_label">View only (cannot create reports)</span></label>
+        <small class="hint" data-i18n="ma.view_only_hint">Can sign in and browse/print via Recall only — no new reports, progress, confirmations, or deletion requests, even if they hold a title above.</small>
+      </div>
       <div class="msg" id="setMsg"></div>
       <div class="btnrow2" style="margin-top:8px">
         <button class="btn back" id="btnSetCancel" data-i18n="common.cancel">Cancel</button>
@@ -515,7 +519,7 @@
    All maint_* tables are new and separate. See Maintenance_Project_Plan.md
    and Maintenance_Project_Schema.sql for the full spec this implements.
 ===================================================================== */
-var APP_VERSION="v1.8"; // bump this with each build so it's visible which version is deployed (shown in the footer, bottom of the page)
+var APP_VERSION="v1.9"; // bump this with each build so it's visible which version is deployed (shown in the footer, bottom of the page)
 var BUILTIN={url:"https://clprrwuizmlsddxmlvrh.supabase.co", key:"sb_publishable_bY46Emu9VVzYZEhpjxnr2A_9_ranhHt"};
 var sb=null;
 var $=function(id){return document.getElementById(id);};
@@ -622,7 +626,8 @@ id: {
   "settings.add_ck":"Tambah Dapur Pusat", "settings.ck_name_ph":"Nama, mis. Dapur Pusat 3", "settings.city_ph":"Kota", "settings.ck_code_ph":"Kode, mis. GW21",
   "settings.invite_title":"Undang anggota baru", "settings.first_name":"Nama depan", "settings.last_name":"Nama belakang",
   "settings.no_last_name":"Tidak ada nama belakang", "settings.email":"Email", "settings.create_account":"+ Buat akun",
-  "settings.username_label":"Nama pengguna", "settings.link_label":"Tautan atur kata sandi — kirimkan ini kepada mereka", "settings.copy_link":"Salin tautan", "settings.copied":"Tersalin",
+  "settings.username_label":"Nama pengguna", "settings.link_label":"Tautan atur kata sandi — kirimkan ini kepada mereka", "settings.copy_link":"Salin pesan undangan", "settings.copied":"Tersalin",
+  "settings.invite_message":"Akun Anda telah dibuat untuk aplikasi Maintenance Report.\nNama pengguna: {username}\n\nKlik tautan di bawah ini untuk membuat kata sandi Anda:\n{link}\n\nTautan ini hanya berlaku selama 2 jam.",
   "settings.no_team_yet":"Belum ada anggota tim.", "settings.th_name":"Nama", "settings.th_email":"Email", "settings.th_username":"Nama pengguna",
   "settings.th_role":"Peran", "settings.th_access":"Akses lokasi & jabatan", "settings.you":"(Anda)",
   "settings.saving":"Menyimpan...", "settings.saved_name":"Nama tersimpan untuk ", "settings.updated_prefix":"Diperbarui ", "settings.updated_suffix":" (juga berlaku di Store Visit).",
@@ -641,6 +646,9 @@ id: {
   "ma.locations_label":"Lokasi yang dapat dilaporkan oleh anggota ini", "ma.select_all":"Pilih semua lokasi",
   "ma.titles_label":"Jabatan fungsional", "ma.titles_hint":"(berlaku di setiap lokasi yang dicentang di atas; terpisah dari owner/admin/member)",
   "ma.select_titles":"Pilih jabatan…", "ma.member_fallback":"Anggota", "ma.saved":"Tersimpan.", "ma.save_failed":"Gagal menyimpan: ",
+  "ma.view_only_label":"Hanya lihat (tidak dapat membuat laporan)",
+  "ma.view_only_hint":"Hanya dapat masuk dan melihat/mencetak lewat Lihat Laporan — tidak dapat membuat laporan baru, menambah progres, mengonfirmasi, atau mengajukan penghapusan, meskipun memegang jabatan di atas.",
+  "home.view_only_tag":"hanya lihat",
   "req.title":"Permintaan penghapusan", "req.no_pending":"Tidak ada permintaan tertunda.", "req.report_prefix":"Laporan ", "req.requested_by":"Diminta oleh ",
   "req.approve":"Setujui (hapus)", "req.reject":"Tolak",
   "ph.save_print":"Simpan sebagai PDF / Cetak", "ph.back_home":"Kembali ke beranda", "ph.back_item":"← Kembali ke item",
@@ -737,7 +745,8 @@ en: {
   "settings.add_ck":"Add a Central Kitchen", "settings.ck_name_ph":"Name, e.g. Central Kitchen 3", "settings.city_ph":"City", "settings.ck_code_ph":"Code, e.g. GW21",
   "settings.invite_title":"Invite a new member", "settings.first_name":"First name", "settings.last_name":"Last name",
   "settings.no_last_name":"No last name", "settings.email":"Email", "settings.create_account":"+ Create account",
-  "settings.username_label":"Username", "settings.link_label":"Set-password link — send this to them", "settings.copy_link":"Copy link", "settings.copied":"Copied",
+  "settings.username_label":"Username", "settings.link_label":"Set-password link — send this to them", "settings.copy_link":"Copy invite message", "settings.copied":"Copied",
+  "settings.invite_message":"Your account has been created for the Maintenance Report app.\nUsername: {username}\n\nClick the link below to create your password:\n{link}\n\nThis link is valid for 2 hours.",
   "settings.no_team_yet":"No team members yet.", "settings.th_name":"Name", "settings.th_email":"E-mail", "settings.th_username":"Username",
   "settings.th_role":"Role", "settings.th_access":"Location access & titles", "settings.you":"(you)",
   "settings.saving":"Saving...", "settings.saved_name":"Saved name for ", "settings.updated_prefix":"Updated ", "settings.updated_suffix":" (applies in Store Visit too).",
@@ -756,6 +765,9 @@ en: {
   "ma.locations_label":"Locations this member can report against", "ma.select_all":"Select all locations",
   "ma.titles_label":"Functional titles", "ma.titles_hint":"(applies at every location checked above; independent of owner/admin/member)",
   "ma.select_titles":"Select titles…", "ma.member_fallback":"Member", "ma.saved":"Saved.", "ma.save_failed":"Save failed: ",
+  "ma.view_only_label":"View only (cannot create reports)",
+  "ma.view_only_hint":"Can sign in and browse/print via Recall only — no new reports, progress, confirmations, or deletion requests, even if they hold a title above.",
+  "home.view_only_tag":"view only",
   "req.title":"Deletion requests", "req.no_pending":"No pending requests.", "req.report_prefix":"Report ", "req.requested_by":"Requested by ",
   "req.approve":"Approve (delete)", "req.reject":"Reject",
   "ph.save_print":"Save as PDF / Print", "ph.back_home":"Back to home", "ph.back_item":"← Back to item",
@@ -985,8 +997,14 @@ async function afterLogin(){
 }
 
 function isStaff(){ return me && (me.role==="owner"||me.role==="admin"); }
+// View-only members can sign in, pick a location, and use Recall to browse/print — but
+// cannot create reports, add progress, confirm resolution, or request deletion, even if
+// they also hold a functional title. Scoped to this app only (maint_access.view_only),
+// never touches the shared profiles.role, same reasoning as functional titles.
+var myViewOnly=false;
+function isViewOnly(){ return !isStaff() && myViewOnly; }
 function hasRole(role, locId){
-  if(!myRoles) return false;
+  if(!myRoles || isViewOnly()) return false;
   // r.role is a granular title (e.g. "foh_spv") stored in maint_roles; translate it to the
   // slot it satisfies before comparing. Falls back to r.role itself so any row already
   // stored with an old slot key directly still works with no migration needed.
@@ -994,10 +1012,12 @@ function hasRole(role, locId){
 }
 
 async function loadAccessAndRoles(){
-  if(isStaff()){ myAccessLocIds=null; }
+  if(isStaff()){ myAccessLocIds=null; myViewOnly=false; }
   else{
-    var r=await sb.from("maint_access").select("location_ids").eq("user_id",me.id).limit(1);
-    myAccessLocIds=(r.data && r.data.length) ? (r.data[0].location_ids||[]) : [];
+    var r=await sb.from("maint_access").select("location_ids,view_only").eq("user_id",me.id).limit(1);
+    var row=(r.data && r.data.length) ? r.data[0] : null;
+    myAccessLocIds=row ? (row.location_ids||[]) : [];
+    myViewOnly=!!(row && row.view_only);
   }
   var rr=await sb.from("maint_roles").select("role,location_id").eq("user_id",me.id);
   myRoles=rr.data||[];
@@ -1110,8 +1130,9 @@ function selectedHomeLocation(){
 }
 
 function renderHome(){
-  $("authBarText").textContent=t("home.signed_in_as")+me.name+" ("+me.role+(myRoles.length?", "+myRoles.map(function(r){return GRANULAR_LABEL[r.role]||ROLE_LABEL[r.role]||r.role;}).join(", "):"")+")";
+  $("authBarText").textContent=t("home.signed_in_as")+me.name+" ("+me.role+(myRoles.length?", "+myRoles.map(function(r){return GRANULAR_LABEL[r.role]||ROLE_LABEL[r.role]||r.role;}).join(", "):"")+(isViewOnly()?", "+t("home.view_only_tag"):"")+")";
   fillHomeBrands();
+  $("btnNewReport").classList.toggle("hide", isViewOnly());
   if(isStaff() && uncodedOutlets.length){
     $("homeHint").textContent=tf("home.uncoded_hint",{n:uncodedOutlets.length});
   } else { $("homeHint").textContent=""; }
@@ -1355,6 +1376,7 @@ function renderNrDeptWrap(){
   });
 }
 function openNewReport(){
+  if(isViewOnly()) return; // defensive — button is hidden, but block the route directly too
   draftItems=[]; draftPhotos=[]; draftBrokenPhoto=null; draftVideoFile=null; draftBrokenVideoFile=null; nrDept=null;
   $("nrHeader").innerHTML="<b>"+t("nr.location_label")+"</b> "+currentLocation.brand+" — "+currentLocation.name+" ("+currentLocation.city+")<br><b>"+t("nr.date_label")+"</b> "+new Date().toLocaleDateString()+"<br><b>"+t("nr.submitted_by_label")+"</b> "+me.name;
   $("nrIssue").value=""; $("nrProposal").value="";
@@ -1548,7 +1570,7 @@ async function wireReportDeleteActions(rep){
       document.getElementById("printHost").remove();
       show("homeView"); renderHome();
     });
-  } else if(mine || (myAccessLocIds===null || myAccessLocIds.indexOf(rep.location_id)>=0)){
+  } else if(!isViewOnly() && (mine || (myAccessLocIds===null || myAccessLocIds.indexOf(rep.location_id)>=0))){
     host.innerHTML='<button class="btn cancel small" id="phReqDelete" style="width:auto;margin-top:10px">'+t("ph.request_delete_btn")+'</button>';
     host.querySelector("#phReqDelete").addEventListener("click", function(){ openDelModal(rep); });
   }
@@ -1678,6 +1700,7 @@ async function openItemDetail(itemId){
   $("idFirstReport").innerHTML=firstReportBlockHtml(currentItem);
   renderProgressList();
   renderApprovals();
+  $("btnAddProgress").classList.toggle("hide", isViewOnly());
   show("itemDetailView");
 }
 $("btnIdBack").addEventListener("click", function(){ show("recallListView"); runRecallSearch(); });
@@ -2041,11 +2064,12 @@ async function renderTeam(){
   box.innerHTML=""; box.appendChild(tbl);
   rows.filter(function(p){ return p.role==="member"; }).forEach(async function(p){
     var el=$("maSum_"+p.id); if(!el) return;
-    var acc=await sb.from("maint_access").select("location_ids").eq("user_id",p.id).limit(1);
-    var ids=(acc.data&&acc.data.length)?(acc.data[0].location_ids||[]):[];
+    var acc=await sb.from("maint_access").select("location_ids,view_only").eq("user_id",p.id).limit(1);
+    var accRow=(acc.data&&acc.data.length)?acc.data[0]:null;
+    var ids=accRow?(accRow.location_ids||[]):[];
     var rr=await sb.from("maint_roles").select("role").eq("user_id",p.id);
     var titles=(rr.data||[]).map(function(x){return GRANULAR_LABEL[x.role]||ROLE_LABEL[x.role]||x.role;}).filter(function(v,i,a){return a.indexOf(v)===i;});
-    if(el) el.textContent=ids.length+t("settings.locations_suffix")+(titles.length? " · "+titles.join(", ") : "");
+    if(el) el.textContent=ids.length+t("settings.locations_suffix")+(titles.length? " · "+titles.join(", ") : "")+((accRow&&accRow.view_only)? " · "+t("home.view_only_tag") : "");
   });
 }
 
@@ -2264,6 +2288,7 @@ $("btnCkAdd").addEventListener("click", async function(){
 });
 
 /* ---------------- settings (admin) ---------------- */
+var lastInviteMessage=null; // full templated invite text (username + link + wording), built alongside the raw link — see btnCopyInvite below
 $("btnInviteCreate").addEventListener("click", async function(){
   var msg=$("invMsg"); msg.className="msg";
   var first=$("invFirst").value.trim(), noLast=$("invNoLast").checked, last=noLast?"":$("invLast").value.trim(), email=$("invEmail").value.trim();
@@ -2278,6 +2303,7 @@ $("btnInviteCreate").addEventListener("click", async function(){
     var link=location.origin+location.pathname+"#setpw="+encodeURIComponent(d.token||"");
     $("invUser").textContent=d.username||"—";
     $("invLink").value=link;
+    lastInviteMessage=tf("settings.invite_message",{username:d.username||"—", link:link});
     $("invResult").classList.remove("hide");
     msg.className="msg ok"; msg.textContent=t("settings.account_created");
     $("invFirst").value=""; $("invLast").value=""; $("invEmail").value=""; $("invNoLast").checked=false;
@@ -2285,10 +2311,20 @@ $("btnInviteCreate").addEventListener("click", async function(){
   }catch(e){ msg.className="msg err"; msg.textContent=(e&&e.message)||String(e); }
 });
 $("btnCopyInvite").addEventListener("click", function(){
-  var ta=$("invLink"); ta.focus(); ta.select(); try{ ta.setSelectionRange(0,99999); }catch(e){}
+  var text=lastInviteMessage||$("invLink").value;
   var done=function(){ var b=$("btnCopyInvite"), tx=b.textContent; b.textContent=t("settings.copied"); setTimeout(function(){b.textContent=tx;},1500); };
-  if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(ta.value).then(done,function(){ try{document.execCommand("copy");done();}catch(e){} }); }
-  else { try{document.execCommand("copy");done();}catch(e){} }
+  var fallback=function(){
+    // execCommand needs a real selected DOM node — build one on the fly with the full message,
+    // since invLink's textarea only ever holds the bare link, not the composed wording.
+    var tmp=document.createElement("textarea");
+    tmp.value=text; tmp.style.position="fixed"; tmp.style.opacity="0";
+    document.body.appendChild(tmp); tmp.focus(); tmp.select();
+    try{ document.execCommand("copy"); }catch(e){}
+    document.body.removeChild(tmp);
+    done();
+  };
+  if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(text).then(done, fallback); }
+  else { fallback(); }
 });
 
 /* ---------------- member location access & titles: modal opened from the Team table ---------------- */
@@ -2378,6 +2414,13 @@ function renderRoleDropdown(selectedKeys){
   updateRoleDropdownBtnLabel();
 }
 $("setRoleDropdownBtn").addEventListener("click", function(e){ e.stopPropagation(); $("setRoleDropdownPanel").classList.toggle("hide"); });
+$("setViewOnly").addEventListener("change", function(){
+  // Titles are irrelevant when view-only is on (hasRole() always returns false for them) —
+  // grey the picker out so it's clear at a glance, without deleting whatever was already set.
+  $("setRoleDropdownBtn").disabled=this.checked;
+  $("setRoleDropdownBtn").style.opacity=this.checked?0.5:1;
+  if(this.checked) $("setRoleDropdownPanel").classList.add("hide");
+});
 document.addEventListener("click", function(e){
   var panel=$("setRoleDropdownPanel");
   if(panel && !panel.classList.contains("hide") && !panel.contains(e.target) && e.target!==$("setRoleDropdownBtn")){ panel.classList.add("hide"); }
@@ -2389,10 +2432,13 @@ async function openMemberAccessModal(m){
   $("setLocTree").innerHTML=t("settings.loading");
   $("setRoleDropdownPanel").innerHTML=""; $("setRoleDropdownPanel").classList.add("hide");
   $("setRoleDropdownBtn").textContent=t("ma.select_titles");
+  $("setViewOnly").checked=false;
   $("memberAccessModal").classList.remove("hide");
 
-  var acc=await sb.from("maint_access").select("location_ids").eq("user_id",m.id).limit(1);
-  var accIds=(acc.data && acc.data.length)? (acc.data[0].location_ids||[]) : [];
+  var acc=await sb.from("maint_access").select("location_ids,view_only").eq("user_id",m.id).limit(1);
+  var accRow=(acc.data && acc.data.length)? acc.data[0] : null;
+  var accIds=accRow ? (accRow.location_ids||[]) : [];
+  $("setViewOnly").checked=!!(accRow && accRow.view_only);
   renderSetLocTree(accIds);
 
   var rr=await sb.from("maint_roles").select("role").eq("user_id",m.id);
@@ -2406,7 +2452,7 @@ $("btnSetSave").addEventListener("click", async function(){
   $("setMsg").textContent="";
   try{
     var ids=Array.prototype.slice.call($("setLocTree").querySelectorAll(".setLocCb")).filter(function(cb){return cb.checked;}).map(function(cb){return cb.dataset.id;});
-    var up=await sb.from("maint_access").upsert({user_id:uid, location_ids:ids, updated_by:me.id, updated_at:new Date().toISOString()});
+    var up=await sb.from("maint_access").upsert({user_id:uid, location_ids:ids, view_only:$("setViewOnly").checked, updated_by:me.id, updated_at:new Date().toISOString()});
     if(up.error) throw up.error;
     await sb.from("maint_roles").delete().eq("user_id",uid);
     var selectedRoles=Array.prototype.filter.call($("setRoleDropdownPanel").querySelectorAll(".setRoleCb"), function(cb){return cb.checked;}).map(function(cb){return cb.value;});
