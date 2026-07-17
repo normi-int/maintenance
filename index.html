@@ -172,12 +172,19 @@
       <small class="hint" id="homeHint"></small>
     </div>
     <div class="card">
-      <div class="sec-head"><h2 class="section" style="margin:0;border:none" data-i18n="home.recent">My Recent Reports</h2></div>
-      <div class="dept-wrap" style="margin-bottom:10px">
+      <div class="sec-head"><h2 class="section" style="margin:0;border:none" data-i18n="home.recent">Recent Reports</h2></div>
+      <div class="dept-wrap">
         <button type="button" class="dept" id="tabUnresolved" data-i18n="home.tab_unresolved">Unresolved Issues</button>
         <button type="button" class="dept" id="tabResolved" data-i18n="home.tab_resolved">Recently Resolved</button>
       </div>
+    </div>
+    <div class="card">
+      <h2 class="section" data-i18n="home.my_report">My Report</h2>
       <div id="myReportsList"></div><p class="muted" id="myReportsEmpty" data-i18n="home.no_reports">No reports yet.</p>
+    </div>
+    <div class="card">
+      <h2 class="section" data-i18n="home.all_report">All Report</h2>
+      <div id="allReportsList"></div><p class="muted" id="allReportsEmpty" data-i18n="home.no_reports">No reports yet.</p>
     </div>
   </section>
 
@@ -586,7 +593,8 @@ id: {
   "common.please_wait":"Mohon tunggu...", "common.submit":"Kirim", "common.not_connected":"Tidak terhubung.",
   "common.cancel":"Batal", "common.save":"Simpan", "common.choose":"— pilih —", "common.optional":"(opsional)",
   "home.pick_location":"Pilih lokasi", "home.brand":"Brand", "home.city":"Kota", "home.outlet":"Outlet",
-  "home.new_report":"🆕 Laporan baru", "home.recall":"🔎 Lihat laporan", "home.recent":"Laporan Terbaru Saya",
+  "home.new_report":"🆕 Laporan baru", "home.recall":"🔎 Lihat laporan", "home.recent":"Laporan Terbaru",
+  "home.my_report":"Laporan Saya", "home.all_report":"Semua Laporan",
   "home.tab_unresolved":"Masalah Belum Selesai", "home.tab_resolved":"Baru Selesai",
   "home.no_reports":"Belum ada laporan.", "home.no_unresolved":"Tidak ada laporan yang belum selesai.", "home.no_resolved":"Tidak ada laporan yang baru selesai.",
   "home.no_locations":"Belum ada lokasi yang ditetapkan — hubungi admin Anda",
@@ -712,7 +720,8 @@ en: {
   "common.please_wait":"Please wait...", "common.submit":"Submit", "common.not_connected":"Not connected.",
   "common.cancel":"Cancel", "common.save":"Save", "common.choose":"— choose —", "common.optional":"(optional)",
   "home.pick_location":"Pick a location", "home.brand":"Brand", "home.city":"City", "home.outlet":"Outlet",
-  "home.new_report":"🆕 New report", "home.recall":"🔎 Recall report", "home.recent":"My Recent Reports",
+  "home.new_report":"🆕 New report", "home.recall":"🔎 Recall report", "home.recent":"Recent Reports",
+  "home.my_report":"My Report", "home.all_report":"All Report",
   "home.tab_unresolved":"Unresolved Issues", "home.tab_resolved":"Recently Resolved",
   "home.no_reports":"No reports yet.", "home.no_unresolved":"No unresolved reports.", "home.no_resolved":"No recently resolved reports.",
   "home.no_locations":"No locations assigned — ask your admin",
@@ -1234,25 +1243,41 @@ async function openNotifyView(){
 $("btnNotifyBack").addEventListener("click", function(){ show("homeView"); renderHome(); });
 
 var homeTab="open"; // 'open' = Unresolved Issues, 'finished' = Recently Resolved
+var HOME_LIST_LIMIT=5;
 $("tabUnresolved").addEventListener("click", function(){ homeTab="open"; loadMyReports(); });
 $("tabResolved").addEventListener("click", function(){ homeTab="finished"; loadMyReports(); });
-async function loadMyReports(){
-  $("tabUnresolved").classList.toggle("on", homeTab==="open");
-  $("tabResolved").classList.toggle("on", homeTab==="finished");
-  var q=sb.from("maint_reports").select("*").eq("cached_status",homeTab).order("submitted_at",{ascending:false}).limit(20);
-  if(!isStaff()) q=q.eq("submitted_by", me.id);
-  var r=await q;
-  var list=$("myReportsList"); list.innerHTML="";
-  var rows=r.data||[];
-  $("myReportsEmpty").style.display = rows.length? "none":"block";
-  $("myReportsEmpty").textContent = homeTab==="open" ? t("home.no_unresolved") : t("home.no_resolved");
+function renderHomeReportRows(listEl, emptyEl, rows, emptyText){
+  listEl.innerHTML="";
+  emptyEl.style.display = rows.length? "none":"block";
+  emptyEl.textContent = emptyText;
   rows.forEach(function(rep){
     var d=document.createElement("div"); d.className="listcard";
     d.innerHTML='<div class="t">'+rep.brand+' — '+rep.outlet+' <span class="pill '+(rep.cached_status==="finished"?"resolved":"open")+'">'+(rep.cached_status==="finished"?t("home.status_finished"):t("home.status_open"))+'</span></div>'+
       '<div class="m">'+rep.id+' · '+rep.item_count+t("recall.items_count")+' · '+new Date(rep.submitted_at).toLocaleDateString()+'</div>';
     d.addEventListener("click", function(){ openReportPrint(rep.id); });
-    list.appendChild(d);
+    listEl.appendChild(d);
   });
+}
+async function loadMyReports(){
+  $("tabUnresolved").classList.toggle("on", homeTab==="open");
+  $("tabResolved").classList.toggle("on", homeTab==="finished");
+  var emptyText = homeTab==="open" ? t("home.no_unresolved") : t("home.no_resolved");
+
+  // "My Report" — only what I personally submitted, newest 5.
+  var myR=await sb.from("maint_reports").select("*").eq("cached_status",homeTab).eq("submitted_by", me.id)
+    .order("submitted_at",{ascending:false}).limit(HOME_LIST_LIMIT);
+  renderHomeReportRows($("myReportsList"), $("myReportsEmpty"), myR.data||[], emptyText);
+
+  // "All Report" — everybody's, newest 5. Scoped the same way Recall is: owner/admin see
+  // all, members/view-only see only reports at locations they have access to
+  // (myAccessLocIds===null means "all").
+  var allQ=sb.from("maint_reports").select("*").eq("cached_status",homeTab).order("submitted_at",{ascending:false}).limit(HOME_LIST_LIMIT);
+  if(myAccessLocIds!==null){
+    var idsHome=myAccessLocIds.length? myAccessLocIds : ["__none__"];
+    allQ=allQ.in("location_id", idsHome);
+  }
+  var allR=await allQ;
+  renderHomeReportRows($("allReportsList"), $("allReportsEmpty"), allR.data||[], emptyText);
 }
 
 $("btnLogout").addEventListener("click", async function(){ await sb.auth.signOut(); me=null; show("loginView"); });
