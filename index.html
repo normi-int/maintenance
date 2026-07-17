@@ -12,9 +12,12 @@
   body{font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--ink);font-size:16px;line-height:1.4;padding-bottom:40px;}
   header.appbar{position:sticky;top:0;z-index:20;background:var(--ink);color:#fff;padding:14px 16px;display:flex;align-items:center;gap:10px;box-shadow:0 2px 6px rgba(0,0,0,.15);}
   header.appbar h1{font-size:17px;margin:0;font-weight:600;flex:1}
-  header.appbar .sub{font-size:12px;opacity:.7;font-weight:400}
   .iconbtn{background:rgba(255,255,255,.15);border:none;color:#fff;font-size:13px;padding:8px 12px;border-radius:10px;cursor:pointer;}
+  .langsw{display:flex;gap:2px;background:rgba(255,255,255,.15);border-radius:10px;padding:2px;flex:none}
+  .langsw button{border:none;background:transparent;color:rgba(255,255,255,.7);font-size:12px;font-weight:700;padding:6px 9px;border-radius:8px;cursor:pointer}
+  .langsw button.on{background:#fff;color:var(--ink)}
   .wrap{max-width:820px;margin:0 auto;padding:16px}
+  .appfooter{text-align:center;color:var(--muted);font-size:11px;padding:6px 16px 24px}
   .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:16px;}
   label{display:block;font-size:13px;font-weight:600;color:var(--muted);margin:0 0 6px}
   select,input[type=text],input[type=email],input[type=password],input[type=date],input[type=time],input[type=url],textarea{width:100%;padding:12px;font-size:16px;border:1px solid #cbd2dc;border-radius:10px;background:#fff;color:var(--ink);font-family:inherit;}
@@ -68,6 +71,8 @@
   small.hint{display:block;color:var(--muted);font-size:12px;margin-top:4px}
   .listcard{border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px;cursor:pointer;background:#fff}
   .listcard:active{background:#f8fafc}
+  .listcard.age-red{border-color:#fca5a5;background:#fef2f2}
+  .listcard.age-yellow{border-color:#fde68a;background:#fffbeb}
   .listcard .t{font-weight:700}.listcard .m{font-size:13px;color:var(--muted);margin-top:2px}
   .approvalrow{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:10px;padding:10px;margin-bottom:8px}
   .approvalrow .info{flex:1;min-width:0}
@@ -112,9 +117,13 @@
 </head>
 <body>
 <header class="appbar">
-  <h1>Maintenance Report <span class="sub" id="barSub"></span></h1>
-  <button class="iconbtn noprint hide" id="btnSettings">⚙ Settings</button>
-  <button class="iconbtn noprint hide" id="btnLogout">Sign out</button>
+  <h1>Maintenance Report</h1>
+  <div class="langsw noprint">
+    <button type="button" id="btnLangID" data-lang="id">ID</button>
+    <button type="button" id="btnLangEN" data-lang="en">EN</button>
+  </div>
+  <button class="iconbtn noprint hide" id="btnSettings" data-i18n="header.settings">⚙ Settings</button>
+  <button class="iconbtn noprint hide" id="btnLogout" data-i18n="header.signout">Sign out</button>
 </header>
 
 <div class="wrap">
@@ -122,24 +131,24 @@
   <!-- ============ LOGIN ============ -->
   <section id="loginView" class="hide">
     <div class="card">
-      <h2 class="section">Sign in</h2>
-      <div class="row"><label>Username</label><input type="text" id="authUser" autocomplete="username" autocapitalize="none" spellcheck="false"></div>
-      <div class="row"><label>Password</label><input type="password" id="authPass" autocomplete="current-password"></div>
-      <button class="btn proceed" id="btnAuthGo">Sign in</button>
+      <h2 class="section" data-i18n="login.title">Sign in</h2>
+      <div class="row"><label data-i18n="login.username">Username</label><input type="text" id="authUser" autocomplete="username" autocapitalize="none" spellcheck="false"></div>
+      <div class="row"><label data-i18n="login.password">Password</label><input type="password" id="authPass" autocomplete="current-password"></div>
+      <button class="btn proceed" id="btnAuthGo" data-i18n="login.signin_btn">Sign in</button>
       <div class="msg" id="authMsg"></div>
-      <div id="authHelp" style="text-align:center;margin-top:12px;font-size:13px"><a href="#" id="lnkForgotUser">Forgot my username</a> &nbsp;·&nbsp; <a href="#" id="lnkForgotPass">Forgot my password</a></div>
+      <div id="authHelp" style="text-align:center;margin-top:12px;font-size:13px"><a href="#" id="lnkForgotUser" data-i18n="login.forgot_user">Forgot my username</a> &nbsp;·&nbsp; <a href="#" id="lnkForgotPass" data-i18n="login.forgot_pass">Forgot my password</a></div>
     </div>
   </section>
 
   <!-- ============ SET PASSWORD (invite) ============ -->
   <section id="setpwView" class="hide">
     <div class="card">
-      <h2 class="section">Set your password</h2>
-      <p class="muted" style="font-size:13px;margin-bottom:10px">Welcome! Create a password for your account.</p>
-      <div class="row"><label>New password</label><input type="password" id="setpwNew" autocomplete="new-password" placeholder="at least 6 characters"></div>
-      <div class="row"><label>Confirm password</label><input type="password" id="setpwConfirm" autocomplete="new-password"></div>
+      <h2 class="section" data-i18n="setpw.title">Set your password</h2>
+      <p class="muted" style="font-size:13px;margin-bottom:10px" data-i18n="setpw.welcome">Welcome! Create a password for your account.</p>
+      <div class="row"><label data-i18n="setpw.new">New password</label><input type="password" id="setpwNew" autocomplete="new-password" placeholder="at least 6 characters" data-i18n-ph="setpw.new_ph"></div>
+      <div class="row"><label data-i18n="setpw.confirm">Confirm password</label><input type="password" id="setpwConfirm" autocomplete="new-password"></div>
       <div class="msg" id="setpwMsg"></div>
-      <button class="btn proceed" id="setpwGo">Set password</button>
+      <button class="btn proceed" id="setpwGo" data-i18n="setpw.submit">Set password</button>
     </div>
   </section>
 
@@ -148,21 +157,26 @@
     <div class="authbar" id="authBar">
       <span class="grow" id="authBarText"></span>
     </div>
-    <button class="btn hide" id="btnRequestsBanner" style="background:#fef3c7;color:#92400e;border:1px solid #fcd34d;margin-bottom:16px">🔔 Delete requests pending: <span id="reqCount">0</span> — review</button>
+    <button class="btn hide" id="btnRequestsBanner" style="background:#fef3c7;color:#92400e;border:1px solid #fcd34d;margin-bottom:16px"><span data-i18n="home.requests_banner">🔔 Delete requests pending:</span> <span id="reqCount">0</span> — <span data-i18n="home.review">review</span></button>
+    <button class="btn hide" id="btnOverdueBanner" style="background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;margin-bottom:16px"><span data-i18n="home.overdue_banner">⚠ Reports open 30+ days:</span> <span id="overdueCount">0</span> — <span data-i18n="home.review">review</span></button>
     <div class="card">
-      <h2 class="section">Pick a location</h2>
-      <div class="row"><label>Brand</label><select id="selBrand"></select></div>
-      <div class="row"><label>City</label><select id="selCity" disabled></select></div>
-      <div class="row"><label>Outlet</label><select id="selOutlet" disabled></select></div>
+      <h2 class="section" data-i18n="home.pick_location">Pick a location</h2>
+      <div class="row"><label data-i18n="home.brand">Brand</label><select id="selBrand"></select></div>
+      <div class="row"><label data-i18n="home.city">City</label><select id="selCity" disabled></select></div>
+      <div class="row"><label data-i18n="home.outlet">Outlet</label><select id="selOutlet" disabled></select></div>
       <div class="btnrow2">
-        <button class="btn add" id="btnNewReport">🆕 New report</button>
-        <button class="btn preview" id="btnRecall">🔎 Recall report</button>
+        <button class="btn add" id="btnNewReport" data-i18n="home.new_report">🆕 New report</button>
+        <button class="btn preview" id="btnRecall" data-i18n="home.recall">🔎 Recall report</button>
       </div>
       <small class="hint" id="homeHint"></small>
     </div>
     <div class="card">
-      <div class="sec-head"><h2 class="section" style="margin:0;border:none">My recent reports</h2></div>
-      <div id="myReportsList"></div><p class="muted" id="myReportsEmpty">No reports yet.</p>
+      <div class="sec-head"><h2 class="section" style="margin:0;border:none" data-i18n="home.recent">My Recent Reports</h2></div>
+      <div class="dept-wrap" style="margin-bottom:10px">
+        <button type="button" class="dept" id="tabUnresolved" data-i18n="home.tab_unresolved">Unresolved Issues</button>
+        <button type="button" class="dept" id="tabResolved" data-i18n="home.tab_resolved">Recently Resolved</button>
+      </div>
+      <div id="myReportsList"></div><p class="muted" id="myReportsEmpty" data-i18n="home.no_reports">No reports yet.</p>
     </div>
   </section>
 
@@ -172,74 +186,74 @@
       <div class="rep-head" id="nrHeader"></div>
     </div>
     <div class="card">
-      <h2 class="section">Add a finding</h2>
-      <div class="row"><label>Department (choose 1)</label><div class="dept-wrap" id="nrDeptWrap"></div></div>
-      <div class="row"><label>Issue</label><textarea id="nrIssue" placeholder="Describe what you found..."></textarea></div>
+      <h2 class="section" data-i18n="nr.new_finding">New Finding</h2>
+      <div class="row"><label data-i18n="nr.department">Department (choose 1)</label><div class="dept-wrap" id="nrDeptWrap"></div></div>
+      <div class="row"><label data-i18n="nr.issue">Issue</label><textarea id="nrIssue" placeholder="Describe what you found..." data-i18n-ph="nr.issue_ph"></textarea></div>
       <div class="row">
-        <label>Photos (up to 3)</label>
-        <label class="add-photo-lbl" for="nrPhoto">📷 Add photo (camera or gallery)</label>
+        <label data-i18n="nr.photos">Photos (up to 3)</label>
+        <label class="add-photo-lbl" for="nrPhoto" data-i18n="nr.add_photo">📷 Add photo (camera or gallery)</label>
         <input type="file" id="nrPhoto" accept="image/*" multiple class="hide">
         <div class="thumbrow" id="nrPhotoPrev"></div>
       </div>
-      <div class="row"><label>Video <span class="muted" style="font-weight:400">(optional, max 20MB — keep clips short, ~15–20 sec)</span></label>
-        <label class="add-photo-lbl" for="nrVideoFile">🎥 Add video (camera or gallery)</label>
+      <div class="row"><label><span data-i18n="nr.video_label">Video</span> <span class="muted" style="font-weight:400" data-i18n="nr.video_hint">(optional, max 20MB — keep clips short, ~15–20 sec)</span></label>
+        <label class="add-photo-lbl" for="nrVideoFile" data-i18n="nr.add_video">🎥 Add video (camera or gallery)</label>
         <input type="file" id="nrVideoFile" accept="video/*" class="hide">
         <div id="nrVideoPrev" style="margin-top:8px"></div>
       </div>
-      <div class="row"><label>Proposed Action</label>
+      <div class="row"><label data-i18n="nr.proposed_action">Proposed Action</label>
         <select id="nrProposal">
-          <option value="">— choose —</option>
-          <option value="sparepart">Request Spare Part</option>
-          <option value="technician">Call Technician / Vendor</option>
+          <option value="" data-i18n="common.choose">— choose —</option>
+          <option value="sparepart" data-i18n="nr.sparepart">Request Spare Part</option>
+          <option value="technician" data-i18n="nr.technician">Call Technician / Vendor</option>
         </select>
       </div>
       <div class="row hide" id="nrBrokenWrap" style="border:1px solid #fde68a;background:#fffdf5;border-radius:10px;padding:12px">
-        <label>Broken part name</label><input type="text" id="nrBrokenName" style="margin-bottom:10px">
-        <label>Serial number <span class="muted" style="font-weight:400">(optional)</span></label><input type="text" id="nrBrokenSerial" style="margin-bottom:10px">
-        <label>Photo of broken part (required)</label>
-        <label class="add-photo-lbl" for="nrBrokenPhoto">📷 Add photo</label>
+        <label data-i18n="nr.broken_name">Broken part name</label><input type="text" id="nrBrokenName" style="margin-bottom:10px">
+        <label><span data-i18n="nr.serial">Serial number</span> <span class="muted" style="font-weight:400" data-i18n="common.optional">(optional)</span></label><input type="text" id="nrBrokenSerial" style="margin-bottom:10px">
+        <label data-i18n="nr.broken_photo">Photo of broken part (required)</label>
+        <label class="add-photo-lbl" for="nrBrokenPhoto" data-i18n="pg.add_photo">📷 Add photo</label>
         <input type="file" id="nrBrokenPhoto" accept="image/*" class="hide">
         <div class="thumbrow" id="nrBrokenPhotoPrev"></div>
-        <div class="row" style="margin-top:10px"><label>Video <span class="muted" style="font-weight:400">(optional, max 20MB)</span></label>
-          <label class="add-photo-lbl" for="nrBrokenVideoFile">🎥 Add video</label>
+        <div class="row" style="margin-top:10px"><label><span data-i18n="nr.video_label">Video</span> <span class="muted" style="font-weight:400" data-i18n="nr.broken_video_hint">(optional, max 20MB)</span></label>
+          <label class="add-photo-lbl" for="nrBrokenVideoFile" data-i18n="nr.add_video_short">🎥 Add video</label>
           <input type="file" id="nrBrokenVideoFile" accept="video/*" class="hide">
           <div id="nrBrokenVideoPrev" style="margin-top:8px"></div>
         </div>
       </div>
-      <button class="btn add" id="btnNrAdd">+ Add finding to report</button>
+      <button class="btn add" id="btnNrAdd" data-i18n="nr.add_finding_btn">+ Add finding to report</button>
       <div class="msg err" id="nrMsg"></div>
     </div>
     <div class="card">
-      <h2 class="section">Findings in this report (<span id="nrCount">0</span>)</h2>
-      <div id="nrList"></div><p class="muted" id="nrEmpty">No findings added yet.</p>
+      <h2 class="section"><span data-i18n="nr.findings_in_report">Findings in this report (</span><span id="nrCount">0</span>)</h2>
+      <div id="nrList"></div><p class="muted" id="nrEmpty" data-i18n="nr.no_findings">No findings added yet.</p>
     </div>
     <div class="card noprint">
       <div class="btnrow2">
-        <button class="btn back" id="btnNrBack">← Back to home</button>
-        <button class="btn proceed" id="btnNrSubmit">Submit report</button>
+        <button class="btn back" id="btnNrBack" data-i18n="nr.back_home">← Back to home</button>
+        <button class="btn proceed" id="btnNrSubmit" data-i18n="nr.submit_report">Submit report</button>
       </div>
-      <small class="hint">Once submitted, findings can't be edited — only added to over time via progress updates.</small>
+      <small class="hint" data-i18n="nr.hint">Once submitted, findings can't be edited — only added to over time via progress updates.</small>
     </div>
   </section>
 
   <!-- ============ RECALL LIST ============ -->
   <section id="recallListView" class="hide">
     <div class="card">
-      <div class="sec-head"><h2 class="section" style="margin:0;border:none">Recall report</h2><button class="btn back small" id="btnRecallBack">← Back</button></div>
-      <input type="text" id="rlSearch" placeholder="🔎 Search by item code, report code, or issue text…" style="width:100%;box-sizing:border-box;padding:9px 11px;border:1px solid var(--line);border-radius:10px;font-size:14px;margin:6px 0 10px">
+      <div class="sec-head"><h2 class="section" style="margin:0;border:none" data-i18n="recall.title">Recall report</h2><button class="btn back small" id="btnRecallBack" data-i18n="recall.back">← Back</button></div>
+      <input type="text" id="rlSearch" placeholder="🔎 Search by item code, report code, or issue text…" style="width:100%;box-sizing:border-box;padding:9px 11px;border:1px solid var(--line);border-radius:10px;font-size:14px;margin:6px 0 10px" data-i18n-ph="recall.search_ph">
       <div class="filterbar">
-        <div class="row"><label>Location</label>
+        <div class="row"><label data-i18n="recall.location">Location</label>
           <div class="two" style="margin-bottom:8px">
             <select id="rlBrand"></select>
             <select id="rlCity" disabled></select>
           </div>
           <select id="rlOutlet" disabled></select>
         </div>
-        <div class="row"><label>Department</label><select id="rlDept"><option value="">All</option><option value="FOH">FOH</option><option value="BAR">BAR</option><option value="BOH">BOH</option><option value="PASTRY">PASTRY</option></select></div>
-        <label style="display:flex;align-items:center;gap:8px;font-size:14px"><input type="checkbox" id="rlOpenOnly" checked style="width:auto"> Unresolved only</label>
+        <div class="row"><label data-i18n="recall.department">Department</label><select id="rlDept"><option value="" data-i18n="recall.all">All</option><option value="FOH">FOH</option><option value="BAR">BAR</option><option value="BOH">BOH</option><option value="PASTRY">PASTRY</option></select></div>
+        <label style="display:flex;align-items:center;gap:8px;font-size:14px"><input type="checkbox" id="rlOpenOnly" checked style="width:auto"> <span data-i18n="recall.unresolved_only">Unresolved only</span></label>
       </div>
       <p class="muted" id="rlCount" style="font-size:12px"></p>
-      <div id="rlList"></div><p class="muted" id="rlEmpty" style="display:none">No matching items.</p>
+      <div id="rlList"></div><p class="muted" id="rlEmpty" style="display:none" data-i18n="recall.no_matching">No matching items.</p>
     </div>
   </section>
 
@@ -251,68 +265,68 @@
       <div class="rep-head" id="idHeader" style="margin-top:8px"></div>
     </div>
     <div class="card">
-      <h2 class="section">Initial Report</h2>
+      <h2 class="section" data-i18n="id.initial_report">Initial Report</h2>
       <div id="idFirstReport"></div>
     </div>
     <div class="card">
-      <h2 class="section">Progress (<span id="idProgCount">0</span>)</h2>
+      <h2 class="section"><span data-i18n="id.progress">Progress (</span><span id="idProgCount">0</span>)</h2>
       <div id="idProgList"></div>
-      <p class="muted" id="idProgEmpty">No progress logged yet.</p>
-      <button class="btn add noprint" id="btnAddProgress" style="margin-top:10px">+ Add progress</button>
+      <p class="muted" id="idProgEmpty" data-i18n="id.no_progress">No progress logged yet.</p>
+      <button class="btn add noprint" id="btnAddProgress" style="margin-top:10px" data-i18n="id.add_progress">+ Add progress</button>
     </div>
     <div class="card noprint">
-      <h2 class="section">Resolution approval</h2>
-      <p class="muted" style="font-size:13px;margin-bottom:10px">Every role below must confirm before this item is marked resolved.</p>
+      <h2 class="section" data-i18n="id.resolution_approval">Resolution approval</h2>
+      <p class="muted" style="font-size:13px;margin-bottom:10px" data-i18n="id.resolution_hint">Every role below must confirm before this item is marked resolved.</p>
       <div id="idApprovals"></div>
     </div>
     <div class="card noprint">
-      <button class="btn preview" id="btnIdPrint">Print progress report</button>
+      <button class="btn preview" id="btnIdPrint" data-i18n="id.print_btn">Print progress report</button>
     </div>
   </section>
 
   <!-- ============ SETTINGS (admin) ============ -->
   <section id="settingsView" class="hide">
     <div class="card">
-      <div class="sec-head"><h2 class="section" style="margin:0;border:none">Settings</h2><button class="btn back small" id="btnSetBack">← Back</button></div>
-      <h2 class="section" style="margin-top:10px">Team &amp; account levels</h2>
+      <div class="sec-head"><h2 class="section" style="margin:0;border:none" data-i18n="settings.title">Settings</h2><button class="btn back small" id="btnSetBack" data-i18n="settings.back">← Back</button></div>
+      <h2 class="section" style="margin-top:10px" data-i18n="settings.team_title">Team &amp; account levels</h2>
       <div id="teamList" style="overflow-x:auto"></div>
       <div class="msg" id="teamMsg"></div>
     </div>
     <div class="card">
-      <h2 class="section">Outlets</h2>
-      <div class="row"><label>Add a brand</label>
-        <div class="mgmt-row"><input type="text" id="newBrand" class="n" placeholder="e.g. Devon"><button class="btn small add" id="addBrandBtn">Add</button></div>
+      <h2 class="section" data-i18n="settings.outlets_title">Outlets</h2>
+      <div class="row"><label data-i18n="settings.add_brand">Add a brand</label>
+        <div class="mgmt-row"><input type="text" id="newBrand" class="n" placeholder="e.g. Devon" data-i18n-ph="settings.add_brand_ph"><button class="btn small add" id="addBrandBtn" data-i18n="settings.add">Add</button></div>
       </div>
       <div id="brandTree"></div>
       <div class="msg" id="brandMsg"></div>
     </div>
     <div class="card">
-      <h2 class="section">Central Kitchens</h2>
-      <p class="muted" style="font-size:13px;margin-bottom:10px">Not retail outlets, so they're not part of Store Visit's list — managed only here.</p>
+      <h2 class="section" data-i18n="settings.ck_title">Central Kitchens</h2>
+      <p class="muted" style="font-size:13px;margin-bottom:10px" data-i18n="settings.ck_desc">Not retail outlets, so they're not part of Store Visit's list — managed only here.</p>
       <div id="ckList"></div>
-      <div class="row" style="margin-top:10px;border-top:1px solid var(--line);padding-top:10px"><label>Add a Central Kitchen</label>
+      <div class="row" style="margin-top:10px;border-top:1px solid var(--line);padding-top:10px"><label data-i18n="settings.add_ck">Add a Central Kitchen</label>
         <div class="mgmt-row">
-          <input type="text" id="ckNewName" class="n" placeholder="Name, e.g. Central Kitchen 3">
-          <input type="text" id="ckNewCity" class="n" placeholder="City">
-          <input type="text" id="ckNewCode" class="n" placeholder="Code, e.g. GW21">
-          <button class="btn small add" id="btnCkAdd">Add</button>
+          <input type="text" id="ckNewName" class="n" placeholder="Name, e.g. Central Kitchen 3" data-i18n-ph="settings.ck_name_ph">
+          <input type="text" id="ckNewCity" class="n" placeholder="City" data-i18n-ph="settings.city_ph">
+          <input type="text" id="ckNewCode" class="n" placeholder="Code, e.g. GW21" data-i18n-ph="settings.ck_code_ph">
+          <button class="btn small add" id="btnCkAdd" data-i18n="settings.add">Add</button>
         </div>
       </div>
       <div class="msg" id="ckMsg"></div>
     </div>
     <div class="card">
-      <h2 class="section" style="margin-top:10px">Invite a new member</h2>
-      <div class="row"><label>First name</label><input type="text" id="invFirst"></div>
-      <div class="row"><label>Last name</label><input type="text" id="invLast"></div>
-      <label style="display:flex;align-items:center;gap:8px;font-size:14px;margin-bottom:8px"><input type="checkbox" id="invNoLast" style="width:auto"> No last name</label>
-      <div class="row"><label>Email</label><input type="email" id="invEmail"></div>
-      <button class="btn add" id="btnInviteCreate">+ Create account</button>
+      <h2 class="section" style="margin-top:10px" data-i18n="settings.invite_title">Invite a new member</h2>
+      <div class="row"><label data-i18n="settings.first_name">First name</label><input type="text" id="invFirst"></div>
+      <div class="row"><label data-i18n="settings.last_name">Last name</label><input type="text" id="invLast"></div>
+      <label style="display:flex;align-items:center;gap:8px;font-size:14px;margin-bottom:8px"><input type="checkbox" id="invNoLast" style="width:auto"> <span data-i18n="settings.no_last_name">No last name</span></label>
+      <div class="row"><label data-i18n="settings.email">Email</label><input type="email" id="invEmail"></div>
+      <button class="btn add" id="btnInviteCreate" data-i18n="settings.create_account">+ Create account</button>
       <div class="msg" id="invMsg"></div>
       <div class="hide" id="invResult" style="margin-top:10px;border:1px solid var(--line);border-radius:10px;padding:10px">
-        <div class="muted" style="font-size:12px">Username</div><div id="invUser" style="font-weight:700;margin-bottom:8px"></div>
-        <div class="muted" style="font-size:12px">Set-password link — send this to them</div>
+        <div class="muted" style="font-size:12px" data-i18n="settings.username_label">Username</div><div id="invUser" style="font-weight:700;margin-bottom:8px"></div>
+        <div class="muted" style="font-size:12px" data-i18n="settings.link_label">Set-password link — send this to them</div>
         <div class="row"><textarea id="invLink" rows="2" readonly></textarea></div>
-        <button class="btn small proceed" id="btnCopyInvite" style="width:auto">Copy link</button>
+        <button class="btn small proceed" id="btnCopyInvite" data-i18n="settings.copy_link" style="width:auto">Copy link</button>
       </div>
     </div>
   </section>
@@ -322,20 +336,20 @@
     <div class="card modal-card">
       <h2 class="section" id="maTitle">Member</h2>
       <div class="row">
-        <label>Locations this member can report against</label>
-        <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;margin-bottom:6px"><input type="checkbox" id="setLocAll" style="width:auto"> Select all locations</label>
+        <label data-i18n="ma.locations_label">Locations this member can report against</label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;margin-bottom:6px"><input type="checkbox" id="setLocAll" style="width:auto"> <span data-i18n="ma.select_all">Select all locations</span></label>
         <div id="setLocTree" style="max-height:260px;overflow:auto;border:1px solid var(--line);border-radius:10px;padding:8px"></div>
       </div>
-      <div class="row"><label>Functional titles <span class="muted" style="font-weight:400">(applies at every location checked above; independent of owner/admin/member)</span></label>
+      <div class="row"><label><span data-i18n="ma.titles_label">Functional titles</span> <span class="muted" style="font-weight:400" data-i18n="ma.titles_hint">(applies at every location checked above; independent of owner/admin/member)</span></label>
         <div style="position:relative">
-          <button type="button" class="btn back" id="setRoleDropdownBtn" style="justify-content:flex-start;text-align:left">Select titles…</button>
+          <button type="button" class="btn back" id="setRoleDropdownBtn" style="justify-content:flex-start;text-align:left" data-i18n="ma.select_titles">Select titles…</button>
           <div id="setRoleDropdownPanel" class="hide" style="position:absolute;z-index:5;top:100%;left:0;right:0;background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px;margin-top:4px;max-height:260px;overflow:auto;box-shadow:0 4px 14px rgba(0,0,0,.15)"></div>
         </div>
       </div>
       <div class="msg" id="setMsg"></div>
       <div class="btnrow2" style="margin-top:8px">
-        <button class="btn back" id="btnSetCancel">Cancel</button>
-        <button class="btn proceed" id="btnSetSave">Save</button>
+        <button class="btn back" id="btnSetCancel" data-i18n="common.cancel">Cancel</button>
+        <button class="btn proceed" id="btnSetSave" data-i18n="common.save">Save</button>
       </div>
     </div>
   </div>
@@ -343,95 +357,95 @@
   <!-- ============ DELETE REQUESTS (admin) ============ -->
   <section id="requestsView" class="hide">
     <div class="card">
-      <div class="sec-head"><h2 class="section" style="margin:0;border:none">Deletion requests</h2><button class="btn back small" id="btnReqBack">← Back</button></div>
-      <div id="reqList"></div><p class="muted" id="reqEmpty">No pending requests.</p>
+      <div class="sec-head"><h2 class="section" style="margin:0;border:none" data-i18n="req.title">Deletion requests</h2><button class="btn back small" id="btnReqBack" data-i18n="recall.back">← Back</button></div>
+      <div id="reqList"></div><p class="muted" id="reqEmpty" data-i18n="req.no_pending">No pending requests.</p>
     </div>
   </section>
 
   <!-- ============ PROGRESS MODAL ============ -->
   <div id="progressModal" class="hide modal-overlay">
     <div class="card modal-card">
-      <h2 class="section">Add progress</h2>
-      <div class="row"><label>Type</label>
+      <h2 class="section" data-i18n="pg.title">Add progress</h2>
+      <div class="row"><label data-i18n="pg.type">Type</label>
         <select id="pgType">
-          <option value="">— choose —</option>
-          <option value="tech_visit">Technician's visit</option>
-          <option value="repair_staff">Repair by staff</option>
+          <option value="" data-i18n="common.choose">— choose —</option>
+          <option value="tech_visit" data-i18n="pg.tech_visit">Technician's visit</option>
+          <option value="repair_staff" data-i18n="pg.repair_staff">Repair by staff</option>
         </select>
       </div>
 
       <div id="pgTechFields" class="hide">
-        <div class="row"><label>Photo of technician at work</label>
-          <label class="add-photo-lbl" for="pgTechPhoto">📷 Add photo</label>
+        <div class="row"><label data-i18n="pg.tech_photo">Photo of technician at work</label>
+          <label class="add-photo-lbl" for="pgTechPhoto" data-i18n="pg.add_photo">📷 Add photo</label>
           <input type="file" id="pgTechPhoto" accept="image/*" class="hide">
           <div class="thumbrow" id="pgTechPhotoPrev"></div>
         </div>
-        <div class="row"><label>Finding</label><textarea id="pgTechFinding"></textarea></div>
-        <div class="row"><label>Finding photo <span class="muted" style="font-weight:400">(optional, e.g. sparepart to change)</span></label>
-          <label class="add-photo-lbl" for="pgTechFindingPhoto">📷 Add photo</label>
+        <div class="row"><label data-i18n="pg.finding">Finding</label><textarea id="pgTechFinding"></textarea></div>
+        <div class="row"><label><span data-i18n="pg.finding_photo">Finding photo</span> <span class="muted" style="font-weight:400" data-i18n="pg.eg_sparepart">(optional, e.g. sparepart to change)</span></label>
+          <label class="add-photo-lbl" for="pgTechFindingPhoto" data-i18n="pg.add_photo">📷 Add photo</label>
           <input type="file" id="pgTechFindingPhoto" accept="image/*" class="hide">
           <div class="thumbrow" id="pgTechFindingPhotoPrev"></div>
         </div>
-        <div class="row"><label>Resolution</label>
-          <div class="dept-wrap"><button type="button" class="dept" data-val="resolved" id="pgTechResBtn1">Resolved</button><button type="button" class="dept" data-val="unresolved" id="pgTechResBtn2">Unresolved</button></div>
+        <div class="row"><label data-i18n="pg.resolution">Resolution</label>
+          <div class="dept-wrap"><button type="button" class="dept" data-val="resolved" id="pgTechResBtn1" data-i18n="pg.resolved">Resolved</button><button type="button" class="dept" data-val="unresolved" id="pgTechResBtn2" data-i18n="pg.unresolved">Unresolved</button></div>
         </div>
         <div id="pgTechUnresolved" class="hide">
-          <div class="row"><label>Next step</label>
+          <div class="row"><label data-i18n="pg.next_step">Next step</label>
             <select id="pgNextStep">
-              <option value="">— choose —</option>
-              <option>Order replacement part</option>
-              <option>Schedule cleaning</option>
-              <option>Not repairable — needs replacement</option>
-              <option>Needs re-inspection</option>
-              <option value="__other__">Other</option>
+              <option value="" data-i18n="common.choose">— choose —</option>
+              <option data-i18n="pg.order_part">Order replacement part</option>
+              <option data-i18n="pg.schedule_cleaning">Schedule cleaning</option>
+              <option data-i18n="pg.not_repairable">Not repairable — needs replacement</option>
+              <option data-i18n="pg.needs_reinspection">Needs re-inspection</option>
+              <option value="__other__" data-i18n="pg.other">Other</option>
             </select>
           </div>
-          <div class="row hide" id="pgNextStepOtherWrap"><label>Specify</label><input type="text" id="pgNextStepOther"></div>
-          <div class="row"><label>Broken part photo</label>
-            <label class="add-photo-lbl" for="pgBrokenPhoto">📷 Add photo</label>
+          <div class="row hide" id="pgNextStepOtherWrap"><label data-i18n="pg.specify">Specify</label><input type="text" id="pgNextStepOther"></div>
+          <div class="row"><label data-i18n="pg.broken_photo">Broken part photo</label>
+            <label class="add-photo-lbl" for="pgBrokenPhoto" data-i18n="pg.add_photo">📷 Add photo</label>
             <input type="file" id="pgBrokenPhoto" accept="image/*" class="hide">
             <div class="thumbrow" id="pgBrokenPhotoPrev"></div>
           </div>
           <div class="two">
-            <div class="row"><label>Part name</label><input type="text" id="pgBrokenName"></div>
-            <div class="row"><label>Serial number <span class="muted" style="font-weight:400">(optional)</span></label><input type="text" id="pgBrokenSerial"></div>
+            <div class="row"><label data-i18n="pg.part_name">Part name</label><input type="text" id="pgBrokenName"></div>
+            <div class="row"><label><span data-i18n="nr.serial">Serial number</span> <span class="muted" style="font-weight:400" data-i18n="common.optional">(optional)</span></label><input type="text" id="pgBrokenSerial"></div>
           </div>
         </div>
         <div id="pgTechResolved" class="hide">
-          <div class="row"><label>Photo of "after"</label>
-            <label class="add-photo-lbl" for="pgAfterPhotoTech">📷 Add photo</label>
+          <div class="row"><label data-i18n="pg.after_photo">Photo of "after"</label>
+            <label class="add-photo-lbl" for="pgAfterPhotoTech" data-i18n="pg.add_photo">📷 Add photo</label>
             <input type="file" id="pgAfterPhotoTech" accept="image/*" class="hide">
             <div class="thumbrow" id="pgAfterPhotoTechPrev"></div>
           </div>
         </div>
-        <div class="row"><label>Upload tech visit form</label>
-          <label class="add-photo-lbl" for="pgTechForm">📷 Add photo/scan</label>
+        <div class="row"><label data-i18n="pg.tech_form">Upload tech visit form</label>
+          <label class="add-photo-lbl" for="pgTechForm" data-i18n="pg.add_photo_scan">📷 Add photo/scan</label>
           <input type="file" id="pgTechForm" accept="image/*" class="hide">
           <div class="thumbrow" id="pgTechFormPrev"></div>
         </div>
       </div>
 
       <div id="pgStaffFields" class="hide">
-        <div class="row"><label>Photo of parts received</label>
-          <label class="add-photo-lbl" for="pgPartsPhoto">📷 Add photo</label>
+        <div class="row"><label data-i18n="pg.parts_photo">Photo of parts received</label>
+          <label class="add-photo-lbl" for="pgPartsPhoto" data-i18n="pg.add_photo">📷 Add photo</label>
           <input type="file" id="pgPartsPhoto" accept="image/*" class="hide">
           <div class="thumbrow" id="pgPartsPhotoPrev"></div>
         </div>
-        <div class="row"><label>Photo of "after"</label>
-          <label class="add-photo-lbl" for="pgAfterPhotoStaff">📷 Add photo</label>
+        <div class="row"><label data-i18n="pg.after_photo">Photo of "after"</label>
+          <label class="add-photo-lbl" for="pgAfterPhotoStaff" data-i18n="pg.add_photo">📷 Add photo</label>
           <input type="file" id="pgAfterPhotoStaff" accept="image/*" class="hide">
           <div class="thumbrow" id="pgAfterPhotoStaffPrev"></div>
         </div>
-        <div class="row"><label>Resolution</label>
-          <div class="dept-wrap"><button type="button" class="dept" data-val="resolved" id="pgStaffResBtn1">Resolved</button><button type="button" class="dept" data-val="unresolved" id="pgStaffResBtn2">Unresolved</button></div>
+        <div class="row"><label data-i18n="pg.resolution">Resolution</label>
+          <div class="dept-wrap"><button type="button" class="dept" data-val="resolved" id="pgStaffResBtn1" data-i18n="pg.resolved">Resolved</button><button type="button" class="dept" data-val="unresolved" id="pgStaffResBtn2" data-i18n="pg.unresolved">Unresolved</button></div>
         </div>
-        <div class="row hide" id="pgStaffWhyWrap"><label>Why unresolved</label><textarea id="pgStaffWhy"></textarea></div>
+        <div class="row hide" id="pgStaffWhyWrap"><label data-i18n="pg.why_unresolved">Why unresolved</label><textarea id="pgStaffWhy"></textarea></div>
       </div>
 
       <div class="msg err" id="pgMsg"></div>
       <div class="btnrow2" style="margin-top:10px">
-        <button class="btn back" id="pgCancel">Cancel</button>
-        <button class="btn proceed" id="pgSubmit">Submit progress</button>
+        <button class="btn back" id="pgCancel" data-i18n="common.cancel">Cancel</button>
+        <button class="btn proceed" id="pgSubmit" data-i18n="pg.submit">Submit progress</button>
       </div>
     </div>
   </div>
@@ -442,16 +456,16 @@
       <h2 class="section" id="apTitle">Confirm resolved</h2>
       <p class="muted" style="font-size:13px" id="apSub"></p>
       <div class="row">
-        <label>Your own username &amp; password <span class="muted" style="font-weight:400">(to record who confirmed — this device may be shared)</span></label>
+        <label><span data-i18n="ap.user_pass_label">Your own username &amp; password</span> <span class="muted" style="font-weight:400" data-i18n="ap.user_pass_hint">(to record who confirmed — this device may be shared)</span></label>
         <div class="two">
-          <input type="text" id="apUser" placeholder="Username" autocomplete="off">
-          <input type="password" id="apPass" placeholder="Password" autocomplete="off">
+          <input type="text" id="apUser" placeholder="Username" autocomplete="off" data-i18n-ph="ap.username_ph">
+          <input type="password" id="apPass" placeholder="Password" autocomplete="off" data-i18n-ph="ap.password_ph">
         </div>
       </div>
       <div class="msg err" id="apMsg"></div>
       <div class="btnrow2" style="margin-top:10px">
-        <button class="btn back" id="apCancel">Cancel</button>
-        <button class="btn proceed" id="apSubmit">Confirm</button>
+        <button class="btn back" id="apCancel" data-i18n="common.cancel">Cancel</button>
+        <button class="btn proceed" id="apSubmit" data-i18n="ap.confirm">Confirm</button>
       </div>
     </div>
   </div>
@@ -459,12 +473,12 @@
   <!-- ============ REQUEST DELETE MODAL ============ -->
   <div id="delModal" class="hide modal-overlay">
     <div class="card modal-card">
-      <h2 class="section">Request deletion</h2>
-      <div class="row"><label>Reason</label><textarea id="delReason"></textarea></div>
+      <h2 class="section" data-i18n="del.title">Request deletion</h2>
+      <div class="row"><label data-i18n="del.reason">Reason</label><textarea id="delReason"></textarea></div>
       <div class="msg err" id="delMsg"></div>
       <div class="btnrow2">
-        <button class="btn back" id="delCancel">Cancel</button>
-        <button class="btn cancel" id="delSubmit">Send request</button>
+        <button class="btn back" id="delCancel" data-i18n="common.cancel">Cancel</button>
+        <button class="btn cancel" id="delSubmit" data-i18n="del.send">Send request</button>
       </div>
     </div>
   </div>
@@ -492,6 +506,8 @@
 
 </div>
 
+<div class="appfooter noprint" id="barSub"></div>
+
 <script>
 /* =====================================================================
    Maintenance Project — single-file app
@@ -499,13 +515,293 @@
    All maint_* tables are new and separate. See Maintenance_Project_Plan.md
    and Maintenance_Project_Schema.sql for the full spec this implements.
 ===================================================================== */
-var APP_VERSION="v1.6"; // bump this with each build so it's visible which version is deployed (shown top-right of the header)
+var APP_VERSION="v1.8"; // bump this with each build so it's visible which version is deployed (shown in the footer, bottom of the page)
 var BUILTIN={url:"https://clprrwuizmlsddxmlvrh.supabase.co", key:"sb_publishable_bY46Emu9VVzYZEhpjxnr2A_9_ranhHt"};
 var sb=null;
 var $=function(id){return document.getElementById(id);};
 $("barSub").textContent=APP_VERSION;
 var DEPTS=["FOH","BAR","BOH","PASTRY"];
 var LS={insp:"mp_insp_v1"};
+
+/* =====================================================================
+   i18n — English / Indonesian on-screen toggle.
+   - Per-account, saved to profiles.lang (new column, see SQL v6), changeable any time.
+   - Default is Indonesian for every account (new and existing, i.e. missing/unset -> "id").
+   - PRINTED output (Maintenance Request, Progress report) is Indonesian-only ALWAYS and is
+     never wired to this — see the tt(key,"id") calls in the print-only functions below.
+   - t(key) reads the current language; tt(key,lang) reads an explicit language regardless
+     of the toggle (used by functions shared between on-screen and print rendering).
+===================================================================== */
+var currentLang = localStorage.getItem("mr_lang") || "id";
+var I18N = {
+id: {
+  "header.settings":"⚙ Pengaturan", "header.signout":"Keluar",
+  "login.title":"Masuk", "login.username":"Nama pengguna", "login.password":"Kata sandi", "login.signin_btn":"Masuk",
+  "login.forgot_user":"Lupa nama pengguna saya", "login.forgot_pass":"Lupa kata sandi saya",
+  "login.err_enter_both":"Masukkan nama pengguna dan kata sandi.", "login.err_failed":"Gagal masuk — periksa nama pengguna/kata sandi.",
+  "setpw.title":"Atur kata sandi Anda", "setpw.welcome":"Selamat datang! Buat kata sandi untuk akun Anda.",
+  "setpw.new":"Kata sandi baru", "setpw.new_ph":"minimal 6 karakter", "setpw.confirm":"Konfirmasi kata sandi", "setpw.submit":"Atur kata sandi",
+  "setpw.err_short":"Kata sandi harus terdiri dari minimal 6 karakter.", "setpw.err_mismatch":"Kedua kata sandi tidak cocok.",
+  "setpw.setting":"Mengatur kata sandi Anda...", "setpw.err_invalid":"Tautan undangan ini tidak valid atau sudah digunakan.",
+  "setpw.ready":"Akun siap — nama pengguna: ", "setpw.redirecting":". Mengalihkan ke halaman masuk…",
+  "fu.title":"Lupa nama pengguna saya", "fu.sub":"Konfirmasi email dan kata sandi Anda untuk melihat nama pengguna Anda.",
+  "fu.submit":"Tampilkan nama pengguna saya", "fu.err_fill":"Masukkan email dan kata sandi Anda.", "fu.err_wrong":"Email atau kata sandi salah.",
+  "fu.result_title":"Nama pengguna Anda", "fu.result_body":"Nama pengguna Anda adalah:", "fu.result_use":"Gunakan ini untuk masuk mulai sekarang.",
+  "fp.title":"Lupa kata sandi saya", "fp.sub":"Konfirmasi email dan nama pengguna Anda, lalu atur kata sandi baru.",
+  "fp.submit":"Atur kata sandi baru", "fp.err_fill":"Isi ketiga kolom.", "fp.err_short":"Kata sandi baru harus terdiri dari minimal 6 karakter.",
+  "fp.err_nomatch":"Email + nama pengguna itu tidak cocok dengan akun mana pun.",
+  "fp.done_title":"Kata sandi diperbarui", "fp.done_body":"Anda sekarang dapat masuk dengan nama pengguna dan kata sandi baru Anda.",
+  "field.email":"Email", "field.password":"Kata sandi", "field.username":"Nama pengguna", "field.newpass":"Kata sandi baru",
+  "common.please_wait":"Mohon tunggu...", "common.submit":"Kirim", "common.not_connected":"Tidak terhubung.",
+  "common.cancel":"Batal", "common.save":"Simpan", "common.choose":"— pilih —", "common.optional":"(opsional)",
+  "home.pick_location":"Pilih lokasi", "home.brand":"Brand", "home.city":"Kota", "home.outlet":"Outlet",
+  "home.new_report":"🆕 Laporan baru", "home.recall":"🔎 Lihat laporan", "home.recent":"Laporan Terbaru Saya",
+  "home.tab_unresolved":"Masalah Belum Selesai", "home.tab_resolved":"Baru Selesai",
+  "home.no_reports":"Belum ada laporan.", "home.no_unresolved":"Tidak ada laporan yang belum selesai.", "home.no_resolved":"Tidak ada laporan yang baru selesai.",
+  "home.no_locations":"Belum ada lokasi yang ditetapkan — hubungi admin Anda",
+  "home.choose_brand":"— pilih brand —", "home.choose_city":"— pilih kota —", "home.choose_outlet":"— pilih outlet —",
+  "home.stale_note":" ⚠ sudah tidak ada di daftar Store Visit",
+  "home.uncoded_hint":"⚠ {n} outlet di Store Visit belum memiliki kode pemeliharaan — tambahkan di Pengaturan.",
+  "home.signed_in_as":"Masuk sebagai ", "home.requests_banner":"🔔 Permintaan hapus tertunda:", "home.overdue_banner":"⚠ Laporan terbuka 30+ hari:", "home.review":"tinjau",
+  "home.status_open":"terbuka", "home.status_finished":"selesai",
+  "nr.new_finding":"Temuan Baru", "nr.department":"Departemen (pilih 1)", "nr.issue":"Masalah", "nr.issue_ph":"Jelaskan apa yang Anda temukan...",
+  "nr.photos":"Foto (maks. 3)", "nr.add_photo":"📷 Tambah foto (kamera atau galeri)",
+  "nr.video_label":"Video", "nr.video_hint":"(opsional, maks. 20MB — buat klip singkat, ~15–20 detik)", "nr.add_video":"🎥 Tambah video (kamera atau galeri)",
+  "nr.add_video_short":"🎥 Tambah video",
+  "nr.proposed_action":"Tindakan yang Diusulkan", "nr.sparepart":"Minta Suku Cadang", "nr.technician":"Panggil Teknisi / Vendor",
+  "nr.broken_name":"Nama komponen rusak", "nr.serial":"Nomor seri", "nr.broken_photo":"Foto komponen rusak (wajib)",
+  "nr.broken_video_hint":"(opsional, maks. 20MB)", "nr.add_finding_btn":"+ Tambah temuan ke laporan",
+  "nr.findings_in_report":"Temuan dalam laporan ini (", "nr.no_findings":"Belum ada temuan ditambahkan.",
+  "nr.back_home":"← Kembali ke beranda", "nr.submit_report":"Kirim laporan", "nr.submitting":"Mengirim…",
+  "nr.hint":"Setelah dikirim, temuan tidak dapat diedit — hanya dapat ditambahkan seiring waktu melalui pembaruan progres.",
+  "nr.err_dept":"Pilih departemen.", "nr.err_issue":"Jelaskan masalahnya.", "nr.err_proposal":"Pilih tindakan.",
+  "nr.err_broken_photo":"Foto suku cadang rusak wajib diisi.", "nr.err_broken_name":"Nama komponen rusak wajib diisi.",
+  "nr.err_add_one":"Tambahkan setidaknya satu temuan terlebih dahulu.", "nr.err_submit_failed":"Gagal mengirim: ",
+  "nr.video_too_big":"Video tersebut berukuran {n} — maksimal 20MB. Rekam klip yang lebih pendek (15–20 detik) dan coba lagi.",
+  "nr.remove":"✕ Hapus", "nr.tag_sparepart":"Suku Cadang", "nr.tag_technician":"Teknisi",
+  "nr.location_label":"Lokasi:", "nr.date_label":"Tanggal:", "nr.submitted_by_label":"Dikirim oleh:",
+  "recall.title":"Lihat laporan", "recall.back":"← Kembali", "recall.search_ph":"🔎 Cari berdasarkan kode item, kode laporan, atau teks masalah…",
+  "recall.location":"Lokasi", "recall.department":"Departemen", "recall.all":"Semua", "recall.unresolved_only":"Hanya yang belum selesai",
+  "recall.all_brands":"Semua brand", "recall.all_cities":"Semua kota", "recall.all_outlets":"Semua outlet", "recall.no_matching":"Tidak ada item yang cocok.",
+  "recall.items_count":" item", "recall.open_days":" · terbuka {n} hari", "recall.open_days_month":" · terbuka {n} hari — lebih dari sebulan",
+  "id.initial_report":"Laporan Awal", "id.progress":"Progres (", "id.no_progress":"Belum ada progres yang dicatat.",
+  "id.add_progress":"+ Tambah progres", "id.resolution_approval":"Persetujuan Penyelesaian",
+  "id.resolution_hint":"Setiap peran di bawah ini harus mengonfirmasi sebelum item ini ditandai selesai.",
+  "id.print_btn":"Cetak laporan progres", "id.status_resolved":"SELESAI", "id.status_unresolved":"BELUM SELESAI",
+  "id.confirmed_by":"Dikonfirmasi oleh ", "id.pending":"Menunggu", "id.confirm_btn":"Konfirmasi", "id.waiting":"Menunggu Giliran",
+  "id.request_no_label":"No. Permintaan:", "id.date_label":"Tanggal:", "id.submitted_by_label":"Dikirim oleh:",
+  "id.broken_part_label":"Komponen rusak:", "id.sn_label":" (SN ", "id.findings_label":"Temuan:", "id.proposed_action_label":"Tindakan yang Diusulkan:",
+  "id.report_no_label":"No. Laporan:", "id.department_label":"Departemen:", "id.brand_label":"Brand:", "id.outlet_label":"Outlet:",
+  "id.progress_n_prefix":"Progres ", "id.finding_label":"Temuan:", "id.resolution_label":"Penyelesaian:", "id.next_step_label":"Langkah selanjutnya:",
+  "id.why_label":"Alasan:", "id.approval_title":"Persetujuan",
+  "pg.title":"Tambah progres", "pg.type":"Jenis", "pg.tech_visit":"Kunjungan teknisi", "pg.repair_staff":"Perbaikan oleh staf",
+  "pg.tech_photo":"Foto teknisi saat bekerja", "pg.add_photo":"📷 Tambah foto", "pg.finding":"Temuan", "pg.finding_photo":"Foto temuan",
+  "pg.eg_sparepart":"(opsional, mis. suku cadang yang perlu diganti)", "pg.resolution":"Penyelesaian", "pg.resolved":"Selesai", "pg.unresolved":"Belum Selesai",
+  "pg.next_step":"Langkah selanjutnya", "pg.order_part":"Pesan suku cadang pengganti", "pg.schedule_cleaning":"Jadwalkan pembersihan",
+  "pg.not_repairable":"Tidak dapat diperbaiki — perlu diganti", "pg.needs_reinspection":"Perlu diperiksa ulang", "pg.other":"Lainnya",
+  "pg.specify":"Sebutkan", "pg.broken_photo":"Foto komponen rusak", "pg.part_name":"Nama komponen", "pg.after_photo":"Foto \"setelah\"",
+  "pg.tech_form":"Unggah formulir kunjungan teknisi", "pg.add_photo_scan":"📷 Tambah foto/scan", "pg.parts_photo":"Foto suku cadang yang diterima",
+  "pg.why_unresolved":"Alasan belum selesai", "pg.submit":"Kirim progres",
+  "pg.err_type":"Pilih jenis.", "pg.err_tech_photo":"Foto teknisi saat bekerja wajib diisi.", "pg.err_finding":"Temuan wajib diisi.",
+  "pg.err_choose_res":"Pilih Selesai atau Belum Selesai.", "pg.err_tech_form":"Unggahan formulir kunjungan teknisi wajib diisi.",
+  "pg.err_next_step":"Pilih langkah selanjutnya.", "pg.err_specify":"Sebutkan langkah selanjutnya.",
+  "pg.err_broken_photo":"Foto komponen rusak wajib diisi.", "pg.err_broken_name":"Nama komponen rusak wajib diisi.",
+  "pg.err_after_photo":"Foto \"setelah\" wajib diisi.", "pg.err_parts_photo":"Foto suku cadang yang diterima wajib diisi.",
+  "pg.err_why":"Jelaskan alasan belum selesai.", "pg.err_save_failed":"Gagal menyimpan: ",
+  "ap.title_prefix":"Konfirmasi selesai — ", "ap.sub":"Item hanya akan tampil Selesai setelah setiap peran yang diperlukan mengonfirmasi.",
+  "ap.user_pass_label":"Nama pengguna & kata sandi Anda sendiri", "ap.user_pass_hint":"(untuk mencatat siapa yang mengonfirmasi — perangkat ini mungkin digunakan bersama)",
+  "ap.username_ph":"Nama pengguna", "ap.password_ph":"Kata sandi", "ap.confirm":"Konfirmasi",
+  "ap.err_enter":"Masukkan nama pengguna dan kata sandi.", "ap.err_wrong_pass":"Kata sandi salah.",
+  "ap.err_no_role":"{name} tidak memegang jabatan \"{role}\" untuk lokasi ini.",
+  "ap.err_delete_blocked":"Penghapusan diblokir (tidak ada baris yang dihapus) — periksa apakah kebijakan RLS maint_reports_delete ada (jalankan ulang Maintenance_Project_Schema.sql v4).",
+  "ap.err_failed":"Gagal: ", "ap.err_password_wrong":"Kata sandi salah.",
+  "del.title":"Ajukan penghapusan", "del.reason":"Alasan", "del.send":"Kirim permintaan", "del.err_reason":"Berikan alasan.", "del.err_failed":"Gagal: ",
+  "settings.title":"Pengaturan", "settings.back":"← Kembali", "settings.team_title":"Tim & Tingkat Akun", "settings.outlets_title":"Outlet",
+  "settings.add_brand":"Tambah brand", "settings.add_brand_ph":"mis. Devon", "settings.add":"Tambah",
+  "settings.ck_title":"Dapur Pusat", "settings.ck_desc":"Bukan outlet ritel, jadi tidak termasuk dalam daftar Store Visit — hanya dikelola di sini.",
+  "settings.add_ck":"Tambah Dapur Pusat", "settings.ck_name_ph":"Nama, mis. Dapur Pusat 3", "settings.city_ph":"Kota", "settings.ck_code_ph":"Kode, mis. GW21",
+  "settings.invite_title":"Undang anggota baru", "settings.first_name":"Nama depan", "settings.last_name":"Nama belakang",
+  "settings.no_last_name":"Tidak ada nama belakang", "settings.email":"Email", "settings.create_account":"+ Buat akun",
+  "settings.username_label":"Nama pengguna", "settings.link_label":"Tautan atur kata sandi — kirimkan ini kepada mereka", "settings.copy_link":"Salin tautan", "settings.copied":"Tersalin",
+  "settings.no_team_yet":"Belum ada anggota tim.", "settings.th_name":"Nama", "settings.th_email":"Email", "settings.th_username":"Nama pengguna",
+  "settings.th_role":"Peran", "settings.th_access":"Akses lokasi & jabatan", "settings.you":"(Anda)",
+  "settings.saving":"Menyimpan...", "settings.saved_name":"Nama tersimpan untuk ", "settings.updated_prefix":"Diperbarui ", "settings.updated_suffix":" (juga berlaku di Store Visit).",
+  "settings.edit_access":"Ubah akses", "settings.loading":"Memuat…", "settings.full_access":"Akses penuh — semua lokasi",
+  "settings.locations_suffix":" lokasi", "settings.no_ck_yet":"Belum ada Dapur Pusat.", "settings.delete":"hapus", "settings.remove":"hapus", "settings.no_code_yet":"belum ada kode",
+  "settings.add_outlet_ph":"tambah outlet", "settings.add_city_ph":"tambah kota", "settings.brand_ph":"brand", "settings.store_ph":"outlet", "settings.add_code":"+ kode", "settings.visible":"terlihat",
+  "settings.brand_exists":"Brand sudah ada.", "settings.both_codes_required":"Kedua kode wajib diisi.", "settings.added_prefix":"Ditambahkan ",
+  "settings.failed_code_exists":"Gagal (kode mungkin sudah ada): ", "settings.name_city_code_required":"Nama, kota, dan kode wajib diisi semua.",
+  "settings.delete_failed":"Gagal menghapus: ", "settings.confirm_delete_brand":"Hapus brand beserta semua kota/outletnya?", "settings.confirm_delete_city":"Hapus kota ini?",
+  "settings.confirm_remove_outlet":"Hapus {o} dari daftar outlet Store Visit juga?", "settings.confirm_delete_ck":"Hapus {name}? Laporan yang sudah ada untuk lokasi ini tidak akan terhapus.",
+  "settings.enter_first_name":"Masukkan nama depan.", "settings.enter_last_name":"Masukkan nama belakang (atau centang 'Tidak ada nama belakang').",
+  "settings.creating_account":"Membuat akun...", "settings.account_created":"Akun berhasil dibuat. Salin tautan dan kirimkan kepada mereka, lalu atur akses lokasi & jabatan mereka di bawah ini.",
+  "settings.owner_only_hint":"Hanya owner yang dapat menambah/mengubah nama/menghapus outlet atau mengubah kode pemeliharaan/visibilitasnya.",
+  "settings.stale_warning_suffix":" lokasi berkode tidak lagi cocok dengan daftar outlet Store Visit (diganti nama atau dihapus di sana) — periksa maint_locations.",
+  "settings.shown_prefix":"Ditampilkan: ", "settings.hidden_prefix":"Disembunyikan: ", "settings.saved":"Tersimpan.", "settings.outlets_suffix":" outlet",
+  "ma.locations_label":"Lokasi yang dapat dilaporkan oleh anggota ini", "ma.select_all":"Pilih semua lokasi",
+  "ma.titles_label":"Jabatan fungsional", "ma.titles_hint":"(berlaku di setiap lokasi yang dicentang di atas; terpisah dari owner/admin/member)",
+  "ma.select_titles":"Pilih jabatan…", "ma.member_fallback":"Anggota", "ma.saved":"Tersimpan.", "ma.save_failed":"Gagal menyimpan: ",
+  "req.title":"Permintaan penghapusan", "req.no_pending":"Tidak ada permintaan tertunda.", "req.report_prefix":"Laporan ", "req.requested_by":"Diminta oleh ",
+  "req.approve":"Setujui (hapus)", "req.reject":"Tolak",
+  "ph.save_print":"Simpan sebagai PDF / Cetak", "ph.back_home":"Kembali ke beranda", "ph.back_item":"← Kembali ke item",
+  "ph.delete_pending_prefix":"🕓 Penghapusan diminta oleh ", "ph.delete_pending_suffix":" — menunggu peninjauan.", "ph.cancel_request":"batalkan permintaan ini",
+  "ph.delete_report_btn":"Hapus laporan (admin — perlu kata sandi)", "ph.request_delete_btn":"Ajukan penghapusan",
+  "ph.prompt_delete":"Masukkan ulang kata sandi admin Anda untuk menghapus laporan {id} secara permanen:",
+  "ph.delete_failed":"Gagal menghapus: "
+},
+en: {
+  "header.settings":"⚙ Settings", "header.signout":"Sign out",
+  "login.title":"Sign in", "login.username":"Username", "login.password":"Password", "login.signin_btn":"Sign in",
+  "login.forgot_user":"Forgot my username", "login.forgot_pass":"Forgot my password",
+  "login.err_enter_both":"Enter username and password.", "login.err_failed":"Sign-in failed — check username/password.",
+  "setpw.title":"Set your password", "setpw.welcome":"Welcome! Create a password for your account.",
+  "setpw.new":"New password", "setpw.new_ph":"at least 6 characters", "setpw.confirm":"Confirm password", "setpw.submit":"Set password",
+  "setpw.err_short":"Password must be at least 6 characters.", "setpw.err_mismatch":"The two passwords don't match.",
+  "setpw.setting":"Setting your password...", "setpw.err_invalid":"This invite link is invalid or was already used.",
+  "setpw.ready":"Account ready — username: ", "setpw.redirecting":". Redirecting to sign in…",
+  "fu.title":"Forgot my username", "fu.sub":"Confirm your email and password to see your username.",
+  "fu.submit":"Show my username", "fu.err_fill":"Enter your email and password.", "fu.err_wrong":"Email or password is incorrect.",
+  "fu.result_title":"Your username", "fu.result_body":"Your username is:", "fu.result_use":"Use this to sign in from now on.",
+  "fp.title":"Forgot my password", "fp.sub":"Confirm your email and username, then set a new password.",
+  "fp.submit":"Set new password", "fp.err_fill":"Fill in all three fields.", "fp.err_short":"New password must be at least 6 characters.",
+  "fp.err_nomatch":"That email + username don't match any account.",
+  "fp.done_title":"Password updated", "fp.done_body":"You can now sign in with your username and your new password.",
+  "field.email":"Email", "field.password":"Password", "field.username":"Username", "field.newpass":"New password",
+  "common.please_wait":"Please wait...", "common.submit":"Submit", "common.not_connected":"Not connected.",
+  "common.cancel":"Cancel", "common.save":"Save", "common.choose":"— choose —", "common.optional":"(optional)",
+  "home.pick_location":"Pick a location", "home.brand":"Brand", "home.city":"City", "home.outlet":"Outlet",
+  "home.new_report":"🆕 New report", "home.recall":"🔎 Recall report", "home.recent":"My Recent Reports",
+  "home.tab_unresolved":"Unresolved Issues", "home.tab_resolved":"Recently Resolved",
+  "home.no_reports":"No reports yet.", "home.no_unresolved":"No unresolved reports.", "home.no_resolved":"No recently resolved reports.",
+  "home.no_locations":"No locations assigned — ask your admin",
+  "home.choose_brand":"— choose brand —", "home.choose_city":"— choose city —", "home.choose_outlet":"— choose outlet —",
+  "home.stale_note":" ⚠ not in Store Visit's list anymore",
+  "home.uncoded_hint":"⚠ {n} outlet(s) in Store Visit have no maintenance code yet — add them in Settings.",
+  "home.signed_in_as":"Signed in as ", "home.requests_banner":"🔔 Delete requests pending:", "home.overdue_banner":"⚠ Reports open 30+ days:", "home.review":"review",
+  "home.status_open":"open", "home.status_finished":"finished",
+  "nr.new_finding":"New Finding", "nr.department":"Department (choose 1)", "nr.issue":"Issue", "nr.issue_ph":"Describe what you found...",
+  "nr.photos":"Photos (up to 3)", "nr.add_photo":"📷 Add photo (camera or gallery)",
+  "nr.video_label":"Video", "nr.video_hint":"(optional, max 20MB — keep clips short, ~15–20 sec)", "nr.add_video":"🎥 Add video (camera or gallery)",
+  "nr.add_video_short":"🎥 Add video",
+  "nr.proposed_action":"Proposed Action", "nr.sparepart":"Request Spare Part", "nr.technician":"Call Technician / Vendor",
+  "nr.broken_name":"Broken part name", "nr.serial":"Serial number", "nr.broken_photo":"Photo of broken part (required)",
+  "nr.broken_video_hint":"(optional, max 20MB)", "nr.add_finding_btn":"+ Add finding to report",
+  "nr.findings_in_report":"Findings in this report (", "nr.no_findings":"No findings added yet.",
+  "nr.back_home":"← Back to home", "nr.submit_report":"Submit report", "nr.submitting":"Submitting…",
+  "nr.hint":"Once submitted, findings can't be edited — only added to over time via progress updates.",
+  "nr.err_dept":"Choose a department.", "nr.err_issue":"Describe the issue.", "nr.err_proposal":"Choose a proposal.",
+  "nr.err_broken_photo":"Broken sparepart photo is required.", "nr.err_broken_name":"Broken part name is required.",
+  "nr.err_add_one":"Add at least one finding first.", "nr.err_submit_failed":"Submit failed: ",
+  "nr.video_too_big":"That video is {n} — max is 20MB. Record a shorter clip (15–20 sec) and try again.",
+  "nr.remove":"✕ Remove", "nr.tag_sparepart":"Sparepart", "nr.tag_technician":"Technician",
+  "nr.location_label":"Location:", "nr.date_label":"Date:", "nr.submitted_by_label":"Submitted by:",
+  "recall.title":"Recall report", "recall.back":"← Back", "recall.search_ph":"🔎 Search by item code, report code, or issue text…",
+  "recall.location":"Location", "recall.department":"Department", "recall.all":"All", "recall.unresolved_only":"Unresolved only",
+  "recall.all_brands":"All brands", "recall.all_cities":"All cities", "recall.all_outlets":"All outlets", "recall.no_matching":"No matching items.",
+  "recall.items_count":" item(s)", "recall.open_days":" · open {n} day(s)", "recall.open_days_month":" · open {n} day(s) — over a month",
+  "id.initial_report":"Initial Report", "id.progress":"Progress (", "id.no_progress":"No progress logged yet.",
+  "id.add_progress":"+ Add progress", "id.resolution_approval":"Resolution approval",
+  "id.resolution_hint":"Every role below must confirm before this item is marked resolved.",
+  "id.print_btn":"Print progress report", "id.status_resolved":"RESOLVED", "id.status_unresolved":"UNRESOLVED",
+  "id.confirmed_by":"Confirmed by ", "id.pending":"Pending", "id.confirm_btn":"Confirm", "id.waiting":"Waiting",
+  "id.request_no_label":"Request No.:", "id.date_label":"Date:", "id.submitted_by_label":"Submitted by:",
+  "id.broken_part_label":"Broken part:", "id.sn_label":" (SN ", "id.findings_label":"Findings:", "id.proposed_action_label":"Proposed Action:",
+  "id.report_no_label":"Report No.:", "id.department_label":"Department:", "id.brand_label":"Brand:", "id.outlet_label":"Outlet:",
+  "id.progress_n_prefix":"Progress ", "id.finding_label":"Finding:", "id.resolution_label":"Resolution:", "id.next_step_label":"Next step:",
+  "id.why_label":"Why:", "id.approval_title":"Approval",
+  "pg.title":"Add progress", "pg.type":"Type", "pg.tech_visit":"Technician's visit", "pg.repair_staff":"Repair by staff",
+  "pg.tech_photo":"Photo of technician at work", "pg.add_photo":"📷 Add photo", "pg.finding":"Finding", "pg.finding_photo":"Finding photo",
+  "pg.eg_sparepart":"(optional, e.g. sparepart to change)", "pg.resolution":"Resolution", "pg.resolved":"Resolved", "pg.unresolved":"Unresolved",
+  "pg.next_step":"Next step", "pg.order_part":"Order replacement part", "pg.schedule_cleaning":"Schedule cleaning",
+  "pg.not_repairable":"Not repairable — needs replacement", "pg.needs_reinspection":"Needs re-inspection", "pg.other":"Other",
+  "pg.specify":"Specify", "pg.broken_photo":"Broken part photo", "pg.part_name":"Part name", "pg.after_photo":"Photo of \"after\"",
+  "pg.tech_form":"Upload tech visit form", "pg.add_photo_scan":"📷 Add photo/scan", "pg.parts_photo":"Photo of parts received",
+  "pg.why_unresolved":"Why unresolved", "pg.submit":"Submit progress",
+  "pg.err_type":"Choose a type.", "pg.err_tech_photo":"Photo of technician at work is required.", "pg.err_finding":"Finding is required.",
+  "pg.err_choose_res":"Choose Resolved or Unresolved.", "pg.err_tech_form":"Tech visit form upload is required.",
+  "pg.err_next_step":"Choose a next step.", "pg.err_specify":"Specify the next step.",
+  "pg.err_broken_photo":"Broken part photo is required.", "pg.err_broken_name":"Broken part name is required.",
+  "pg.err_after_photo":"Photo of 'after' is required.", "pg.err_parts_photo":"Photo of parts received is required.",
+  "pg.err_why":"Explain why it's unresolved.", "pg.err_save_failed":"Save failed: ",
+  "ap.title_prefix":"Confirm resolved — ", "ap.sub":"Item only shows Resolved once every required role has confirmed.",
+  "ap.user_pass_label":"Your own username & password", "ap.user_pass_hint":"(to record who confirmed — this device may be shared)",
+  "ap.username_ph":"Username", "ap.password_ph":"Password", "ap.confirm":"Confirm",
+  "ap.err_enter":"Enter username and password.", "ap.err_wrong_pass":"Password incorrect.",
+  "ap.err_no_role":"{name} doesn't hold the \"{role}\" title for this location.",
+  "ap.err_delete_blocked":"Delete was blocked (no rows removed) — check that the maint_reports_delete RLS policy exists (re-run Maintenance_Project_Schema.sql v4).",
+  "ap.err_failed":"Failed: ", "ap.err_password_wrong":"Password incorrect.",
+  "del.title":"Request deletion", "del.reason":"Reason", "del.send":"Send request", "del.err_reason":"Give a reason.", "del.err_failed":"Failed: ",
+  "settings.title":"Settings", "settings.back":"← Back", "settings.team_title":"Team & account levels", "settings.outlets_title":"Outlets",
+  "settings.add_brand":"Add a brand", "settings.add_brand_ph":"e.g. Devon", "settings.add":"Add",
+  "settings.ck_title":"Central Kitchens", "settings.ck_desc":"Not retail outlets, so they're not part of Store Visit's list — managed only here.",
+  "settings.add_ck":"Add a Central Kitchen", "settings.ck_name_ph":"Name, e.g. Central Kitchen 3", "settings.city_ph":"City", "settings.ck_code_ph":"Code, e.g. GW21",
+  "settings.invite_title":"Invite a new member", "settings.first_name":"First name", "settings.last_name":"Last name",
+  "settings.no_last_name":"No last name", "settings.email":"Email", "settings.create_account":"+ Create account",
+  "settings.username_label":"Username", "settings.link_label":"Set-password link — send this to them", "settings.copy_link":"Copy link", "settings.copied":"Copied",
+  "settings.no_team_yet":"No team members yet.", "settings.th_name":"Name", "settings.th_email":"E-mail", "settings.th_username":"Username",
+  "settings.th_role":"Role", "settings.th_access":"Location access & titles", "settings.you":"(you)",
+  "settings.saving":"Saving...", "settings.saved_name":"Saved name for ", "settings.updated_prefix":"Updated ", "settings.updated_suffix":" (applies in Store Visit too).",
+  "settings.edit_access":"Edit access", "settings.loading":"Loading…", "settings.full_access":"Full access — every location",
+  "settings.locations_suffix":" location(s)", "settings.no_ck_yet":"No Central Kitchens yet.", "settings.delete":"delete", "settings.remove":"remove", "settings.no_code_yet":"no code yet",
+  "settings.add_outlet_ph":"add outlet", "settings.add_city_ph":"add city", "settings.brand_ph":"brand", "settings.store_ph":"store", "settings.add_code":"+ code", "settings.visible":"visible",
+  "settings.brand_exists":"Brand exists.", "settings.both_codes_required":"Both codes are required.", "settings.added_prefix":"Added ",
+  "settings.failed_code_exists":"Failed (code may already exist): ", "settings.name_city_code_required":"Name, city, and code are all required.",
+  "settings.delete_failed":"Delete failed: ", "settings.confirm_delete_brand":"Delete brand and all its cities/outlets?", "settings.confirm_delete_city":"Delete this city?",
+  "settings.confirm_remove_outlet":"Remove {o} from Store Visit's outlet list too?", "settings.confirm_delete_ck":"Delete {name}? Existing reports filed against it are not deleted.",
+  "settings.enter_first_name":"Enter a first name.", "settings.enter_last_name":"Enter a last name (or tick 'No last name').",
+  "settings.creating_account":"Creating account...", "settings.account_created":"Account created. Copy the link and send it to them, then set their location access & titles below.",
+  "settings.owner_only_hint":"Only the owner can add/rename/remove outlets or change their maintenance code/visibility.",
+  "settings.stale_warning_suffix":" coded location(s) no longer match Store Visit's outlet list (renamed or removed there) — check maint_locations.",
+  "settings.shown_prefix":"Shown: ", "settings.hidden_prefix":"Hidden: ", "settings.saved":"Saved.", "settings.outlets_suffix":" outlet(s)",
+  "ma.locations_label":"Locations this member can report against", "ma.select_all":"Select all locations",
+  "ma.titles_label":"Functional titles", "ma.titles_hint":"(applies at every location checked above; independent of owner/admin/member)",
+  "ma.select_titles":"Select titles…", "ma.member_fallback":"Member", "ma.saved":"Saved.", "ma.save_failed":"Save failed: ",
+  "req.title":"Deletion requests", "req.no_pending":"No pending requests.", "req.report_prefix":"Report ", "req.requested_by":"Requested by ",
+  "req.approve":"Approve (delete)", "req.reject":"Reject",
+  "ph.save_print":"Save as PDF / Print", "ph.back_home":"Back to home", "ph.back_item":"← Back to item",
+  "ph.delete_pending_prefix":"🕓 Deletion requested by ", "ph.delete_pending_suffix":" — pending review.", "ph.cancel_request":"cancel this request",
+  "ph.delete_report_btn":"Delete report (admin — password required)", "ph.request_delete_btn":"Request deletion",
+  "ph.prompt_delete":"Re-enter your admin password to permanently delete report {id}:",
+  "ph.delete_failed":"Delete failed: "
+}
+};
+function tt(key, lang){
+  var d=I18N[lang||currentLang]||I18N.id;
+  if(d && d[key]!==undefined) return d[key];
+  if(I18N.id[key]!==undefined) return I18N.id[key];
+  return key;
+}
+function t(key){ return tt(key, currentLang); }
+function tf(key, vals, lang){
+  var s=tt(key, lang);
+  Object.keys(vals||{}).forEach(function(k){ s=s.replace("{"+k+"}", vals[k]); });
+  return s;
+}
+function applyI18n(){
+  document.querySelectorAll("[data-i18n]").forEach(function(el){ el.textContent=t(el.getAttribute("data-i18n")); });
+  document.querySelectorAll("[data-i18n-ph]").forEach(function(el){ el.setAttribute("placeholder", t(el.getAttribute("data-i18n-ph"))); });
+  document.querySelectorAll("[data-i18n-title]").forEach(function(el){ el.setAttribute("title", t(el.getAttribute("data-i18n-title"))); });
+  $("btnLangID").classList.toggle("on", currentLang==="id");
+  $("btnLangEN").classList.toggle("on", currentLang==="en");
+}
+function setLang(l, skipSave){
+  currentLang=l; localStorage.setItem("mr_lang", l);
+  applyI18n();
+  if(!skipSave && me && me.id && sb){ sb.from("profiles").update({lang:l}).eq("id", me.id).then(function(){}); }
+  // Re-render whatever's currently on screen so already-built dynamic content picks up the new language too.
+  try{
+    if(me){
+      if(!$("homeView").classList.contains("hide")) renderHome();
+      if(!$("recallListView").classList.contains("hide")) runRecallSearch();
+      if(!$("itemDetailView").classList.contains("hide") && currentItem){ renderProgressList(); renderApprovals(); }
+      if(!$("settingsView").classList.contains("hide")){ renderTeam(); renderBrandTree(); renderCkList(); }
+      if(!$("newReportView").classList.contains("hide")){ renderNrDeptWrap(); renderNrList(); }
+    }
+  }catch(e){}
+}
+$("btnLangID").addEventListener("click", function(){ setLang("id"); });
+$("btnLangEN").addEventListener("click", function(){ setLang("en"); });
+applyI18n(); // apply default language immediately, even before login (login screen defaults to Indonesian)
 
 // These 6 keys are the approval "slots" the resolution-approval matrix (maint_approval_rules)
 // is built on — unchanged since launch, no SQL migration needed for what follows below.
@@ -575,17 +871,17 @@ function detectInvite(){
 }
 $("setpwGo").addEventListener("click", async function(){
   var a=$("setpwNew").value, b=$("setpwConfirm").value, msg=$("setpwMsg"); msg.className="msg";
-  if(!a||a.length<6){ msg.className="msg err"; msg.textContent="Password must be at least 6 characters."; return; }
-  if(a!==b){ msg.className="msg err"; msg.textContent="The two passwords don't match."; return; }
-  msg.textContent="Setting your password...";
+  if(!a||a.length<6){ msg.className="msg err"; msg.textContent=t("setpw.err_short"); return; }
+  if(a!==b){ msg.className="msg err"; msg.textContent=t("setpw.err_mismatch"); return; }
+  msg.textContent=t("setpw.setting");
   try{
     var r=await sb.rpc("set_invite_password",{p_token:inviteToken,p_new:a});
     if(r.error) throw r.error;
-    if(!r.data){ msg.className="msg err"; msg.textContent="This invite link is invalid or was already used."; return; }
+    if(!r.data){ msg.className="msg err"; msg.textContent=t("setpw.err_invalid"); return; }
     var acc=r.data; inviteToken=null;
     try{ history.replaceState(null,"",location.pathname); }catch(e){}
     msg.className="msg ok";
-    msg.textContent="Account ready — username: "+(acc.username||"—")+". Redirecting to sign in…";
+    msg.textContent=t("setpw.ready")+(acc.username||"—")+t("setpw.redirecting");
     setTimeout(function(){ $("authUser").value=acc.username||""; show("loginView"); }, 1200);
   }catch(e){ msg.className="msg err"; msg.textContent=(e&&e.message)||String(e); }
 });
@@ -593,13 +889,13 @@ $("setpwGo").addEventListener("click", async function(){
 async function doSignIn(){
   var u=$("authUser").value.trim(), p=$("authPass").value;
   $("authMsg").className="msg"; $("authMsg").textContent="";
-  if(!u||!p){ $("authMsg").className="msg err"; $("authMsg").textContent="Enter username and password."; return; }
+  if(!u||!p){ $("authMsg").className="msg err"; $("authMsg").textContent=t("login.err_enter_both"); return; }
   try{
     var email=await emailForUsername(u);
     var r=await sb.auth.signInWithPassword({email:email,password:p});
     if(r.error) throw r.error;
     await afterLogin();
-  }catch(e){ $("authMsg").className="msg err"; $("authMsg").textContent="Sign-in failed — check username/password."; }
+  }catch(e){ $("authMsg").className="msg err"; $("authMsg").textContent=t("login.err_failed"); }
 }
 
 /* ---------------- info popup + generic form popup (forgot username/password) ---------------- */
@@ -612,7 +908,7 @@ $("infoModal").addEventListener("click", function(e){ if(e.target===this) closeI
 var fmSubmit=null;
 function openForm(o){
   $("fmTitle").textContent=o.title||""; $("fmSub").textContent=o.sub||""; $("fmSub").style.display=o.sub?"block":"none";
-  $("fmMsg").textContent=""; $("fmMsg").className="msg"; $("fmGo").textContent=o.submitLabel||"Submit";
+  $("fmMsg").textContent=""; $("fmMsg").className="msg"; $("fmGo").textContent=o.submitLabel||t("common.submit");
   var box=$("fmFields"); box.innerHTML="";
   (o.fields||[]).forEach(function(f){
     var row=document.createElement("div"); row.className="row";
@@ -629,42 +925,42 @@ $("formModal").addEventListener("click", function(e){ if(e.target===this) closeF
 $("fmGo").addEventListener("click", async function(){
   if(!fmSubmit) return;
   var vals={}; $("fmFields").querySelectorAll("input").forEach(function(i){ vals[i.id.slice(3)]=i.value; });
-  var msg=$("fmMsg"); msg.className="msg"; msg.textContent="Please wait...";
+  var msg=$("fmMsg"); msg.className="msg"; msg.textContent=t("common.please_wait");
   try{ var r=await fmSubmit(vals); if(r&&r.error){ msg.className="msg err"; msg.textContent=r.error; } else { var done=(r&&r.done); closeForm(); if(done) done(); } }
   catch(e){ msg.className="msg err"; msg.textContent=(e&&e.message)||String(e); }
 });
 
 function forgotUsername(){
-  if(!sb){ alert("Not connected."); return; }
-  openForm({ title:"Forgot my username", sub:"Confirm your email and password to see your username.",
-    fields:[{key:"email",label:"Email",type:"email"},{key:"pass",label:"Password",type:"password"}],
-    submitLabel:"Show my username",
+  if(!sb){ alert(t("common.not_connected")); return; }
+  openForm({ title:t("fu.title"), sub:t("fu.sub"),
+    fields:[{key:"email",label:t("field.email"),type:"email"},{key:"pass",label:t("field.password"),type:"password"}],
+    submitLabel:t("fu.submit"),
     onSubmit:async function(v){
-      if(!v.email||!v.pass) return {error:"Enter your email and password."};
+      if(!v.email||!v.pass) return {error:t("fu.err_fill")};
       var r=await sb.auth.signInWithPassword({email:(v.email||"").trim(),password:v.pass});
-      if(r.error) return {error:"Email or password is incorrect."};
+      if(r.error) return {error:t("fu.err_wrong")};
       var pr=await sb.from("profiles").select("id,email,name,role,username").eq("id",r.data.user.id).limit(1);
       var acct=pr.data && pr.data[0];
       return {done:function(){
-        showInfo("Your username",
-          "Your username is:<div style='font-family:Arial,Helvetica,sans-serif;font-weight:800;font-size:22px;margin:8px 0'>"+escapeHtml((acct&&acct.username)||"—")+"</div>"+
-          "Use this to sign in from now on.",
+        showInfo(t("fu.result_title"),
+          t("fu.result_body")+"<div style='font-family:Arial,Helvetica,sans-serif;font-weight:800;font-size:22px;margin:8px 0'>"+escapeHtml((acct&&acct.username)||"—")+"</div>"+
+          t("fu.result_use"),
           function(){ afterLogin(); });
       }};
     }});
 }
 function forgotPassword(){
-  if(!sb){ alert("Not connected."); return; }
-  openForm({ title:"Forgot my password", sub:"Confirm your email and username, then set a new password.",
-    fields:[{key:"email",label:"Email",type:"email"},{key:"username",label:"Username",type:"text"},{key:"newpass",label:"New password",type:"password"}],
-    submitLabel:"Set new password",
+  if(!sb){ alert(t("common.not_connected")); return; }
+  openForm({ title:t("fp.title"), sub:t("fp.sub"),
+    fields:[{key:"email",label:t("field.email"),type:"email"},{key:"username",label:t("field.username"),type:"text"},{key:"newpass",label:t("field.newpass"),type:"password"}],
+    submitLabel:t("fp.submit"),
     onSubmit:async function(v){
-      if(!v.email||!v.username||!v.newpass) return {error:"Fill in all three fields."};
-      if((v.newpass||"").length<6) return {error:"New password must be at least 6 characters."};
+      if(!v.email||!v.username||!v.newpass) return {error:t("fp.err_fill")};
+      if((v.newpass||"").length<6) return {error:t("fp.err_short")};
       var r=await sb.rpc("reset_password",{p_email:(v.email||"").trim(),p_username:(v.username||"").trim(),p_new:v.newpass});
       if(r.error) return {error:r.error.message||"Could not reset the password."};
-      if(!r.data) return {error:"That email + username don't match any account."};
-      return {done:function(){ showInfo("Password updated","You can now sign in with your username and your new password."); }};
+      if(!r.data) return {error:t("fp.err_nomatch")};
+      return {done:function(){ showInfo(t("fp.done_title"), t("fp.done_body")); }};
     }});
 }
 $("lnkForgotUser").addEventListener("click", function(e){ e.preventDefault(); forgotUsername(); });
@@ -674,9 +970,10 @@ async function afterLogin(){
   var s=await sb.auth.getSession();
   var user=s.data && s.data.session && s.data.session.user;
   if(!user){ show("loginView"); return; }
-  var pr=await sb.from("profiles").select("id,email,name,role,username").eq("id",user.id).limit(1);
+  var pr=await sb.from("profiles").select("id,email,name,role,username,lang").eq("id",user.id).limit(1);
   if(pr.error || !pr.data || !pr.data.length){ show("loginView"); return; }
   me=pr.data[0];
+  setLang(me.lang || currentLang, true); // per-account language, defaults to Indonesian if not yet set
   await loadAccessAndRoles();
   await loadLocations();
   await loadApprovalRules();
@@ -684,6 +981,7 @@ async function afterLogin(){
   $("btnLogout").classList.remove("hide");
   renderHome();
   show("homeView");
+  if(isStaff()) runMediaCleanup(); // fire-and-forget background housekeeping, never blocks the UI
 }
 
 function isStaff(){ return me && (me.role==="owner"||me.role==="admin"); }
@@ -781,26 +1079,26 @@ function homeOutletOptions(brand,city){
 function fillHomeBrands(){
   var s=$("selBrand"); s.innerHTML="";
   var brands=homeBrandOptions();
-  if(!brands.length){ s.innerHTML="<option value=''>No locations assigned — ask your admin</option>"; }
+  if(!brands.length){ s.innerHTML="<option value=''>"+t("home.no_locations")+"</option>"; }
   else{
-    s.innerHTML="<option value=''>— choose brand —</option>";
+    s.innerHTML="<option value=''>"+t("home.choose_brand")+"</option>";
     brands.forEach(function(b){ var o=document.createElement("option"); o.value=b; o.textContent=b; s.appendChild(o); });
   }
   fillHomeCities();
 }
 function fillHomeCities(){
   var brand=$("selBrand").value, s=$("selCity");
-  s.innerHTML="<option value=''>— choose city —</option>"; s.disabled=!brand;
+  s.innerHTML="<option value=''>"+t("home.choose_city")+"</option>"; s.disabled=!brand;
   if(brand) homeCityOptions(brand).forEach(function(c){ var o=document.createElement("option"); o.value=c; o.textContent=c; s.appendChild(o); });
   fillHomeOutlets();
 }
 function fillHomeOutlets(){
   var brand=$("selBrand").value, city=$("selCity").value, s=$("selOutlet");
-  s.innerHTML="<option value=''>— choose outlet —</option>"; s.disabled=!city;
+  s.innerHTML="<option value=''>"+t("home.choose_outlet")+"</option>"; s.disabled=!city;
   if(city) homeOutletOptions(brand,city).forEach(function(l){
     var o=document.createElement("option"); o.value=l.id;
     var stale=staleLocationIds.indexOf(l.id)>=0;
-    o.textContent=l.name+(stale?" ⚠ not in Store Visit's list anymore":"");
+    o.textContent=l.name+(stale?t("home.stale_note"):"");
     s.appendChild(o);
   });
 }
@@ -812,12 +1110,13 @@ function selectedHomeLocation(){
 }
 
 function renderHome(){
-  $("authBarText").textContent="Signed in as "+me.name+" ("+me.role+(myRoles.length?", "+myRoles.map(function(r){return GRANULAR_LABEL[r.role]||ROLE_LABEL[r.role]||r.role;}).join(", "):"")+")";
+  $("authBarText").textContent=t("home.signed_in_as")+me.name+" ("+me.role+(myRoles.length?", "+myRoles.map(function(r){return GRANULAR_LABEL[r.role]||ROLE_LABEL[r.role]||r.role;}).join(", "):"")+")";
   fillHomeBrands();
   if(isStaff() && uncodedOutlets.length){
-    $("homeHint").textContent="⚠ "+uncodedOutlets.length+" outlet(s) in Store Visit have no maintenance code yet — add them in Settings.";
+    $("homeHint").textContent=tf("home.uncoded_hint",{n:uncodedOutlets.length});
   } else { $("homeHint").textContent=""; }
   refreshRequestsBadge();
+  refreshOverdueBanner();
   loadMyReports();
 }
 
@@ -829,17 +1128,34 @@ async function refreshRequestsBadge(){
   $("btnRequestsBanner").classList.toggle("hide", n===0);
 }
 
+var OVERDUE_DAYS=30;
+async function refreshOverdueBanner(){
+  if(!isStaff()){ $("btnOverdueBanner").classList.add("hide"); return; }
+  var cutoff=new Date(Date.now()-OVERDUE_DAYS*86400000).toISOString();
+  var r=await sb.from("maint_items").select("id",{count:"exact"}).eq("status","open").lt("created_at",cutoff);
+  var n=(r.count)||0;
+  $("overdueCount").textContent=n;
+  $("btnOverdueBanner").classList.toggle("hide", n===0);
+}
+$("btnOverdueBanner").addEventListener("click", function(){ openRecall(); });
+
+var homeTab="open"; // 'open' = Unresolved Issues, 'finished' = Recently Resolved
+$("tabUnresolved").addEventListener("click", function(){ homeTab="open"; loadMyReports(); });
+$("tabResolved").addEventListener("click", function(){ homeTab="finished"; loadMyReports(); });
 async function loadMyReports(){
-  var q=sb.from("maint_reports").select("*").order("submitted_at",{ascending:false}).limit(10);
+  $("tabUnresolved").classList.toggle("on", homeTab==="open");
+  $("tabResolved").classList.toggle("on", homeTab==="finished");
+  var q=sb.from("maint_reports").select("*").eq("cached_status",homeTab).order("submitted_at",{ascending:false}).limit(20);
   if(!isStaff()) q=q.eq("submitted_by", me.id);
   var r=await q;
   var list=$("myReportsList"); list.innerHTML="";
   var rows=r.data||[];
   $("myReportsEmpty").style.display = rows.length? "none":"block";
+  $("myReportsEmpty").textContent = homeTab==="open" ? t("home.no_unresolved") : t("home.no_resolved");
   rows.forEach(function(rep){
     var d=document.createElement("div"); d.className="listcard";
-    d.innerHTML='<div class="t">'+rep.brand+' — '+rep.outlet+' <span class="pill '+(rep.cached_status==="finished"?"resolved":"open")+'">'+rep.cached_status+'</span></div>'+
-      '<div class="m">'+rep.id+' · '+rep.item_count+' item(s) · '+new Date(rep.submitted_at).toLocaleDateString()+'</div>';
+    d.innerHTML='<div class="t">'+rep.brand+' — '+rep.outlet+' <span class="pill '+(rep.cached_status==="finished"?"resolved":"open")+'">'+(rep.cached_status==="finished"?t("home.status_finished"):t("home.status_open"))+'</span></div>'+
+      '<div class="m">'+rep.id+' · '+rep.item_count+t("recall.items_count")+' · '+new Date(rep.submitted_at).toLocaleDateString()+'</div>';
     d.addEventListener("click", function(){ openReportPrint(rep.id); });
     list.appendChild(d);
   });
@@ -936,6 +1252,52 @@ async function uploadPhotos(arr, pathPrefix){
   return out;
 }
 
+/* ---------------- automatic media-retention cleanup (keeps Supabase's free 1GB storage
+   tier viable forever): resolved reports older than MEDIA_RETENTION_DAYS have their
+   photos/videos deleted from Storage. All TEXT stays forever (issue, findings, resolution
+   notes, approvals) — only the media bytes are removed. Runs silently, best-effort, once
+   per login for owner/admin (see afterLogin()). Requires the storage.objects DELETE policy
+   in Maintenance_Project_Schema.sql §10 (v5) — without it this just no-ops harmlessly. */
+var MEDIA_RETENTION_DAYS=182; // ~6 months
+function storagePathFromUrl(url){
+  if(!url) return null;
+  var marker="/maint-photos/";
+  var i=url.indexOf(marker);
+  return i>=0 ? url.slice(i+marker.length) : null;
+}
+async function runMediaCleanup(){
+  try{
+    var cutoff=new Date(Date.now()-MEDIA_RETENTION_DAYS*86400000).toISOString();
+    var r=await sb.from("maint_items").select("*").eq("status","resolved").lt("resolved_at",cutoff).limit(200);
+    var rows=(r.data||[]).filter(function(it){
+      return (it.photos&&it.photos.length) || it.video_url ||
+        (it.broken_part&&(it.broken_part.photo||it.broken_part.video_url)) ||
+        (it.progress||[]).some(function(p){ return p.tech_photo||p.finding_photo||p.after_photo||p.broken_photo||p.tech_form_photo||p.parts_photo; });
+    });
+    for(var i=0;i<rows.length;i++){
+      var it=rows[i], paths=[];
+      (it.photos||[]).forEach(function(u){ var p=storagePathFromUrl(u); if(p) paths.push(p); });
+      var vp=storagePathFromUrl(it.video_url); if(vp) paths.push(vp);
+      var patch={photos:[], video_url:null};
+      if(it.broken_part){
+        var bp=storagePathFromUrl(it.broken_part.photo); if(bp) paths.push(bp);
+        var bvp=storagePathFromUrl(it.broken_part.video_url); if(bvp) paths.push(bvp);
+        patch.broken_part=Object.assign({}, it.broken_part, {photo:null, video_url:null});
+      }
+      patch.progress=(it.progress||[]).map(function(p){
+        var np=Object.assign({}, p);
+        ["tech_photo","finding_photo","after_photo","broken_photo","tech_form_photo","parts_photo"].forEach(function(k){
+          var pp=storagePathFromUrl(np[k]); if(pp){ paths.push(pp); np[k]=null; }
+        });
+        return np;
+      });
+      if(paths.length){ try{ await sb.storage.from("maint-photos").remove(paths); }catch(e){} }
+      try{ await sb.from("maint_items").update(patch).eq("id",it.id); }catch(e){}
+    }
+    if(rows.length) console.info("[media cleanup] cleared media on "+rows.length+" report(s) older than "+MEDIA_RETENTION_DAYS+" days.");
+  }catch(e){ /* best-effort only — never surface errors from background housekeeping */ }
+}
+
 /* ---------------- video: direct upload (no external link needed), size-capped client-side ---------------- */
 var MAX_VIDEO_BYTES=20*1024*1024; // ~20MB — browsers can't transcode/compress video client-side, so we cap instead
 function fmtBytes(n){ return n>1024*1024 ? (n/1024/1024).toFixed(1)+"MB" : Math.round(n/1024)+"KB"; }
@@ -962,7 +1324,7 @@ function wireVideoPicker(inputId, prevId, onPicked){
     var f=$(inputId).files && $(inputId).files[0];
     $(inputId).value="";
     if(!f) return;
-    if(f.size>MAX_VIDEO_BYTES){ alert("That video is "+fmtBytes(f.size)+" — max is 20MB. Record a shorter clip (15–20 sec) and try again."); return; }
+    if(f.size>MAX_VIDEO_BYTES){ alert(tf("nr.video_too_big",{n:fmtBytes(f.size)})); return; }
     onPicked(f);
   });
 }
@@ -994,7 +1356,7 @@ function renderNrDeptWrap(){
 }
 function openNewReport(){
   draftItems=[]; draftPhotos=[]; draftBrokenPhoto=null; draftVideoFile=null; draftBrokenVideoFile=null; nrDept=null;
-  $("nrHeader").innerHTML="<b>Location:</b> "+currentLocation.brand+" — "+currentLocation.name+" ("+currentLocation.city+")<br><b>Date:</b> "+new Date().toLocaleDateString()+"<br><b>Submitted by:</b> "+me.name;
+  $("nrHeader").innerHTML="<b>"+t("nr.location_label")+"</b> "+currentLocation.brand+" — "+currentLocation.name+" ("+currentLocation.city+")<br><b>"+t("nr.date_label")+"</b> "+new Date().toLocaleDateString()+"<br><b>"+t("nr.submitted_by_label")+"</b> "+me.name;
   $("nrIssue").value=""; $("nrProposal").value="";
   $("nrBrokenWrap").classList.add("hide"); $("nrBrokenName").value=""; $("nrBrokenSerial").value="";
   renderThumbs($("nrPhotoPrev"), [], function(){});
@@ -1034,10 +1396,10 @@ function renderNrList(){
   draftItems.forEach(function(it, idx){
     var d=document.createElement("div"); d.className="finding";
     d.innerHTML='<div class="no">#'+(idx+1)+'</div><span class="tag">'+it.department+'</span> '+
-      (it.proposal==="sparepart"?'<span class="tag" style="background:#fff7ed;color:#9a3412">Sparepart</span>':'<span class="tag" style="background:#eff6ff;color:#1e3a8a">Technician</span>')+
+      (it.proposal==="sparepart"?'<span class="tag" style="background:#fff7ed;color:#9a3412">'+t("nr.tag_sparepart")+'</span>':'<span class="tag" style="background:#eff6ff;color:#1e3a8a">'+t("nr.tag_technician")+'</span>')+
       '<div style="margin-top:6px">'+escapeHtml(it.issue)+'</div>'+
       (it.photos.length?'<div class="thumbrow">'+it.photos.map(function(p){return '<div class="t"><img src="'+p+'"></div>';}).join("")+'</div>':'')+
-      '<button type="button" class="del" data-i="'+idx+'">✕ Remove</button>';
+      '<button type="button" class="del" data-i="'+idx+'">'+t("nr.remove")+'</button>';
     d.querySelector(".del").addEventListener("click", function(){ draftItems.splice(idx,1); renderNrList(); });
     list.appendChild(d);
   });
@@ -1046,15 +1408,15 @@ function escapeHtml(s){ return (s||"").replace(/[&<>"']/g, function(c){ return {
 
 $("btnNrAdd").addEventListener("click", function(){
   $("nrMsg").textContent="";
-  if(!nrDept){ $("nrMsg").textContent="Choose a department."; return; }
+  if(!nrDept){ $("nrMsg").textContent=t("nr.err_dept"); return; }
   var issue=$("nrIssue").value.trim();
-  if(!issue){ $("nrMsg").textContent="Describe the issue."; return; }
+  if(!issue){ $("nrMsg").textContent=t("nr.err_issue"); return; }
   var proposal=$("nrProposal").value;
-  if(!proposal){ $("nrMsg").textContent="Choose a proposal."; return; }
+  if(!proposal){ $("nrMsg").textContent=t("nr.err_proposal"); return; }
   var broken=null;
   if(proposal==="sparepart"){
-    if(!draftBrokenPhoto){ $("nrMsg").textContent="Broken sparepart photo is required."; return; }
-    if(!$("nrBrokenName").value.trim()){ $("nrMsg").textContent="Broken part name is required."; return; }
+    if(!draftBrokenPhoto){ $("nrMsg").textContent=t("nr.err_broken_photo"); return; }
+    if(!$("nrBrokenName").value.trim()){ $("nrMsg").textContent=t("nr.err_broken_name"); return; }
     broken={name:$("nrBrokenName").value.trim(), serial:$("nrBrokenSerial").value.trim(), photo:draftBrokenPhoto, videoFile:draftBrokenVideoFile};
   }
   draftItems.push({department:nrDept, issue:issue, photos:draftPhotos.slice(), videoFile:draftVideoFile, proposal:proposal, broken_part:broken});
@@ -1069,8 +1431,8 @@ $("btnNrAdd").addEventListener("click", function(){
 
 $("btnNrSubmit").addEventListener("click", async function(){
   $("nrMsg").textContent="";
-  if(!draftItems.length){ $("nrMsg").textContent="Add at least one finding first."; return; }
-  $("btnNrSubmit").disabled=true; $("btnNrSubmit").textContent="Submitting…";
+  if(!draftItems.length){ $("nrMsg").textContent=t("nr.err_add_one"); return; }
+  $("btnNrSubmit").disabled=true; $("btnNrSubmit").textContent=t("nr.submitting");
   try{
     var reportCode=await makeReportCode(currentLocation);
     var itemRows=[];
@@ -1106,9 +1468,9 @@ $("btnNrSubmit").addEventListener("click", async function(){
     draftItems=[];
     openReportPrint(reportCode);
   }catch(e){
-    $("nrMsg").textContent="Submit failed: "+(e.message||e);
+    $("nrMsg").textContent=t("nr.err_submit_failed")+(e.message||e);
   }finally{
-    $("btnNrSubmit").disabled=false; $("btnNrSubmit").textContent="Submit report";
+    $("btnNrSubmit").disabled=false; $("btnNrSubmit").textContent=t("nr.submit_report");
   }
 });
 
@@ -1120,23 +1482,24 @@ async function openReportPrint(reportCode){
   var rep=rr.data[0], its=items.data||[];
   var byDept={};
   its.forEach(function(it){ (byDept[it.department]=byDept[it.department]||[]).push(it); });
+  // Printed output is Indonesian-only always, regardless of the on-screen language toggle.
   var html='<div class="report-paper"><div class="report-page">'+
-    '<div class="rep-title"><span>MAINTENANCE REQUEST</span></div>'+
+    '<div class="rep-title"><span>PERMINTAAN PEMELIHARAAN</span></div>'+
     '<div class="rep-head"><div class="rr"><span><b>Brand:</b> '+rep.brand+'</span><span><b>Outlet:</b> '+rep.outlet+'</span></div>'+
-    '<div class="rr"><span><b>Request No.:</b> '+rep.id+'</span><span><b>Date:</b> '+new Date(rep.submitted_at).toLocaleDateString()+'</span></div>'+
-    '<div><b>Submitted by:</b> '+rep.submitted_name+'</div></div></div>';
+    '<div class="rr"><span><b>No. Permintaan:</b> '+rep.id+'</span><span><b>Tanggal:</b> '+new Date(rep.submitted_at).toLocaleDateString()+'</span></div>'+
+    '<div><b>Dikirim oleh:</b> '+rep.submitted_name+'</div></div></div>';
   Object.keys(byDept).forEach(function(dept, i){
     // No forced page break here — content flows onto page 1 and only spills to
     // further pages if it's actually too long to fit (natural print pagination).
-    html+='<div class="report-page"><div class="sec-h">'+dept+'</div><table class="rep"><thead><tr><th>No</th><th>Issue</th><th>Photo / Video</th><th>Proposed Action</th><th>Item Code</th></tr></thead><tbody>';
+    html+='<div class="report-page"><div class="sec-h">'+dept+'</div><table class="rep"><thead><tr><th>No</th><th>Masalah</th><th>Foto / Video</th><th>Tindakan yang Diusulkan</th><th>Kode Item</th></tr></thead><tbody>';
     byDept[dept].forEach(function(it, idx){
       var media=(it.photos||[]).map(function(p){return '<img src="'+p+'">';}).join("")+(it.video_url?'<div><a href="'+it.video_url+'" target="_blank">▶ video</a></div>':"");
-      html+='<tr><td class="no">'+(idx+1)+'</td><td>'+escapeHtml(it.issue)+'</td><td class="ph">'+media+'</td><td>'+(it.proposal==="sparepart"?"Request Spare Part":"Call Technician / Vendor")+'</td><td>'+it.id+'</td></tr>';
+      html+='<tr><td class="no">'+(idx+1)+'</td><td>'+escapeHtml(it.issue)+'</td><td class="ph">'+media+'</td><td>'+(it.proposal==="sparepart"?"Minta Suku Cadang":"Panggil Teknisi / Vendor")+'</td><td>'+it.id+'</td></tr>';
     });
     html+='</tbody></table></div>';
   });
   html+='</div>';
-  showPrintable(html, "Back to home", function(){ show("homeView"); renderHome(); });
+  showPrintable(html, t("ph.back_home"), function(){ show("homeView"); renderHome(); });
   await wireReportDeleteActions(rep);
 }
 
@@ -1147,7 +1510,7 @@ function showPrintable(html, backLabel, backFn){
   var host=document.createElement("section"); host.id="printHost";
   document.querySelector(".wrap").appendChild(host);
   window.scrollTo(0,0);
-  host.innerHTML='<div class="noprint card"><div class="btnrow2"><button class="btn preview" id="phPrint">Save as PDF / Print</button><button class="btn back" id="phBack">'+backLabel+'</button></div><div id="phExtra"></div></div>'+html;
+  host.innerHTML='<div class="noprint card"><div class="btnrow2"><button class="btn preview" id="phPrint">'+t("ph.save_print")+'</button><button class="btn back" id="phBack">'+backLabel+'</button></div><div id="phExtra"></div></div>'+html;
   host.querySelector("#phPrint").addEventListener("click", function(){ window.print(); });
   host.querySelector("#phBack").addEventListener("click", function(){ host.remove(); backFn(); });
 }
@@ -1162,31 +1525,31 @@ async function wireReportDeleteActions(rep){
 
   if(existing){
     var canCancel = existing.requester_id===me.id || isStaff();
-    host.innerHTML='<div class="msg" style="margin-top:10px">🕓 Deletion requested by '+existing.requester_name+' — pending review.'+(canCancel?' <a href="#" id="phCancelReq">cancel this request</a>':'')+'</div>';
+    host.innerHTML='<div class="msg" style="margin-top:10px">'+t("ph.delete_pending_prefix")+existing.requester_name+t("ph.delete_pending_suffix")+(canCancel?' <a href="#" id="phCancelReq">'+t("ph.cancel_request")+'</a>':'')+'</div>';
     var a=host.querySelector("#phCancelReq");
     if(a) a.addEventListener("click", async function(e){ e.preventDefault(); await sb.from("maint_delete_requests").delete().eq("id",existing.id); openReportPrint(rep.id); });
     return;
   }
 
   if(isStaff()){
-    host.innerHTML='<button class="btn cancel small" id="phDelete" style="width:auto;margin-top:10px">Delete report (admin — password required)</button>';
+    host.innerHTML='<button class="btn cancel small" id="phDelete" style="width:auto;margin-top:10px">'+t("ph.delete_report_btn")+'</button>';
     host.querySelector("#phDelete").addEventListener("click", async function(){
-      var pass=prompt("Re-enter your admin password to permanently delete report "+rep.id+":");
+      var pass=prompt(tf("ph.prompt_delete",{id:rep.id}));
       if(!pass) return;
       var v=await sb.auth.signInWithPassword({email:me.email, password:pass});
-      if(v.error){ alert("Password incorrect."); return; }
+      if(v.error){ alert(t("ap.err_password_wrong")); return; }
       try{
         var d1=await sb.from("maint_items").delete().eq("report_id", rep.id).select("id");
         if(d1.error) throw d1.error;
         var d2=await sb.from("maint_reports").delete().eq("id", rep.id).select("id");
         if(d2.error) throw d2.error;
-        if(!d2.data || !d2.data.length){ alert("Delete was blocked (no rows removed) — check that the maint_reports_delete RLS policy exists (re-run Maintenance_Project_Schema.sql v4)."); return; }
-      }catch(e){ alert("Delete failed: "+(e.message||e)); return; }
+        if(!d2.data || !d2.data.length){ alert(t("ap.err_delete_blocked")); return; }
+      }catch(e){ alert(t("ph.delete_failed")+(e.message||e)); return; }
       document.getElementById("printHost").remove();
       show("homeView"); renderHome();
     });
   } else if(mine || (myAccessLocIds===null || myAccessLocIds.indexOf(rep.location_id)>=0)){
-    host.innerHTML='<button class="btn cancel small" id="phReqDelete" style="width:auto;margin-top:10px">Request deletion</button>';
+    host.innerHTML='<button class="btn cancel small" id="phReqDelete" style="width:auto;margin-top:10px">'+t("ph.request_delete_btn")+'</button>';
     host.querySelector("#phReqDelete").addEventListener("click", function(){ openDelModal(rep); });
   }
 }
@@ -1199,13 +1562,13 @@ $("delCancel").addEventListener("click", function(){ $("delModal").classList.add
 $("delSubmit").addEventListener("click", async function(){
   var reportId=$("delModal").dataset.reportId;
   var reason=$("delReason").value.trim();
-  if(!reason){ $("delMsg").textContent="Give a reason."; return; }
+  if(!reason){ $("delMsg").textContent=t("del.err_reason"); return; }
   try{
     var ins=await sb.from("maint_delete_requests").insert({report_id:reportId, requester_id:me.id, requester_name:me.name, reason:reason, status:"pending"});
     if(ins.error) throw ins.error;
     $("delModal").classList.add("hide");
     openReportPrint(reportId);
-  }catch(e){ $("delMsg").textContent="Failed: "+(e.message||e); }
+  }catch(e){ $("delMsg").textContent=t("del.err_failed")+(e.message||e); }
 });
 
 /* ---------------- recall list ---------------- */
@@ -1226,19 +1589,19 @@ function rlOutletOptions(brand,city){
     .sort(function(a,b){ return a.name.localeCompare(b.name); });
 }
 function fillRlBrands(){
-  var s=$("rlBrand"); s.innerHTML="<option value=''>All brands</option>";
+  var s=$("rlBrand"); s.innerHTML="<option value=''>"+t("recall.all_brands")+"</option>";
   rlBrandOptions().forEach(function(b){ var o=document.createElement("option"); o.value=b; o.textContent=b; s.appendChild(o); });
   fillRlCities();
 }
 function fillRlCities(){
   var brand=$("rlBrand").value, s=$("rlCity");
-  s.innerHTML="<option value=''>All cities</option>"; s.disabled=!brand;
+  s.innerHTML="<option value=''>"+t("recall.all_cities")+"</option>"; s.disabled=!brand;
   if(brand) rlCityOptions(brand).forEach(function(c){ var o=document.createElement("option"); o.value=c; o.textContent=c; s.appendChild(o); });
   fillRlOutlets();
 }
 function fillRlOutlets(){
   var brand=$("rlBrand").value, city=$("rlCity").value, s=$("rlOutlet");
-  s.innerHTML="<option value=''>All outlets</option>"; s.disabled=!city;
+  s.innerHTML="<option value=''>"+t("recall.all_outlets")+"</option>"; s.disabled=!city;
   if(city) rlOutletOptions(brand,city).forEach(function(l){ var o=document.createElement("option"); o.value=l.id; o.textContent=l.name; s.appendChild(o); });
 }
 function openRecall(){
@@ -1272,16 +1635,31 @@ async function runRecallSearch(){
   var rows=r.data||[];
   var term=$("rlSearch").value.trim().toLowerCase();
   if(term) rows=rows.filter(function(it){ return it.id.toLowerCase().indexOf(term)>=0 || it.report_id.toLowerCase().indexOf(term)>=0 || (it.issue||"").toLowerCase().indexOf(term)>=0; });
+  // Oldest unresolved issues first (most urgent), then everything else newest-first.
+  rows.sort(function(a,b){
+    var aOpen=a.status==="open", bOpen=b.status==="open";
+    if(aOpen && !bOpen) return -1;
+    if(!aOpen && bOpen) return 1;
+    if(aOpen && bOpen) return new Date(a.created_at)-new Date(b.created_at);
+    return new Date(b.created_at)-new Date(a.created_at);
+  });
   renderRecallList(rows);
 }
+function daysOpen(it){ return Math.floor((Date.now()-new Date(it.created_at).getTime())/86400000); }
 function renderRecallList(rows){
-  $("rlCount").textContent=rows.length+" item(s)";
+  $("rlCount").textContent=rows.length+t("recall.items_count");
   var list=$("rlList"); list.innerHTML="";
   $("rlEmpty").style.display = rows.length? "none":"block";
   rows.forEach(function(it){
     var d=document.createElement("div"); d.className="listcard";
-    d.innerHTML='<div class="t">'+it.id+' <span class="pill '+(it.status==="resolved"?"resolved":"open")+'">'+it.status+'</span></div>'+
-      '<div class="m">'+it.outlet+' · '+it.department+' · '+escapeHtml((it.issue||"").slice(0,80))+'</div>';
+    var ageNote="";
+    if(it.status==="open"){
+      var days=daysOpen(it);
+      if(days>=30){ d.className+=" age-red"; ageNote=' <span class="muted">'+tf("recall.open_days_month",{n:days})+'</span>'; }
+      else if(days>=14){ d.className+=" age-yellow"; ageNote=' <span class="muted">'+tf("recall.open_days",{n:days})+'</span>'; }
+    }
+    d.innerHTML='<div class="t">'+it.id+' <span class="pill '+(it.status==="resolved"?"resolved":"open")+'">'+(it.status==="resolved"?t("home.status_finished"):t("home.status_open"))+'</span></div>'+
+      '<div class="m">'+it.outlet+' · '+it.department+' · '+escapeHtml((it.issue||"").slice(0,80))+ageNote+'</div>';
     d.addEventListener("click", function(){ openItemDetail(it.id); });
     list.appendChild(d);
   });
@@ -1294,9 +1672,9 @@ async function openItemDetail(itemId){
   currentItem=r.data[0];
   var loc=locations.find(function(l){return l.id===currentItem.location_id;});
   $("idTitle").textContent=currentItem.id;
-  $("idStatusBadge").innerHTML='<span class="statusbadge '+(currentItem.status==="resolved"?"resolved":"open")+'">'+(currentItem.status==="resolved"?"RESOLVED":"UNRESOLVED")+'</span>';
-  $("idHeader").innerHTML='<div class="rr"><span><b>Brand:</b> '+currentItem.brand+'</span><span><b>Outlet:</b> '+currentItem.outlet+'</span></div>'+
-    '<div class="rr"><span><b>Report No.:</b> '+currentItem.report_id+'</span><span><b>Department:</b> '+currentItem.department+'</span></div>';
+  $("idStatusBadge").innerHTML='<span class="statusbadge '+(currentItem.status==="resolved"?"resolved":"open")+'">'+(currentItem.status==="resolved"?t("id.status_resolved"):t("id.status_unresolved"))+'</span>';
+  $("idHeader").innerHTML='<div class="rr"><span><b>'+t("id.brand_label")+'</b> '+currentItem.brand+'</span><span><b>'+t("id.outlet_label")+'</b> '+currentItem.outlet+'</span></div>'+
+    '<div class="rr"><span><b>'+t("id.report_no_label")+'</b> '+currentItem.report_id+'</span><span><b>'+t("id.department_label")+'</b> '+currentItem.department+'</span></div>';
   $("idFirstReport").innerHTML=firstReportBlockHtml(currentItem);
   renderProgressList();
   renderApprovals();
@@ -1304,15 +1682,17 @@ async function openItemDetail(itemId){
 }
 $("btnIdBack").addEventListener("click", function(){ show("recallListView"); runRecallSearch(); });
 
-function firstReportBlockHtml(it){
+// Shared between the on-screen Item Detail view (respects the language toggle) and the
+// printed Progress report (always forces Indonesian) — pass lang explicitly to force it.
+function firstReportBlockHtml(it, lang){
   var media=(it.photos||[]).map(function(p){return '<img src="'+p+'" style="width:70px;height:70px;object-fit:cover;border-radius:8px;margin:3px">';}).join("")+
     (it.video_url?'<div><a href="'+it.video_url+'" target="_blank">▶ video</a></div>':"");
-  var prop=it.proposal==="sparepart"?"Request Spare Part":"Call Technician / Vendor";
-  var broken=it.broken_part? ('<div class="muted" style="margin-top:6px">Broken part: '+escapeHtml(it.broken_part.name||"")+(it.broken_part.serial?" (SN "+escapeHtml(it.broken_part.serial)+")":"")+(it.broken_part.photo?'<br><img src="'+it.broken_part.photo+'" style="width:70px;height:70px;object-fit:cover;border-radius:8px;margin-top:4px">':"")+'</div>') : "";
-  return '<div><b>Request No.:</b> '+it.id+' &nbsp; <b>Date:</b> '+new Date(it.created_at).toLocaleString()+' &nbsp; <b>Submitted by:</b> '+it.created_name+'</div>'+
+  var prop=it.proposal==="sparepart"?tt("nr.sparepart",lang):tt("nr.technician",lang);
+  var broken=it.broken_part? ('<div class="muted" style="margin-top:6px">'+tt("id.broken_part_label",lang)+' '+escapeHtml(it.broken_part.name||"")+(it.broken_part.serial?tt("id.sn_label",lang)+escapeHtml(it.broken_part.serial)+")":"")+(it.broken_part.photo?'<br><img src="'+it.broken_part.photo+'" style="width:70px;height:70px;object-fit:cover;border-radius:8px;margin-top:4px">':"")+'</div>') : "";
+  return '<div><b>'+tt("id.request_no_label",lang)+'</b> '+it.id+' &nbsp; <b>'+tt("id.date_label",lang)+'</b> '+new Date(it.created_at).toLocaleString()+' &nbsp; <b>'+tt("id.submitted_by_label",lang)+'</b> '+it.created_name+'</div>'+
     '<div style="margin-top:6px">'+media+'</div>'+
-    '<div style="margin-top:6px"><b>Findings:</b> '+escapeHtml(it.issue)+'</div>'+
-    '<div style="margin-top:4px"><b>Proposed Action:</b> '+prop+'</div>'+broken;
+    '<div style="margin-top:6px"><b>'+tt("id.findings_label",lang)+'</b> '+escapeHtml(it.issue)+'</div>'+
+    '<div style="margin-top:4px"><b>'+tt("id.proposed_action_label",lang)+'</b> '+prop+'</div>'+broken;
 }
 
 function renderProgressList(){
@@ -1322,7 +1702,7 @@ function renderProgressList(){
   $("idProgEmpty").style.display = prog.length? "none":"block";
   prog.forEach(function(p, i){
     var d=document.createElement("div"); d.className="progblock";
-    var head="Progress "+(i+1)+" — "+(p.type==="tech_visit"?"Technician's visit":"Repair by staff");
+    var head=t("id.progress_n_prefix")+(i+1)+" — "+(p.type==="tech_visit"?t("pg.tech_visit"):t("pg.repair_staff"));
     var media="";
     if(p.type==="tech_visit"){
       media='<div class="thumbrow">'+
@@ -1332,17 +1712,17 @@ function renderProgressList(){
         (p.broken_photo?'<div class="t"><img src="'+p.broken_photo+'"></div>':"")+
         (p.tech_form_photo?'<div class="t"><img src="'+p.tech_form_photo+'"></div>':"")+
         '</div>'+
-        '<div style="margin-top:4px"><b>Finding:</b> '+escapeHtml(p.finding_text||"")+'</div>'+
-        '<div><b>Resolution:</b> '+p.resolution+'</div>'+
-        (p.resolution==="unresolved"? '<div><b>Next step:</b> '+escapeHtml(p.next_step==="__other__"?p.next_step_other:p.next_step||"")+'</div>'+
-          (p.broken_name? '<div><b>Broken part:</b> '+escapeHtml(p.broken_name)+(p.broken_serial?" (SN "+escapeHtml(p.broken_serial)+")":"")+'</div>':"") : "");
+        '<div style="margin-top:4px"><b>'+t("id.finding_label")+'</b> '+escapeHtml(p.finding_text||"")+'</div>'+
+        '<div><b>'+t("id.resolution_label")+'</b> '+(p.resolution==="resolved"?t("pg.resolved"):t("pg.unresolved"))+'</div>'+
+        (p.resolution==="unresolved"? '<div><b>'+t("id.next_step_label")+'</b> '+escapeHtml(p.next_step==="__other__"?p.next_step_other:p.next_step||"")+'</div>'+
+          (p.broken_name? '<div><b>'+t("id.broken_part_label")+'</b> '+escapeHtml(p.broken_name)+(p.broken_serial?t("id.sn_label")+escapeHtml(p.broken_serial)+")":"")+'</div>':"") : "");
     } else {
       media='<div class="thumbrow">'+
         (p.parts_photo?'<div class="t"><img src="'+p.parts_photo+'"></div>':"")+
         (p.after_photo?'<div class="t"><img src="'+p.after_photo+'"></div>':"")+
         '</div>'+
-        '<div><b>Resolution:</b> '+p.resolution+'</div>'+
-        (p.resolution==="unresolved"? '<div><b>Why:</b> '+escapeHtml(p.reason||"")+'</div>':"");
+        '<div><b>'+t("id.resolution_label")+'</b> '+(p.resolution==="resolved"?t("pg.resolved"):t("pg.unresolved"))+'</div>'+
+        (p.resolution==="unresolved"? '<div><b>'+t("id.why_label")+'</b> '+escapeHtml(p.reason||"")+'</div>':"");
     }
     d.innerHTML='<div class="ph">'+head+'</div><div class="pm">'+p.by_name+' · '+new Date(p.at).toLocaleString()+'</div>'+media;
     list.appendChild(d);
@@ -1357,9 +1737,9 @@ function renderApprovals(){
     var canAct = isStaff() || hasRole(a.role, currentItem.location_id);
     var d=document.createElement("div"); d.className="approvalrow";
     d.innerHTML='<div class="info"><div class="rn">'+escapeHtml(approvalLabelFor(a.role, currentItem, loc))+'</div>'+
-      '<div class="rm">'+(a.confirmed? ("Confirmed by "+a.by_name+" · "+new Date(a.at).toLocaleString()) : "Pending")+'</div></div>'+
-      (a.confirmed? '<span class="pill resolved">✓ Confirmed</span>' :
-        (canAct? '<button type="button" class="btn small proceed" style="width:auto">Confirm</button>' : '<span class="pill grey">Waiting</span>'));
+      '<div class="rm">'+(a.confirmed? (t("id.confirmed_by")+a.by_name+" · "+new Date(a.at).toLocaleString()) : t("id.pending"))+'</div></div>'+
+      (a.confirmed? '<span class="pill resolved">✓ '+t("ap.confirm")+'</span>' :
+        (canAct? '<button type="button" class="btn small proceed" style="width:auto">'+t("id.confirm_btn")+'</button>' : '<span class="pill grey">'+t("id.waiting")+'</span>'));
     if(!a.confirmed && canAct){
       d.querySelector("button").addEventListener("click", function(){ openApproveModal(idx); });
     }
@@ -1419,25 +1799,25 @@ $("pgStaffResBtn2").addEventListener("click", function(){ setResToggle(["pgStaff
 $("pgSubmit").addEventListener("click", async function(){
   $("pgMsg").textContent="";
   var type=$("pgType").value;
-  if(!type){ $("pgMsg").textContent="Choose a type."; return; }
+  if(!type){ $("pgMsg").textContent=t("pg.err_type"); return; }
   var entry={type:type, by:me.id, by_name:me.name, at:new Date().toISOString()};
   try{
     if(type==="tech_visit"){
-      if(!pgPhotos.tech_photo){ $("pgMsg").textContent="Photo of technician at work is required."; return; }
-      if(!$("pgTechFinding").value.trim()){ $("pgMsg").textContent="Finding is required."; return; }
-      if(!pgPhotos.tech_res){ $("pgMsg").textContent="Choose Resolved or Unresolved."; return; }
-      if(!pgPhotos.tech_form_photo){ $("pgMsg").textContent="Tech visit form upload is required."; return; }
+      if(!pgPhotos.tech_photo){ $("pgMsg").textContent=t("pg.err_tech_photo"); return; }
+      if(!$("pgTechFinding").value.trim()){ $("pgMsg").textContent=t("pg.err_finding"); return; }
+      if(!pgPhotos.tech_res){ $("pgMsg").textContent=t("pg.err_choose_res"); return; }
+      if(!pgPhotos.tech_form_photo){ $("pgMsg").textContent=t("pg.err_tech_form"); return; }
       entry.resolution=pgPhotos.tech_res;
       entry.finding_text=$("pgTechFinding").value.trim();
       if(pgPhotos.tech_res==="unresolved"){
-        var ns=$("pgNextStep").value; if(!ns){ $("pgMsg").textContent="Choose a next step."; return; }
-        if(ns==="__other__" && !$("pgNextStepOther").value.trim()){ $("pgMsg").textContent="Specify the next step."; return; }
-        if(!pgPhotos.broken_photo){ $("pgMsg").textContent="Broken part photo is required."; return; }
-        if(!$("pgBrokenName").value.trim()){ $("pgMsg").textContent="Broken part name is required."; return; }
+        var ns=$("pgNextStep").value; if(!ns){ $("pgMsg").textContent=t("pg.err_next_step"); return; }
+        if(ns==="__other__" && !$("pgNextStepOther").value.trim()){ $("pgMsg").textContent=t("pg.err_specify"); return; }
+        if(!pgPhotos.broken_photo){ $("pgMsg").textContent=t("pg.err_broken_photo"); return; }
+        if(!$("pgBrokenName").value.trim()){ $("pgMsg").textContent=t("pg.err_broken_name"); return; }
         entry.next_step=ns; entry.next_step_other= ns==="__other__"?$("pgNextStepOther").value.trim():null;
         entry.broken_name=$("pgBrokenName").value.trim(); entry.broken_serial=$("pgBrokenSerial").value.trim();
       } else {
-        if(!pgPhotos.after_photo_tech){ $("pgMsg").textContent="Photo of 'after' is required."; return; }
+        if(!pgPhotos.after_photo_tech){ $("pgMsg").textContent=t("pg.err_after_photo"); return; }
       }
       $("pgSubmit").disabled=true;
       var pfx=currentItem.id+"_p"+((currentItem.progress||[]).length+1);
@@ -1447,12 +1827,12 @@ $("pgSubmit").addEventListener("click", async function(){
       if(pgPhotos.tech_res==="unresolved"){ entry.broken_photo=await uploadPhoto(pgPhotos.broken_photo, pfx); }
       else { entry.after_photo=await uploadPhoto(pgPhotos.after_photo_tech, pfx); }
     } else if(type==="repair_staff"){
-      if(!pgPhotos.parts_photo){ $("pgMsg").textContent="Photo of parts received is required."; return; }
-      if(!pgPhotos.after_photo_staff){ $("pgMsg").textContent="Photo of 'after' is required."; return; }
-      if(!pgPhotos.staff_res){ $("pgMsg").textContent="Choose Resolved or Unresolved."; return; }
+      if(!pgPhotos.parts_photo){ $("pgMsg").textContent=t("pg.err_parts_photo"); return; }
+      if(!pgPhotos.after_photo_staff){ $("pgMsg").textContent=t("pg.err_after_photo"); return; }
+      if(!pgPhotos.staff_res){ $("pgMsg").textContent=t("pg.err_choose_res"); return; }
       entry.resolution=pgPhotos.staff_res;
       if(pgPhotos.staff_res==="unresolved"){
-        if(!$("pgStaffWhy").value.trim()){ $("pgMsg").textContent="Explain why it's unresolved."; return; }
+        if(!$("pgStaffWhy").value.trim()){ $("pgMsg").textContent=t("pg.err_why"); return; }
         entry.reason=$("pgStaffWhy").value.trim();
       }
       $("pgSubmit").disabled=true;
@@ -1467,7 +1847,7 @@ $("pgSubmit").addEventListener("click", async function(){
     $("progressModal").classList.add("hide");
     renderProgressList();
   }catch(e){
-    $("pgMsg").textContent="Save failed: "+(e.message||e);
+    $("pgMsg").textContent=t("pg.err_save_failed")+(e.message||e);
   }finally{
     $("pgSubmit").disabled=false;
   }
@@ -1496,8 +1876,8 @@ async function verifyCredentials(username, password){
 function openApproveModal(idx){
   apRoleCtx=idx;
   var a=currentItem.approvals[idx];
-  $("apTitle").textContent="Confirm resolved — "+(ROLE_LABEL[a.role]||a.role);
-  $("apSub").textContent="Item only shows Resolved once every required role has confirmed.";
+  $("apTitle").textContent=t("ap.title_prefix")+(ROLE_LABEL[a.role]||a.role);
+  $("apSub").textContent=t("ap.sub");
   $("apUser").value=""; $("apPass").value=""; $("apMsg").textContent="";
   $("approveModal").classList.remove("hide");
 }
@@ -1505,7 +1885,7 @@ $("apCancel").addEventListener("click", function(){ $("approveModal").classList.
 $("apSubmit").addEventListener("click", async function(){
   $("apMsg").textContent="";
   var uname=$("apUser").value.trim(), pass=$("apPass").value;
-  if(!uname||!pass){ $("apMsg").textContent="Enter username and password."; return; }
+  if(!uname||!pass){ $("apMsg").textContent=t("ap.err_enter"); return; }
   $("apSubmit").disabled=true;
   try{
     var person=await verifyCredentials(uname, pass);
@@ -1517,7 +1897,7 @@ $("apSubmit").addEventListener("click", async function(){
       var rr=await sb.from("maint_roles").select("role,location_id").eq("user_id",person.id);
       okRole=(rr.data||[]).some(function(x){ return (GRANULAR_TO_SLOT[x.role]||x.role)===a.role && (x.location_id===null || x.location_id===currentItem.location_id); });
     }
-    if(!okRole){ $("apMsg").textContent=person.name+" doesn't hold the \""+(ROLE_LABEL[a.role]||a.role)+"\" title for this location."; $("apSubmit").disabled=false; return; }
+    if(!okRole){ $("apMsg").textContent=tf("ap.err_no_role",{name:person.name, role:(ROLE_LABEL[a.role]||a.role)}); $("apSubmit").disabled=false; return; }
     var newApprovals=currentItem.approvals.slice();
     newApprovals[apRoleCtx]=Object.assign({}, a, {confirmed:true, by:person.id, by_name:person.name, at:new Date().toISOString()});
     var allConfirmed=newApprovals.every(function(x){return x.confirmed;});
@@ -1528,10 +1908,10 @@ $("apSubmit").addEventListener("click", async function(){
     Object.assign(currentItem, patch);
     if(allConfirmed) await recomputeReportStatus(currentItem.report_id);
     $("approveModal").classList.add("hide");
-    $("idStatusBadge").innerHTML='<span class="statusbadge '+(currentItem.status==="resolved"?"resolved":"open")+'">'+(currentItem.status==="resolved"?"RESOLVED":"UNRESOLVED")+'</span>';
+    $("idStatusBadge").innerHTML='<span class="statusbadge '+(currentItem.status==="resolved"?"resolved":"open")+'">'+(currentItem.status==="resolved"?t("id.status_resolved"):t("id.status_unresolved"))+'</span>';
     renderApprovals();
   }catch(e){
-    $("apMsg").textContent="Failed: "+(e.message||e);
+    $("apMsg").textContent=t("ap.err_failed")+(e.message||e);
   }finally{
     $("apSubmit").disabled=false;
   }
@@ -1546,22 +1926,22 @@ async function recomputeReportStatus(reportId){
   await sb.from("maint_reports").update({cached_status: allDone?"finished":"open"}).eq("id",reportId);
 }
 
-/* ---------------- print progress report ---------------- */
+/* ---------------- print progress report (Indonesian-only, always — see i18n note at top) ---------------- */
 $("btnIdPrint").addEventListener("click", function(){
   var it=currentItem;
   var html='<div class="report-paper"><div class="report-page">'+
-    '<div class="rep-title"><span>Progress report for '+it.id+'</span><span class="statusbadge '+(it.status==="resolved"?"resolved":"open")+'">'+(it.status==="resolved"?"RESOLVED":"UNRESOLVED")+'</span></div>'+
+    '<div class="rep-title"><span>Laporan progres untuk '+it.id+'</span><span class="statusbadge '+(it.status==="resolved"?"resolved":"open")+'">'+(it.status==="resolved"?"SELESAI":"BELUM SELESAI")+'</span></div>'+
     '<div class="rep-head"><div class="rr"><span><b>Brand:</b> '+it.brand+'</span><span><b>Outlet:</b> '+it.outlet+'</span></div>'+
-    '<div class="rr"><span><b>Report No.:</b> '+it.report_id+'</span><span><b>Date:</b> '+new Date(it.created_at).toLocaleDateString()+'</span></div>'+
-    '<div><b>Submitted by:</b> '+it.created_name+'</div><div><b>Department:</b> '+it.department+'</div></div>'+
-    '<div class="sec-h">Initial Report</div>'+firstReportBlockHtml(it);
+    '<div class="rr"><span><b>No. Laporan:</b> '+it.report_id+'</span><span><b>Tanggal:</b> '+new Date(it.created_at).toLocaleDateString()+'</span></div>'+
+    '<div><b>Dikirim oleh:</b> '+it.created_name+'</div><div><b>Departemen:</b> '+it.department+'</div></div>'+
+    '<div class="sec-h">Laporan Awal</div>'+firstReportBlockHtml(it, "id");
   (it.progress||[]).forEach(function(p,i){
-    html+='<div class="sec-h">Progress '+(i+1)+'</div><div><b>Report No.:</b> '+it.id+'-P'+(i+1)+' &nbsp; <b>Date:</b> '+new Date(p.at).toLocaleString()+' &nbsp; <b>Submitted by:</b> '+p.by_name+'</div>';
+    html+='<div class="sec-h">Progres '+(i+1)+'</div><div><b>No. Laporan:</b> '+it.id+'-P'+(i+1)+' &nbsp; <b>Tanggal:</b> '+new Date(p.at).toLocaleString()+' &nbsp; <b>Dikirim oleh:</b> '+p.by_name+'</div>';
     html+=progressPrintBlockHtml(p);
   });
   html+=approvalSignatureBlockHtml(it);
   html+='</div></div>';
-  showPrintable(html, "← Back to item", function(){ openItemDetail(it.id); });
+  showPrintable(html, t("ph.back_item"), function(){ openItemDetail(it.id); });
 });
 // Store-level titles (Store Leader/Barista/Kitchen Leader/Pastry Team-Leader) print as the
 // item's department code (FOH/BAR/BOH/PASTRY) for STORE locations, or "CK" for Central
@@ -1580,26 +1960,27 @@ function approvalSignatureBlockHtml(it){
     var label=approvalLabelFor(a.role, it, loc);
     var status=a.confirmed
       ? escapeHtml(a.by_name||"")+' &nbsp; <span class="muted">'+new Date(a.at).toLocaleString()+'</span>'
-      : '<span class="muted">Pending</span>';
+      : '<span class="muted">Menunggu</span>';
     return '<div style="display:flex;justify-content:space-between;gap:10px;font-size:13px;padding:6px 0;border-bottom:1px solid var(--line)"><b>'+escapeHtml(label)+'</b><span>'+status+'</span></div>';
   }).join("");
-  return '<div class="sec-h">Approval</div>'+rows;
+  return '<div class="sec-h">Persetujuan</div>'+rows;
 }
 function progressPrintBlockHtml(p){
   var imgs = p.type==="tech_visit"
     ? [p.tech_photo,p.finding_photo,p.after_photo,p.broken_photo,p.tech_form_photo]
     : [p.parts_photo,p.after_photo];
   var media=imgs.filter(Boolean).map(function(u){return '<img src="'+u+'" style="width:70px;height:70px;object-fit:cover;border-radius:8px;margin:3px">';}).join("");
+  var resLabel=p.resolution==="resolved"?"selesai":"belum selesai";
   var html='<div style="margin-top:6px">'+media+'</div>'+
-    '<div style="margin-top:4px">'+(p.type==="tech_visit"?"Technician's visit":"Repair by staff")+' — resolution: '+p.resolution+'</div>';
+    '<div style="margin-top:4px">'+(p.type==="tech_visit"?"Kunjungan teknisi":"Perbaikan oleh staf")+' — penyelesaian: '+resLabel+'</div>';
   if(p.type==="tech_visit"){
-    html+='<div style="margin-top:4px"><b>Finding:</b> '+escapeHtml(p.finding_text||"")+'</div>';
+    html+='<div style="margin-top:4px"><b>Temuan:</b> '+escapeHtml(p.finding_text||"")+'</div>';
     if(p.resolution==="unresolved"){
-      html+='<div><b>Next step:</b> '+escapeHtml(p.next_step==="__other__"?(p.next_step_other||""):(p.next_step||""))+'</div>';
-      if(p.broken_name) html+='<div><b>Broken part:</b> '+escapeHtml(p.broken_name)+(p.broken_serial?" (SN "+escapeHtml(p.broken_serial)+")":"")+'</div>';
+      html+='<div><b>Langkah selanjutnya:</b> '+escapeHtml(p.next_step==="__other__"?(p.next_step_other||""):(p.next_step||""))+'</div>';
+      if(p.broken_name) html+='<div><b>Komponen rusak:</b> '+escapeHtml(p.broken_name)+(p.broken_serial?" (SN "+escapeHtml(p.broken_serial)+")":"")+'</div>';
     }
   } else {
-    if(p.resolution==="unresolved") html+='<div><b>Why:</b> '+escapeHtml(p.reason||"")+'</div>';
+    if(p.resolution==="unresolved") html+='<div><b>Alasan:</b> '+escapeHtml(p.reason||"")+'</div>';
   }
   return html;
 }
@@ -1607,51 +1988,51 @@ function progressPrintBlockHtml(p){
 /* ---------------- team & account levels (shared profiles table — same as Store Visit) ---------------- */
 var allMembers=[];
 async function renderTeam(){
-  var box=$("teamList"), msg=$("teamMsg"); msg.textContent=""; box.innerHTML="Loading...";
+  var box=$("teamList"), msg=$("teamMsg"); msg.textContent=""; box.innerHTML=t("common.please_wait");
   var r=await sb.from("profiles").select("id,email,name,role,username").order("created_at",{ascending:true});
   if(r.error){ box.innerHTML=""; msg.className="msg err"; msg.textContent=r.error.message; return; }
   var rows=r.data||[];
   allMembers=rows;
-  if(!rows.length){ box.innerHTML="<p class='muted'>No team members yet.</p>"; return; }
+  if(!rows.length){ box.innerHTML="<p class='muted'>"+t("settings.no_team_yet")+"</p>"; return; }
   var tbl=document.createElement("table"); tbl.className="teamtab";
-  tbl.innerHTML="<thead><tr><th>Name</th><th>E-mail</th><th>Username</th><th>Role</th><th>Location access &amp; titles</th></tr></thead>";
+  tbl.innerHTML="<thead><tr><th>"+t("settings.th_name")+"</th><th>"+t("settings.th_email")+"</th><th>"+t("settings.th_username")+"</th><th>"+t("settings.th_role")+"</th><th>"+t("settings.th_access")+"</th></tr></thead>";
   var tb=document.createElement("tbody");
   rows.forEach(function(p){
     var isMe=(me && p.id===me.id);
     var tr=document.createElement("tr");
     var tdName=document.createElement("td");
     var ni=document.createElement("input"); ni.type="text"; ni.className="tcell-in"; ni.value=p.name||""; tdName.appendChild(ni);
-    if(isMe){ var tag=document.createElement("div"); tag.className="muted"; tag.style.fontSize="11px"; tag.textContent="(you)"; tdName.appendChild(tag); }
+    if(isMe){ var tag=document.createElement("div"); tag.className="muted"; tag.style.fontSize="11px"; tag.textContent=t("settings.you"); tdName.appendChild(tag); }
     tr.appendChild(tdName);
     ni.addEventListener("change", async function(){
       var nm=ni.value.trim(); if(!nm||nm===p.name) return;
-      msg.className="msg"; msg.textContent="Saving...";
+      msg.className="msg"; msg.textContent=t("settings.saving");
       var u=await sb.from("profiles").update({name:nm}).eq("id",p.id);
       if(u.error){ msg.className="msg err"; msg.textContent=u.error.message; return; }
       p.name=nm; if(isMe){ me.name=nm; renderHome(); }
-      msg.className="msg ok"; msg.textContent="Saved name for "+escapeHtml(nm)+".";
+      msg.className="msg ok"; msg.textContent=t("settings.saved_name")+escapeHtml(nm)+".";
     });
     var tdEmail=document.createElement("td"); tdEmail.textContent=p.email||""; tdEmail.style.fontSize="12px"; tr.appendChild(tdEmail);
     var tdUser=document.createElement("td"); var us=document.createElement("span"); us.className="uname"; us.textContent=p.username||"—"; tdUser.appendChild(us); tr.appendChild(tdUser);
     var tdRole=document.createElement("td"); var sel=document.createElement("select"); sel.className="tcell-in";
     ["member","admin","owner"].forEach(function(role){ var o=document.createElement("option"); o.value=role; o.textContent=role; if(p.role===role) o.selected=true; sel.appendChild(o); });
     sel.addEventListener("change", async function(){
-      msg.className="msg"; msg.textContent="Saving...";
+      msg.className="msg"; msg.textContent=t("settings.saving");
       var u=await sb.from("profiles").update({role:sel.value}).eq("id",p.id);
       if(u.error){ msg.className="msg err"; msg.textContent=u.error.message; sel.value=p.role; return; }
       p.role=sel.value; if(isMe){ me.role=sel.value; }
-      msg.className="msg ok"; msg.textContent="Updated "+escapeHtml(p.name||p.email)+" → "+sel.value+" (applies in Store Visit too).";
+      msg.className="msg ok"; msg.textContent=t("settings.updated_prefix")+escapeHtml(p.name||p.email)+" → "+sel.value+t("settings.updated_suffix");
     });
     tdRole.appendChild(sel); tr.appendChild(tdRole);
     var tdAccess=document.createElement("td");
     if(p.role==="member"){
-      var accBtn=document.createElement("button"); accBtn.type="button"; accBtn.className="btn small proceed"; accBtn.style.width="auto"; accBtn.textContent="Edit access";
+      var accBtn=document.createElement("button"); accBtn.type="button"; accBtn.className="btn small proceed"; accBtn.style.width="auto"; accBtn.textContent=t("settings.edit_access");
       accBtn.addEventListener("click", function(){ openMemberAccessModal(p); });
       tdAccess.appendChild(accBtn);
-      var sum=document.createElement("div"); sum.className="muted"; sum.style.cssText="font-size:11px;margin-top:3px"; sum.id="maSum_"+p.id; sum.textContent="Loading…";
+      var sum=document.createElement("div"); sum.className="muted"; sum.style.cssText="font-size:11px;margin-top:3px"; sum.id="maSum_"+p.id; sum.textContent=t("settings.loading");
       tdAccess.appendChild(sum);
     } else {
-      var full=document.createElement("span"); full.className="muted"; full.style.fontSize="12px"; full.textContent="Full access — every location"; tdAccess.appendChild(full);
+      var full=document.createElement("span"); full.className="muted"; full.style.fontSize="12px"; full.textContent=t("settings.full_access"); tdAccess.appendChild(full);
     }
     tr.appendChild(tdAccess);
     tb.appendChild(tr);
@@ -1664,7 +2045,7 @@ async function renderTeam(){
     var ids=(acc.data&&acc.data.length)?(acc.data[0].location_ids||[]):[];
     var rr=await sb.from("maint_roles").select("role").eq("user_id",p.id);
     var titles=(rr.data||[]).map(function(x){return GRANULAR_LABEL[x.role]||ROLE_LABEL[x.role]||x.role;}).filter(function(v,i,a){return a.indexOf(v)===i;});
-    if(el) el.textContent=ids.length+" location(s)"+(titles.length? " · "+titles.join(", ") : "");
+    if(el) el.textContent=ids.length+t("settings.locations_suffix")+(titles.length? " · "+titles.join(", ") : "");
   });
 }
 
@@ -1689,10 +2070,10 @@ function renderBrandTree(){
   var isOwner=(me && me.role==="owner");
   $("newBrand").disabled=!isOwner; $("addBrandBtn").disabled=!isOwner;
   $("brandMsg").className="msg";
-  $("brandMsg").textContent = isOwner ? "" : "Only the owner can add/rename/remove outlets or change their maintenance code/visibility.";
+  $("brandMsg").textContent = isOwner ? "" : t("settings.owner_only_hint");
   if(staleLocationIds.length){
     var warn=document.createElement("p"); warn.className="msg err";
-    warn.textContent=staleLocationIds.length+" coded location(s) no longer match Store Visit's outlet list (renamed or removed there) — check maint_locations.";
+    warn.textContent=staleLocationIds.length+t("settings.stale_warning_suffix");
     root.appendChild(warn);
   }
   cfgTree.brands.forEach(function(b,bi){
@@ -1703,9 +2084,9 @@ function renderBrandTree(){
 
     var head=document.createElement("div");
     head.style.cssText="display:flex;align-items:center;gap:8px;padding:10px 12px;cursor:pointer;background:#faf8f5";
-    head.innerHTML="<span style='width:14px;flex:none'>"+(bOpen?"▾":"▸")+"</span><b style='flex:1'>"+escapeHtml(b.name)+"</b><span class='muted' style='font-size:12px'>"+totalOutlets+" outlet(s)</span>";
-    if(isOwner){ var delB=document.createElement("button"); delB.className="del"; delB.textContent="delete"; delB.style.marginLeft="8px";
-      delB.addEventListener("click", async function(e){ e.stopPropagation(); if(!confirm("Delete brand and all its cities/outlets?")) return; cfgTree.brands.splice(bi,1); await pushCfgTree(); await loadLocations(); renderBrandTree(); });
+    head.innerHTML="<span style='width:14px;flex:none'>"+(bOpen?"▾":"▸")+"</span><b style='flex:1'>"+escapeHtml(b.name)+"</b><span class='muted' style='font-size:12px'>"+totalOutlets+t("settings.outlets_suffix")+"</span>";
+    if(isOwner){ var delB=document.createElement("button"); delB.className="del"; delB.textContent=t("settings.delete"); delB.style.marginLeft="8px";
+      delB.addEventListener("click", async function(e){ e.stopPropagation(); if(!confirm(t("settings.confirm_delete_brand"))) return; cfgTree.brands.splice(bi,1); await pushCfgTree(); await loadLocations(); renderBrandTree(); });
       head.appendChild(delB);
     }
     head.addEventListener("click", function(e){ if(e.target.closest("button")) return; treeExpand.brands[bKey]=!bOpen; renderBrandTree(); });
@@ -1720,8 +2101,8 @@ function renderBrandTree(){
         var chead=document.createElement("div");
         chead.style.cssText="display:flex;align-items:center;gap:8px;padding:8px 10px;cursor:pointer";
         chead.innerHTML="<span style='width:14px;flex:none'>"+(cOpen?"▾":"▸")+"</span><span style='flex:1'>"+escapeHtml(c.name)+"</span><span class='muted' style='font-size:12px'>"+(c.outlets||[]).length+"</span>";
-        if(isOwner){ var delC=document.createElement("button"); delC.className="del"; delC.textContent="delete"; delC.style.marginLeft="8px";
-          delC.addEventListener("click", async function(e){ e.stopPropagation(); if(!confirm("Delete this city?")) return; cfgTree.brands[bi].cities.splice(ci,1); await pushCfgTree(); await loadLocations(); renderBrandTree(); });
+        if(isOwner){ var delC=document.createElement("button"); delC.className="del"; delC.textContent=t("settings.delete"); delC.style.marginLeft="8px";
+          delC.addEventListener("click", async function(e){ e.stopPropagation(); if(!confirm(t("settings.confirm_delete_city"))) return; cfgTree.brands[bi].cities.splice(ci,1); await pushCfgTree(); await loadLocations(); renderBrandTree(); });
           chead.appendChild(delC);
         }
         chead.addEventListener("click", function(e){ if(e.target.closest("button")) return; treeExpand.cities[cKey]=!cOpen; renderBrandTree(); });
@@ -1736,7 +2117,7 @@ function renderBrandTree(){
             if(info){
               var codeTag=document.createElement("code"); codeTag.style.cssText="font-size:11px;background:#f2f0ec;padding:2px 6px;border-radius:6px"; codeTag.textContent=info.id; row.appendChild(codeTag);
               var visLbl=document.createElement("label"); visLbl.style.cssText="display:flex;align-items:center;gap:4px;font-size:12px";
-              visLbl.innerHTML="<input type='checkbox' style='width:auto' "+(info.active!==false?"checked":"")+"> visible";
+              visLbl.innerHTML="<input type='checkbox' style='width:auto' "+(info.active!==false?"checked":"")+"> "+t("settings.visible");
               var cb=visLbl.querySelector("input");
               cb.disabled=!isOwner;
               cb.addEventListener("change", async function(){
@@ -1745,8 +2126,8 @@ function renderBrandTree(){
                   var upd=await sb.from("maint_locations").update({active:cb.checked}).eq("id",info.id);
                   if(upd.error) throw upd.error;
                   info.active=cb.checked;
-                  $("brandMsg").className="msg ok"; $("brandMsg").textContent=(cb.checked?"Shown: ":"Hidden: ")+o;
-                }catch(e){ cb.checked=!cb.checked; $("brandMsg").className="msg err"; $("brandMsg").textContent="Failed: "+(e.message||e); }
+                  $("brandMsg").className="msg ok"; $("brandMsg").textContent=(cb.checked?t("settings.shown_prefix"):t("settings.hidden_prefix"))+o;
+                }catch(e){ cb.checked=!cb.checked; $("brandMsg").className="msg err"; $("brandMsg").textContent=t("settings.delete_failed")+(e.message||e); }
                 cb.disabled=!isOwner;
               });
               row.appendChild(visLbl);
@@ -1754,28 +2135,28 @@ function renderBrandTree(){
               var codeWrap=document.createElement("span"); codeWrap.style.cssText="display:flex;gap:4px;align-items:center";
               var sB=(b.name.match(/[A-Za-z]/g)||[]).slice(0,3).join("").toUpperCase();
               var sS=(o.match(/[A-Za-z]/g)||[]).slice(0,3).join("").toUpperCase();
-              codeWrap.innerHTML="<input type='text' class='n' style='width:54px;padding:5px;font-size:12px' value='"+sB+"' placeholder='brand'>"+
-                "<input type='text' class='n' style='width:54px;padding:5px;font-size:12px' value='"+sS+"' placeholder='store'>"+
-                "<button type='button' class='btn small add' style='width:auto;padding:5px 8px'>+ code</button>";
+              codeWrap.innerHTML="<input type='text' class='n' style='width:54px;padding:5px;font-size:12px' value='"+sB+"' placeholder='"+t("settings.brand_ph")+"'>"+
+                "<input type='text' class='n' style='width:54px;padding:5px;font-size:12px' value='"+sS+"' placeholder='"+t("settings.store_ph")+"'>"+
+                "<button type='button' class='btn small add' style='width:auto;padding:5px 8px'>"+t("settings.add_code")+"</button>";
               row.appendChild(codeWrap);
               var ins2=codeWrap.querySelectorAll("input");
               codeWrap.querySelector("button").addEventListener("click", async function(){
                 var bc=ins2[0].value.trim().toUpperCase(), sc=ins2[1].value.trim().toUpperCase();
-                if(!bc||!sc){ $("brandMsg").className="msg err"; $("brandMsg").textContent="Both codes are required."; return; }
+                if(!bc||!sc){ $("brandMsg").className="msg err"; $("brandMsg").textContent=t("settings.both_codes_required"); return; }
                 try{
                   var ins=await sb.from("maint_locations").insert({id:bc+sc, type:"STORE", match_key:b.name+"|"+c.name+"|"+o, brand:b.name, city:c.name, name:o, brand_code:bc, store_code:sc});
                   if(ins.error) throw ins.error;
                   await loadLocations(); renderBrandTree();
-                  $("brandMsg").className="msg ok"; $("brandMsg").textContent="Added "+bc+sc+".";
-                }catch(e){ $("brandMsg").className="msg err"; $("brandMsg").textContent="Failed (code may already exist): "+(e.message||e); }
+                  $("brandMsg").className="msg ok"; $("brandMsg").textContent=t("settings.added_prefix")+bc+sc+".";
+                }catch(e){ $("brandMsg").className="msg err"; $("brandMsg").textContent=t("settings.failed_code_exists")+(e.message||e); }
               });
             } else {
-              var noCode=document.createElement("span"); noCode.className="muted"; noCode.style.fontSize="12px"; noCode.textContent="no code yet"; row.appendChild(noCode);
+              var noCode=document.createElement("span"); noCode.className="muted"; noCode.style.fontSize="12px"; noCode.textContent=t("settings.no_code_yet"); row.appendChild(noCode);
             }
             if(isOwner){
-              var rm=document.createElement("button"); rm.className="del"; rm.textContent="remove";
+              var rm=document.createElement("button"); rm.className="del"; rm.textContent=t("settings.remove");
               rm.addEventListener("click", async function(){
-                if(!confirm("Remove "+o+" from Store Visit's outlet list too?")) return;
+                if(!confirm(tf("settings.confirm_remove_outlet",{o:o}))) return;
                 cfgTree.brands[bi].cities[ci].outlets.splice(oi,1);
                 await pushCfgTree(); await loadLocations(); renderBrandTree();
               });
@@ -1785,7 +2166,7 @@ function renderBrandTree(){
           });
           if(isOwner){
             var addO=document.createElement("div"); addO.className="mgmt-row"; addO.style.marginTop="6px";
-            addO.innerHTML="<input type='text' class='n' placeholder='add outlet'><button type='button' class='btn small add'>Add</button>";
+            addO.innerHTML="<input type='text' class='n' placeholder='"+t("settings.add_outlet_ph")+"'><button type='button' class='btn small add'>"+t("settings.add")+"</button>";
             addO.querySelector("button").addEventListener("click", async function(){
               var v=addO.querySelector("input").value.trim(); if(!v) return;
               cfgTree.brands[bi].cities[ci].outlets.push(v);
@@ -1799,7 +2180,7 @@ function renderBrandTree(){
       });
       if(isOwner){
         var addC=document.createElement("div"); addC.className="mgmt-row"; addC.style.marginTop="4px";
-        addC.innerHTML="<input type='text' class='n' placeholder='add city'><button type='button' class='btn small add'>Add</button>";
+        addC.innerHTML="<input type='text' class='n' placeholder='"+t("settings.add_city_ph")+"'><button type='button' class='btn small add'>"+t("settings.add")+"</button>";
         addC.querySelector("button").addEventListener("click", async function(){
           var v=addC.querySelector("input").value.trim(); if(!v) return;
           cfgTree.brands[bi].cities.push({name:v,outlets:[]});
@@ -1814,7 +2195,7 @@ function renderBrandTree(){
 }
 $("addBrandBtn").addEventListener("click", async function(){
   var n=$("newBrand").value.trim(); if(!n) return;
-  if(cfgTree.brands.some(function(b){ return b.name.toLowerCase()===n.toLowerCase(); })){ alert("Brand exists."); return; }
+  if(cfgTree.brands.some(function(b){ return b.name.toLowerCase()===n.toLowerCase(); })){ alert(t("settings.brand_exists")); return; }
   cfgTree.brands.push({name:n, cities:[]});
   treeExpand.brands[n]=true;
   $("newBrand").value="";
@@ -1828,13 +2209,13 @@ function renderCkList(){
   var isOwner=(me && me.role==="owner");
   ["ckNewName","ckNewCity","ckNewCode","btnCkAdd"].forEach(function(id){ $(id).disabled=!isOwner; });
   var cks=locations.filter(function(l){ return l.type==="CENTRAL_KITCHEN"; });
-  if(!cks.length){ host.innerHTML="<p class='muted'>No Central Kitchens yet.</p>"; return; }
+  if(!cks.length){ host.innerHTML="<p class='muted'>"+t("settings.no_ck_yet")+"</p>"; return; }
   cks.forEach(function(l){
     var row=document.createElement("div"); row.style.cssText="border:1px solid var(--line);border-radius:10px;padding:10px;margin-bottom:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap";
     row.innerHTML="<code style='font-size:11px;background:#f2f0ec;padding:2px 6px;border-radius:6px'>"+l.id+"</code>"+
       "<input type='text' class='n ckName' style='flex:1;min-width:140px;padding:7px' value='"+escapeHtml(l.name)+"'>"+
       "<input type='text' class='n ckCity' style='width:130px;padding:7px' value='"+escapeHtml(l.city)+"'>"+
-      "<label style='display:flex;align-items:center;gap:4px;font-size:12px'><input type='checkbox' class='ckVis' style='width:auto' "+(l.active!==false?"checked":"")+"> visible</label>";
+      "<label style='display:flex;align-items:center;gap:4px;font-size:12px'><input type='checkbox' class='ckVis' style='width:auto' "+(l.active!==false?"checked":"")+"> "+t("settings.visible")+"</label>";
     host.appendChild(row);
     var nameI=row.querySelector(".ckName"), cityI=row.querySelector(".ckCity"), visI=row.querySelector(".ckVis");
     nameI.disabled=!isOwner; cityI.disabled=!isOwner; visI.disabled=!isOwner;
@@ -1842,27 +2223,27 @@ function renderCkList(){
       var v=nameI.value.trim(); if(!v||v===l.name){ nameI.value=l.name; return; }
       var upd=await sb.from("maint_locations").update({name:v}).eq("id",l.id);
       if(upd.error){ $("ckMsg").className="msg err"; $("ckMsg").textContent=upd.error.message; nameI.value=l.name; return; }
-      l.name=v; $("ckMsg").className="msg ok"; $("ckMsg").textContent="Saved.";
+      l.name=v; $("ckMsg").className="msg ok"; $("ckMsg").textContent=t("settings.saved");
     });
     cityI.addEventListener("change", async function(){
       var v=cityI.value.trim(); if(!v||v===l.city){ cityI.value=l.city; return; }
       var upd=await sb.from("maint_locations").update({city:v}).eq("id",l.id);
       if(upd.error){ $("ckMsg").className="msg err"; $("ckMsg").textContent=upd.error.message; cityI.value=l.city; return; }
-      l.city=v; $("ckMsg").className="msg ok"; $("ckMsg").textContent="Saved.";
+      l.city=v; $("ckMsg").className="msg ok"; $("ckMsg").textContent=t("settings.saved");
     });
     visI.addEventListener("change", async function(){
       visI.disabled=true;
       var upd=await sb.from("maint_locations").update({active:visI.checked}).eq("id",l.id);
       if(upd.error){ visI.checked=!visI.checked; $("ckMsg").className="msg err"; $("ckMsg").textContent=upd.error.message; }
-      else { l.active=visI.checked; $("ckMsg").className="msg ok"; $("ckMsg").textContent=(visI.checked?"Shown: ":"Hidden: ")+l.name; }
+      else { l.active=visI.checked; $("ckMsg").className="msg ok"; $("ckMsg").textContent=(visI.checked?t("settings.shown_prefix"):t("settings.hidden_prefix"))+l.name; }
       visI.disabled=!isOwner;
     });
     if(isOwner){
-      var delBtn=document.createElement("button"); delBtn.className="del"; delBtn.textContent="delete";
+      var delBtn=document.createElement("button"); delBtn.className="del"; delBtn.textContent=t("settings.delete");
       delBtn.addEventListener("click", async function(){
-        if(!confirm("Delete "+l.name+"? Existing reports filed against it are not deleted.")) return;
+        if(!confirm(tf("settings.confirm_delete_ck",{name:l.name}))) return;
         var del=await sb.from("maint_locations").delete().eq("id",l.id).select("id");
-        if(del.error || !del.data || !del.data.length){ $("ckMsg").className="msg err"; $("ckMsg").textContent="Delete failed: "+((del.error&&del.error.message)||"blocked"); return; }
+        if(del.error || !del.data || !del.data.length){ $("ckMsg").className="msg err"; $("ckMsg").textContent=t("settings.delete_failed")+((del.error&&del.error.message)||"blocked"); return; }
         await loadLocations(); renderCkList();
       });
       row.appendChild(delBtn);
@@ -1872,24 +2253,24 @@ function renderCkList(){
 $("btnCkAdd").addEventListener("click", async function(){
   var name=$("ckNewName").value.trim(), city=$("ckNewCity").value.trim(), code=$("ckNewCode").value.trim().toUpperCase();
   $("ckMsg").className="msg";
-  if(!name||!city||!code){ $("ckMsg").className="msg err"; $("ckMsg").textContent="Name, city, and code are all required."; return; }
+  if(!name||!city||!code){ $("ckMsg").className="msg err"; $("ckMsg").textContent=t("settings.name_city_code_required"); return; }
   try{
     var ins=await sb.from("maint_locations").insert({id:code, type:"CENTRAL_KITCHEN", match_key:null, brand:"Central Kitchen", city:city, name:name, brand_code:"", store_code:code});
     if(ins.error) throw ins.error;
     $("ckNewName").value=""; $("ckNewCity").value=""; $("ckNewCode").value="";
     await loadLocations(); renderCkList();
-    $("ckMsg").className="msg ok"; $("ckMsg").textContent="Added "+code+".";
-  }catch(e){ $("ckMsg").className="msg err"; $("ckMsg").textContent="Failed (code may already exist): "+(e.message||e); }
+    $("ckMsg").className="msg ok"; $("ckMsg").textContent=t("settings.added_prefix")+code+".";
+  }catch(e){ $("ckMsg").className="msg err"; $("ckMsg").textContent=t("settings.failed_code_exists")+(e.message||e); }
 });
 
 /* ---------------- settings (admin) ---------------- */
 $("btnInviteCreate").addEventListener("click", async function(){
   var msg=$("invMsg"); msg.className="msg";
   var first=$("invFirst").value.trim(), noLast=$("invNoLast").checked, last=noLast?"":$("invLast").value.trim(), email=$("invEmail").value.trim();
-  if(!first){ msg.className="msg err"; msg.textContent="Enter a first name."; return; }
-  if(!last && !noLast){ msg.className="msg err"; msg.textContent="Enter a last name (or tick 'No last name')."; return; }
+  if(!first){ msg.className="msg err"; msg.textContent=t("settings.enter_first_name"); return; }
+  if(!last && !noLast){ msg.className="msg err"; msg.textContent=t("settings.enter_last_name"); return; }
   var name=[first,last].filter(Boolean).join(" ");
-  msg.textContent="Creating account...";
+  msg.textContent=t("settings.creating_account");
   try{
     var r=await sb.rpc("create_invite",{p_name:name,p_email:email,p_no_last:noLast});
     if(r.error) throw r.error;
@@ -1898,14 +2279,14 @@ $("btnInviteCreate").addEventListener("click", async function(){
     $("invUser").textContent=d.username||"—";
     $("invLink").value=link;
     $("invResult").classList.remove("hide");
-    msg.className="msg ok"; msg.textContent="Account created. Copy the link and send it to them, then set their location access & titles below.";
+    msg.className="msg ok"; msg.textContent=t("settings.account_created");
     $("invFirst").value=""; $("invLast").value=""; $("invEmail").value=""; $("invNoLast").checked=false;
-    await renderMemberAccessList();
+    await renderTeam(); // refresh the Team table so the new member shows up right away
   }catch(e){ msg.className="msg err"; msg.textContent=(e&&e.message)||String(e); }
 });
 $("btnCopyInvite").addEventListener("click", function(){
   var ta=$("invLink"); ta.focus(); ta.select(); try{ ta.setSelectionRange(0,99999); }catch(e){}
-  var done=function(){ var b=$("btnCopyInvite"), t=b.textContent; b.textContent="Copied"; setTimeout(function(){b.textContent=t;},1500); };
+  var done=function(){ var b=$("btnCopyInvite"), tx=b.textContent; b.textContent=t("settings.copied"); setTimeout(function(){b.textContent=tx;},1500); };
   if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(ta.value).then(done,function(){ try{document.execCommand("copy");done();}catch(e){} }); }
   else { try{document.execCommand("copy");done();}catch(e){} }
 });
@@ -1976,7 +2357,7 @@ $("setLocAll").addEventListener("change", function(){
 });
 function updateRoleDropdownBtnLabel(){
   var checked=Array.prototype.filter.call($("setRoleDropdownPanel").querySelectorAll(".setRoleCb"), function(cb){return cb.checked;});
-  $("setRoleDropdownBtn").textContent = checked.length ? (checked.map(function(cb){return GRANULAR_LABEL[cb.value];}).join(", ")) : "Select titles…";
+  $("setRoleDropdownBtn").textContent = checked.length ? (checked.map(function(cb){return GRANULAR_LABEL[cb.value];}).join(", ")) : t("ma.select_titles");
 }
 function renderRoleDropdown(selectedKeys){
   var panel=$("setRoleDropdownPanel"); panel.innerHTML="";
@@ -2003,11 +2384,11 @@ document.addEventListener("click", function(e){
 });
 async function openMemberAccessModal(m){
   maCurrentMember=m;
-  $("maTitle").textContent=m.name||m.username||"Member";
+  $("maTitle").textContent=m.name||m.username||t("ma.member_fallback");
   $("setMsg").textContent="";
-  $("setLocTree").innerHTML="Loading…";
+  $("setLocTree").innerHTML=t("settings.loading");
   $("setRoleDropdownPanel").innerHTML=""; $("setRoleDropdownPanel").classList.add("hide");
-  $("setRoleDropdownBtn").textContent="Select titles…";
+  $("setRoleDropdownBtn").textContent=t("ma.select_titles");
   $("memberAccessModal").classList.remove("hide");
 
   var acc=await sb.from("maint_access").select("location_ids").eq("user_id",m.id).limit(1);
@@ -2036,10 +2417,10 @@ $("btnSetSave").addEventListener("click", async function(){
       else { rows.push({user_id:uid, role:role, location_id:null}); } // no locations checked yet -> global for now
     });
     if(rows.length){ var ins=await sb.from("maint_roles").insert(rows); if(ins.error) throw ins.error; }
-    $("setMsg").className="msg ok"; $("setMsg").textContent="Saved.";
+    $("setMsg").className="msg ok"; $("setMsg").textContent=t("ma.saved");
     await renderTeam();
     setTimeout(function(){ $("memberAccessModal").classList.add("hide"); }, 500);
-  }catch(e){ $("setMsg").className="msg err"; $("setMsg").textContent="Save failed: "+(e.message||e); }
+  }catch(e){ $("setMsg").className="msg err"; $("setMsg").textContent=t("ma.save_failed")+(e.message||e); }
 });
 
 async function openSettings(){
@@ -2061,8 +2442,8 @@ async function openRequests(){
   $("reqEmpty").style.display=rows.length?"none":"block";
   rows.forEach(function(rq){
     var d=document.createElement("div"); d.className="listcard";
-    d.innerHTML='<div class="t">Report '+rq.report_id+'</div><div class="m">Requested by '+rq.requester_name+' · '+escapeHtml(rq.reason||"")+'</div>'+
-      '<div class="btnrow2 noprint" style="margin-top:8px"><button class="btn cancel small" style="width:auto">Approve (delete)</button><button class="btn grey small" style="width:auto">Reject</button></div>';
+    d.innerHTML='<div class="t">'+t("req.report_prefix")+rq.report_id+'</div><div class="m">'+t("req.requested_by")+rq.requester_name+' · '+escapeHtml(rq.reason||"")+'</div>'+
+      '<div class="btnrow2 noprint" style="margin-top:8px"><button class="btn cancel small" style="width:auto">'+t("req.approve")+'</button><button class="btn grey small" style="width:auto">'+t("req.reject")+'</button></div>';
     var btns=d.querySelectorAll("button");
     btns[0].addEventListener("click", function(e){ e.stopPropagation(); approveDeleteRequest(rq); });
     btns[1].addEventListener("click", function(e){ e.stopPropagation(); rejectDeleteRequest(rq); });
@@ -2073,18 +2454,18 @@ async function openRequests(){
 $("btnReqBack").addEventListener("click", function(){ show("homeView"); renderHome(); });
 
 async function approveDeleteRequest(rq){
-  var pass=prompt("Re-enter your admin password to permanently delete report "+rq.report_id+":");
+  var pass=prompt(tf("ph.prompt_delete",{id:rq.report_id}));
   if(!pass) return;
   var v=await sb.auth.signInWithPassword({email:me.email, password:pass});
-  if(v.error){ alert("Password incorrect."); return; }
+  if(v.error){ alert(t("ap.err_password_wrong")); return; }
   try{
     var d1=await sb.from("maint_items").delete().eq("report_id", rq.report_id).select("id");
     if(d1.error) throw d1.error;
     var d2=await sb.from("maint_reports").delete().eq("id", rq.report_id).select("id");
     if(d2.error) throw d2.error;
-    if(!d2.data || !d2.data.length){ alert("Delete was blocked (no rows removed) — check that the maint_reports_delete RLS policy exists (re-run Maintenance_Project_Schema.sql v4)."); return; }
+    if(!d2.data || !d2.data.length){ alert(t("ap.err_delete_blocked")); return; }
     await sb.from("maint_delete_requests").delete().eq("id", rq.id);
-  }catch(e){ alert("Delete failed: "+(e.message||e)); return; }
+  }catch(e){ alert(t("ph.delete_failed")+(e.message||e)); return; }
   openRequests();
 }
 async function rejectDeleteRequest(rq){
