@@ -159,6 +159,7 @@
     </div>
     <button class="btn hide" id="btnRequestsBanner" style="background:#fef3c7;color:#92400e;border:1px solid #fcd34d;margin-bottom:16px"><span data-i18n="home.requests_banner">🔔 Delete requests pending:</span> <span id="reqCount">0</span> — <span data-i18n="home.review">review</span></button>
     <button class="btn hide" id="btnOverdueBanner" style="background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;margin-bottom:16px"><span data-i18n="home.overdue_banner">⚠ Reports open 30+ days:</span> <span id="overdueCount">0</span> — <span data-i18n="home.review">review</span></button>
+    <button class="btn hide" id="btnNotifyBanner" style="background:#dbeafe;color:#1e3a8a;border:1px solid #93c5fd;margin-bottom:16px"><span data-i18n="notify.banner">🔔 New reports for you:</span> <span id="notifyBannerCount">0</span> — <span data-i18n="home.review">review</span></button>
     <div class="card">
       <h2 class="section" data-i18n="home.pick_location">Pick a location</h2>
       <div class="row"><label data-i18n="home.brand">Brand</label><select id="selBrand"></select></div>
@@ -328,6 +329,32 @@
         <div class="row"><textarea id="invLink" rows="2" readonly></textarea></div>
         <button class="btn small proceed" id="btnCopyInvite" data-i18n="settings.copy_link" style="width:auto">Copy link</button>
       </div>
+    </div>
+    <div class="card">
+      <h2 class="section" data-i18n="notify.settings_title">Notifications</h2>
+      <p class="muted" style="font-size:13px;margin-bottom:10px" data-i18n="notify.settings_desc">Choose who gets an in-app notification when a new report is submitted for specific departments and locations.</p>
+      <div class="row"><label data-i18n="notify.pick_member">Team member</label><select id="notifyMemberSel"></select></div>
+      <div class="row"><label data-i18n="notify.departments_label">Departments</label>
+        <div id="notifyDeptWrap" style="display:flex;flex-wrap:wrap;gap:10px"></div>
+      </div>
+      <div class="row">
+        <label data-i18n="notify.locations_label">Locations</label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;margin-bottom:6px"><input type="checkbox" id="notifyLocAll" style="width:auto"> <span data-i18n="ma.select_all">Select all locations</span></label>
+        <div id="notifyLocTree" style="max-height:220px;overflow:auto;border:1px solid var(--line);border-radius:10px;padding:8px"></div>
+      </div>
+      <div class="msg" id="notifyMsg"></div>
+      <button class="btn proceed" id="btnNotifySave" data-i18n="notify.save" style="margin-top:6px">Save subscription</button>
+      <h2 class="section" style="margin-top:18px" data-i18n="notify.list_title">Current subscriptions</h2>
+      <div id="notifyRuleList"></div>
+      <p class="muted" id="notifyRuleEmpty" data-i18n="notify.no_rules">No one is subscribed yet.</p>
+    </div>
+  </section>
+
+  <!-- ============ NOTIFICATIONS (in-app inbox) ============ -->
+  <section id="notifyView" class="hide">
+    <div class="card">
+      <div class="sec-head"><h2 class="section" style="margin:0;border:none" data-i18n="notify.title">Notifications</h2><button class="btn back small" id="btnNotifyBack" data-i18n="recall.back">← Back</button></div>
+      <div id="notifyList"></div><p class="muted" id="notifyEmpty" data-i18n="notify.no_notifications">No notifications.</p>
     </div>
   </section>
 
@@ -519,7 +546,7 @@
    All maint_* tables are new and separate. See Maintenance_Project_Plan.md
    and Maintenance_Project_Schema.sql for the full spec this implements.
 ===================================================================== */
-var APP_VERSION="v1.9"; // bump this with each build so it's visible which version is deployed (shown in the footer, bottom of the page)
+var APP_VERSION="v2.0"; // bump this with each build so it's visible which version is deployed (shown in the footer, bottom of the page)
 var BUILTIN={url:"https://clprrwuizmlsddxmlvrh.supabase.co", key:"sb_publishable_bY46Emu9VVzYZEhpjxnr2A_9_ranhHt"};
 var sb=null;
 var $=function(id){return document.getElementById(id);};
@@ -655,7 +682,14 @@ id: {
   "ph.delete_pending_prefix":"🕓 Penghapusan diminta oleh ", "ph.delete_pending_suffix":" — menunggu peninjauan.", "ph.cancel_request":"batalkan permintaan ini",
   "ph.delete_report_btn":"Hapus laporan (admin — perlu kata sandi)", "ph.request_delete_btn":"Ajukan penghapusan",
   "ph.prompt_delete":"Masukkan ulang kata sandi admin Anda untuk menghapus laporan {id} secara permanen:",
-  "ph.delete_failed":"Gagal menghapus: "
+  "ph.delete_failed":"Gagal menghapus: ",
+  "notify.banner":"🔔 Laporan baru untuk Anda:",
+  "notify.settings_title":"Notifikasi", "notify.settings_desc":"Pilih siapa yang menerima notifikasi dalam aplikasi saat laporan baru dibuat untuk departemen dan lokasi tertentu.",
+  "notify.pick_member":"Anggota tim", "notify.departments_label":"Departemen", "notify.locations_label":"Lokasi",
+  "notify.save":"Simpan langganan", "notify.saved":"Tersimpan.", "notify.save_failed":"Gagal menyimpan: ",
+  "notify.list_title":"Langganan saat ini", "notify.no_rules":"Belum ada yang berlangganan.", "notify.remove":"Hapus",
+  "notify.confirm_remove":"Hapus langganan notifikasi ini?",
+  "notify.title":"Notifikasi", "notify.no_notifications":"Tidak ada notifikasi.", "notify.new_tag":"baru"
 },
 en: {
   "header.settings":"⚙ Settings", "header.signout":"Sign out",
@@ -774,7 +808,14 @@ en: {
   "ph.delete_pending_prefix":"🕓 Deletion requested by ", "ph.delete_pending_suffix":" — pending review.", "ph.cancel_request":"cancel this request",
   "ph.delete_report_btn":"Delete report (admin — password required)", "ph.request_delete_btn":"Request deletion",
   "ph.prompt_delete":"Re-enter your admin password to permanently delete report {id}:",
-  "ph.delete_failed":"Delete failed: "
+  "ph.delete_failed":"Delete failed: ",
+  "notify.banner":"🔔 New reports for you:",
+  "notify.settings_title":"Notifications", "notify.settings_desc":"Choose who gets an in-app notification when a new report is submitted for specific departments and locations.",
+  "notify.pick_member":"Team member", "notify.departments_label":"Departments", "notify.locations_label":"Locations",
+  "notify.save":"Save subscription", "notify.saved":"Saved.", "notify.save_failed":"Save failed: ",
+  "notify.list_title":"Current subscriptions", "notify.no_rules":"No one is subscribed yet.", "notify.remove":"Remove",
+  "notify.confirm_remove":"Remove this notification subscription?",
+  "notify.title":"Notifications", "notify.no_notifications":"No notifications.", "notify.new_tag":"new"
 }
 };
 function tt(key, lang){
@@ -806,8 +847,9 @@ function setLang(l, skipSave){
       if(!$("homeView").classList.contains("hide")) renderHome();
       if(!$("recallListView").classList.contains("hide")) runRecallSearch();
       if(!$("itemDetailView").classList.contains("hide") && currentItem){ renderProgressList(); renderApprovals(); }
-      if(!$("settingsView").classList.contains("hide")){ renderTeam(); renderBrandTree(); renderCkList(); }
+      if(!$("settingsView").classList.contains("hide")){ renderTeam(); renderBrandTree(); renderCkList(); renderNotifyRuleList(); }
       if(!$("newReportView").classList.contains("hide")){ renderNrDeptWrap(); renderNrList(); }
+      if(!$("notifyView").classList.contains("hide")) openNotifyView();
     }
   }catch(e){}
 }
@@ -846,7 +888,7 @@ var ROLE_GROUPS=[
 ];
 
 function show(v){
-  ["loginView","setpwView","homeView","newReportView","recallListView","itemDetailView","settingsView","requestsView"]
+  ["loginView","setpwView","homeView","newReportView","recallListView","itemDetailView","settingsView","requestsView","notifyView"]
     .forEach(function(x){$(x).classList.add("hide");});
   $(v).classList.remove("hide"); window.scrollTo(0,0);
 }
@@ -1138,6 +1180,7 @@ function renderHome(){
   } else { $("homeHint").textContent=""; }
   refreshRequestsBadge();
   refreshOverdueBanner();
+  refreshNotifyBadge();
   loadMyReports();
 }
 
@@ -1159,6 +1202,36 @@ async function refreshOverdueBanner(){
   $("btnOverdueBanner").classList.toggle("hide", n===0);
 }
 $("btnOverdueBanner").addEventListener("click", function(){ openRecall(); });
+
+// In-app notifications: unread count for the signed-in user (any role — a member can be
+// subscribed too), delivered via maint_notifications rows created by notifyForNewReport()
+// on new-report submission only. See Settings > Notifications for who's subscribed.
+async function refreshNotifyBadge(){
+  if(!me){ $("btnNotifyBanner").classList.add("hide"); return; }
+  var r=await sb.from("maint_notifications").select("id",{count:"exact"}).eq("user_id",me.id).is("read_at",null);
+  var n=(r.count)||0;
+  $("notifyBannerCount").textContent=n;
+  $("btnNotifyBanner").classList.toggle("hide", n===0);
+}
+$("btnNotifyBanner").addEventListener("click", function(){ openNotifyView(); });
+async function openNotifyView(){
+  var r=await sb.from("maint_notifications").select("*").eq("user_id",me.id).order("created_at",{ascending:false}).limit(50);
+  var rows=r.data||[];
+  var list=$("notifyList"); list.innerHTML="";
+  $("notifyEmpty").style.display = rows.length? "none":"block";
+  rows.forEach(function(n){
+    var d=document.createElement("div"); d.className="listcard";
+    d.innerHTML='<div class="t">'+escapeHtml(n.brand||"")+' — '+escapeHtml(n.outlet||"")+(n.read_at?'':' <span class="pill open">'+t("notify.new_tag")+'</span>')+'</div>'+
+      '<div class="m">'+n.report_id+' · '+escapeHtml(n.departments||"")+' · '+new Date(n.created_at).toLocaleString()+'</div>';
+    d.addEventListener("click", function(){ openReportPrint(n.report_id); });
+    list.appendChild(d);
+  });
+  show("notifyView");
+  // Opening the list counts as "seen" — mark everything read so the Home badge clears.
+  var unreadIds=rows.filter(function(n){return !n.read_at;}).map(function(n){return n.id;});
+  if(unreadIds.length){ await sb.from("maint_notifications").update({read_at:new Date().toISOString()}).in("id", unreadIds); }
+}
+$("btnNotifyBack").addEventListener("click", function(){ show("homeView"); renderHome(); });
 
 var homeTab="open"; // 'open' = Unresolved Issues, 'finished' = Recently Resolved
 $("tabUnresolved").addEventListener("click", function(){ homeTab="open"; loadMyReports(); });
@@ -1488,6 +1561,7 @@ $("btnNrSubmit").addEventListener("click", async function(){
     var itemIns=await sb.from("maint_items").insert(itemRows);
     if(itemIns.error) throw itemIns.error;
     draftItems=[];
+    await notifyForNewReport(reportCode, currentLocation, itemRows);
     openReportPrint(reportCode);
   }catch(e){
     $("nrMsg").textContent=t("nr.err_submit_failed")+(e.message||e);
@@ -1495,6 +1569,27 @@ $("btnNrSubmit").addEventListener("click", async function(){
     $("btnNrSubmit").disabled=false; $("btnNrSubmit").textContent=t("nr.submit_report");
   }
 });
+
+// Matches the just-submitted report's location + departments against maint_notify_rules
+// and writes one maint_notifications row per matched subscriber (never the submitter).
+// Best-effort: a notification failure must never block the report itself from going through.
+async function notifyForNewReport(reportCode, loc, itemRows){
+  try{
+    var depts=[]; itemRows.forEach(function(it){ if(depts.indexOf(it.department)<0) depts.push(it.department); });
+    var r=await sb.from("maint_notify_rules").select("user_id,departments,location_ids");
+    var matched=(r.data||[]).filter(function(row){
+      if(row.user_id===me.id) return false; // never notify the submitter about their own report
+      var rd=row.departments||[], rl=row.location_ids||[];
+      return rd.some(function(d){ return depts.indexOf(d)>=0; }) && rl.indexOf(loc.id)>=0;
+    });
+    if(!matched.length) return;
+    var rows=matched.map(function(row){
+      var matchedDepts=(row.departments||[]).filter(function(d){return depts.indexOf(d)>=0;});
+      return {user_id:row.user_id, report_id:reportCode, location_id:loc.id, brand:loc.brand, outlet:loc.name, departments:matchedDepts.join(", ")};
+    });
+    await sb.from("maint_notifications").insert(rows);
+  }catch(e){ /* best-effort — never block report submission on notification delivery */ }
+}
 
 /* ---------------- printable: Maintenance Request (new report) ---------------- */
 async function openReportPrint(reportCode){
@@ -1526,7 +1621,7 @@ async function openReportPrint(reportCode){
 }
 
 function showPrintable(html, backLabel, backFn){
-  ["loginView","setpwView","homeView","newReportView","recallListView","itemDetailView","settingsView","requestsView"]
+  ["loginView","setpwView","homeView","newReportView","recallListView","itemDetailView","settingsView","requestsView","notifyView"]
     .forEach(function(x){$(x).classList.add("hide");});
   var old=document.getElementById("printHost"); if(old) old.remove();
   var host=document.createElement("section"); host.id="printHost";
@@ -2469,6 +2564,145 @@ $("btnSetSave").addEventListener("click", async function(){
   }catch(e){ $("setMsg").className="msg err"; $("setMsg").textContent=t("ma.save_failed")+(e.message||e); }
 });
 
+/* ---------------- notifications: who gets an in-app alert on new report (Settings) ---------------- */
+function renderNotifyDeptWrap(selected){
+  var host=$("notifyDeptWrap"); host.innerHTML="";
+  DEPTS.forEach(function(d){
+    var lbl=document.createElement("label"); lbl.style.cssText="display:flex;align-items:center;gap:6px;font-size:13px";
+    var cb=document.createElement("input"); cb.type="checkbox"; cb.className="notifyDeptCb"; cb.value=d; cb.style.width="auto";
+    cb.checked=(selected||[]).indexOf(d)>=0;
+    lbl.appendChild(cb); lbl.appendChild(document.createTextNode(" "+d));
+    host.appendChild(lbl);
+  });
+}
+function recomputeNotifyLocTreeChecks(){
+  var host=$("notifyLocTree");
+  var allCb=Array.prototype.slice.call(host.querySelectorAll(".notifyLocCb"));
+  Array.prototype.forEach.call(host.querySelectorAll(".notifyCityAll"), function(cityCb){
+    var b=cityCb.dataset.brand, c=cityCb.dataset.city;
+    var leaves=allCb.filter(function(cb){ return cb.dataset.brand===b && cb.dataset.city===c; });
+    cityCb.checked = leaves.length>0 && leaves.every(function(cb){return cb.checked;});
+  });
+  Array.prototype.forEach.call(host.querySelectorAll(".notifyBrandAll"), function(brandCb){
+    var b=brandCb.dataset.brand;
+    var leaves=allCb.filter(function(cb){ return cb.dataset.brand===b; });
+    brandCb.checked = leaves.length>0 && leaves.every(function(cb){return cb.checked;});
+  });
+  $("notifyLocAll").checked = allCb.length>0 && allCb.every(function(cb){return cb.checked;});
+}
+function renderNotifyLocTree(ids){
+  var host=$("notifyLocTree"); host.innerHTML="";
+  var vl=locations.filter(function(l){ return l.active!==false; });
+  var byBrand={};
+  vl.forEach(function(l){ byBrand[l.brand]=byBrand[l.brand]||{}; byBrand[l.brand][l.city]=(byBrand[l.brand][l.city]||[]).concat([l]); });
+  Object.keys(byBrand).sort().forEach(function(brand){
+    var bWrap=document.createElement("div"); bWrap.style.cssText="margin-bottom:10px";
+    var bHead=document.createElement("label"); bHead.style.cssText="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;margin-bottom:4px";
+    var bcb=document.createElement("input"); bcb.type="checkbox"; bcb.className="notifyBrandAll"; bcb.style.width="auto"; bcb.dataset.brand=brand;
+    bHead.appendChild(bcb); bHead.appendChild(document.createTextNode(" "+brand));
+    bWrap.appendChild(bHead);
+    Object.keys(byBrand[brand]).sort().forEach(function(city){
+      var locs=byBrand[brand][city];
+      var cWrap=document.createElement("div"); cWrap.style.cssText="margin-left:16px;margin-bottom:2px";
+      var cHead=document.createElement("label"); cHead.style.cssText="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:2px";
+      var ccb=document.createElement("input"); ccb.type="checkbox"; ccb.className="notifyCityAll"; ccb.style.width="auto"; ccb.dataset.brand=brand; ccb.dataset.city=city;
+      cHead.appendChild(ccb); cHead.appendChild(document.createTextNode(" "+city));
+      cWrap.appendChild(cHead);
+      locs.forEach(function(l){
+        var lWrap=document.createElement("label"); lWrap.style.cssText="display:flex;align-items:center;gap:6px;font-size:13px;margin:2px 0 2px 16px";
+        var lcb=document.createElement("input"); lcb.type="checkbox"; lcb.className="notifyLocCb"; lcb.style.width="auto";
+        lcb.dataset.brand=brand; lcb.dataset.city=city; lcb.dataset.id=l.id; lcb.checked = ids.indexOf(l.id)>=0;
+        lWrap.appendChild(lcb); lWrap.appendChild(document.createTextNode(" "+l.name+" ("+l.type+")"));
+        cWrap.appendChild(lWrap);
+      });
+      bWrap.appendChild(cWrap);
+    });
+    host.appendChild(bWrap);
+  });
+  host.onchange=function(e){
+    var tg=e.target;
+    if(tg.classList.contains("notifyCityAll")){
+      var b=tg.dataset.brand,c=tg.dataset.city, on=tg.checked;
+      Array.prototype.forEach.call(host.querySelectorAll(".notifyLocCb"), function(cb){ if(cb.dataset.brand===b && cb.dataset.city===c) cb.checked=on; });
+    } else if(tg.classList.contains("notifyBrandAll")){
+      var b2=tg.dataset.brand, on2=tg.checked;
+      Array.prototype.forEach.call(host.querySelectorAll(".notifyLocCb"), function(cb){ if(cb.dataset.brand===b2) cb.checked=on2; });
+    }
+    recomputeNotifyLocTreeChecks();
+  };
+  recomputeNotifyLocTreeChecks();
+}
+$("notifyLocAll").addEventListener("change", function(){
+  var on=this.checked;
+  Array.prototype.forEach.call($("notifyLocTree").querySelectorAll(".notifyLocCb"), function(cb){ cb.checked=on; });
+  recomputeNotifyLocTreeChecks();
+});
+function fillNotifyMemberSel(){
+  var s=$("notifyMemberSel"); var prev=s.value;
+  s.innerHTML="";
+  (allMembers||[]).forEach(function(p){
+    var o=document.createElement("option"); o.value=p.id; o.textContent=(p.name||p.username||p.email||"—")+" ("+p.role+")";
+    s.appendChild(o);
+  });
+  if(prev && (allMembers||[]).some(function(p){return p.id===prev;})) s.value=prev;
+}
+async function loadNotifyRuleFor(uid){
+  var r=await sb.from("maint_notify_rules").select("departments,location_ids").eq("user_id",uid).limit(1);
+  var row=(r.data && r.data.length)? r.data[0] : null;
+  return {departments:row?(row.departments||[]):[], location_ids:row?(row.location_ids||[]):[]};
+}
+async function renderNotifyPanel(){
+  fillNotifyMemberSel();
+  if(!$("notifyMemberSel").options.length){ renderNotifyDeptWrap([]); $("notifyLocTree").innerHTML=""; }
+  else{
+    var uid=$("notifyMemberSel").value;
+    var rule=await loadNotifyRuleFor(uid);
+    renderNotifyDeptWrap(rule.departments);
+    renderNotifyLocTree(rule.location_ids);
+  }
+  await renderNotifyRuleList();
+}
+$("notifyMemberSel").addEventListener("change", async function(){
+  var rule=await loadNotifyRuleFor(this.value);
+  renderNotifyDeptWrap(rule.departments);
+  renderNotifyLocTree(rule.location_ids);
+});
+$("btnNotifySave").addEventListener("click", async function(){
+  var uid=$("notifyMemberSel").value;
+  if(!uid) return;
+  $("notifyMsg").textContent="";
+  try{
+    var depts=Array.prototype.slice.call($("notifyDeptWrap").querySelectorAll(".notifyDeptCb")).filter(function(cb){return cb.checked;}).map(function(cb){return cb.value;});
+    var ids=Array.prototype.slice.call($("notifyLocTree").querySelectorAll(".notifyLocCb")).filter(function(cb){return cb.checked;}).map(function(cb){return cb.dataset.id;});
+    var up=await sb.from("maint_notify_rules").upsert({user_id:uid, departments:depts, location_ids:ids, updated_by:me.id, updated_at:new Date().toISOString()});
+    if(up.error) throw up.error;
+    $("notifyMsg").className="msg ok"; $("notifyMsg").textContent=t("notify.saved");
+    await renderNotifyRuleList();
+  }catch(e){ $("notifyMsg").className="msg err"; $("notifyMsg").textContent=t("notify.save_failed")+(e.message||e); }
+});
+async function renderNotifyRuleList(){
+  var box=$("notifyRuleList");
+  var r=await sb.from("maint_notify_rules").select("user_id,departments,location_ids").order("updated_at",{ascending:false});
+  var rows=(r.data||[]).filter(function(row){ return (row.departments||[]).length && (row.location_ids||[]).length; });
+  $("notifyRuleEmpty").style.display = rows.length? "none":"block";
+  box.innerHTML="";
+  rows.forEach(function(row){
+    var p=(allMembers||[]).find(function(x){return x.id===row.user_id;});
+    var name=p?(p.name||p.username||p.email):row.user_id;
+    var d=document.createElement("div"); d.className="listcard";
+    d.innerHTML='<div class="t">'+escapeHtml(name)+'</div><div class="m">'+(row.departments||[]).join(", ")+' · '+(row.location_ids||[]).length+t("settings.locations_suffix")+'</div>'+
+      '<div class="btnrow2 noprint" style="margin-top:8px"><button class="btn back small" style="width:auto">'+t("settings.edit_access")+'</button><button class="btn cancel small" style="width:auto">'+t("notify.remove")+'</button></div>';
+    var btns=d.querySelectorAll("button");
+    btns[0].addEventListener("click", function(){ $("notifyMemberSel").value=row.user_id; renderNotifyDeptWrap(row.departments||[]); renderNotifyLocTree(row.location_ids||[]); window.scrollTo(0, Math.max(0,$("notifyMemberSel").getBoundingClientRect().top+window.scrollY-80)); });
+    btns[1].addEventListener("click", async function(){
+      if(!confirm(t("notify.confirm_remove"))) return;
+      await sb.from("maint_notify_rules").delete().eq("user_id", row.user_id);
+      await renderNotifyRuleList();
+    });
+    box.appendChild(d);
+  });
+}
+
 async function openSettings(){
   $("invMsg").textContent=""; $("invResult").classList.add("hide");
   await renderTeam();
@@ -2476,6 +2710,7 @@ async function openSettings(){
   await loadLocations();   // refresh so codes/visibility reflect the latest Store Visit tree
   renderBrandTree();
   renderCkList();
+  await renderNotifyPanel();
   show("settingsView");
 }
 $("btnSetBack").addEventListener("click", function(){ show("homeView"); });
