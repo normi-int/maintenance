@@ -61,7 +61,8 @@
   .del{background:none;border:none;color:var(--red);font-size:13px;cursor:pointer;padding:4px}
   .teamtab{border-collapse:collapse;width:100%;font-size:13px;min-width:520px}
   .teamtab th,.teamtab td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:middle}
-  .teamtab th{background:#3b2314;color:#fff;font-weight:700;white-space:nowrap;font-size:12px}
+  .teamtab th{background:#3b2314;color:#fff;font-weight:700;white-space:nowrap;font-size:12px;position:sticky;top:0;z-index:1}
+  .teamtab-scroll{max-height:420px;overflow-y:auto}   /* header + ~10 rows before it scrolls */
   .teamtab td .tcell-in{width:100%;padding:5px 6px;border:1px solid var(--line);border-radius:6px;font-size:13px;box-sizing:border-box}
   .teamtab .uname{font-family:Arial,Helvetica,sans-serif;font-size:12px}
   .mgmt-row{display:flex;gap:8px;align-items:center;margin-bottom:8px}.mgmt-row .n{flex:1;font-size:14px}
@@ -297,7 +298,7 @@
     <div class="card">
       <div class="sec-head"><h2 class="section" style="margin:0;border:none" data-i18n="settings.title">Settings</h2><button class="btn back small" id="btnSetBack" data-i18n="settings.back">← Back</button></div>
       <h2 class="section" style="margin-top:10px" data-i18n="settings.team_title">Team &amp; account levels</h2>
-      <div id="teamList" style="overflow-x:auto"></div>
+      <div id="teamList" class="teamtab-scroll" style="overflow-x:auto"></div>
       <div class="msg" id="teamMsg"></div>
     </div>
     <div class="card">
@@ -337,24 +338,6 @@
         <button class="btn small proceed" id="btnCopyInvite" data-i18n="settings.copy_link" style="width:auto">Copy link</button>
       </div>
     </div>
-    <div class="card">
-      <h2 class="section" data-i18n="notify.settings_title">Notifications</h2>
-      <p class="muted" style="font-size:13px;margin-bottom:10px" data-i18n="notify.settings_desc">Choose who gets an in-app notification when a new report is submitted for specific departments and locations.</p>
-      <div class="row"><label data-i18n="notify.pick_member">Team member</label><select id="notifyMemberSel"></select></div>
-      <div class="row"><label data-i18n="notify.departments_label">Departments</label>
-        <div id="notifyDeptWrap" style="display:flex;flex-wrap:wrap;gap:10px"></div>
-      </div>
-      <div class="row">
-        <label data-i18n="notify.locations_label">Locations</label>
-        <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;margin-bottom:6px"><input type="checkbox" id="notifyLocAll" style="width:auto"> <span data-i18n="ma.select_all">Select all locations</span></label>
-        <div id="notifyLocTree" style="max-height:220px;overflow:auto;border:1px solid var(--line);border-radius:10px;padding:8px"></div>
-      </div>
-      <div class="msg" id="notifyMsg"></div>
-      <button class="btn proceed" id="btnNotifySave" data-i18n="notify.save" style="margin-top:6px">Save subscription</button>
-      <h2 class="section" style="margin-top:18px" data-i18n="notify.list_title">Current subscriptions</h2>
-      <div id="notifyRuleList"></div>
-      <p class="muted" id="notifyRuleEmpty" data-i18n="notify.no_rules">No one is subscribed yet.</p>
-    </div>
   </section>
 
   <!-- ============ NOTIFICATIONS (in-app inbox) ============ -->
@@ -369,20 +352,30 @@
   <div id="memberAccessModal" class="hide modal-overlay">
     <div class="card modal-card">
       <h2 class="section" id="maTitle">Member</h2>
-      <div class="row">
-        <label data-i18n="ma.locations_label">Locations this member can report against</label>
-        <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;margin-bottom:6px"><input type="checkbox" id="setLocAll" style="width:auto"> <span data-i18n="ma.select_all">Select all locations</span></label>
-        <div id="setLocTree" style="max-height:260px;overflow:auto;border:1px solid var(--line);border-radius:10px;padding:8px"></div>
-      </div>
-      <div class="row"><label><span data-i18n="ma.titles_label">Functional titles</span> <span class="muted" style="font-weight:400" data-i18n="ma.titles_hint">(applies at every location checked above; independent of owner/admin/member)</span></label>
-        <div style="position:relative">
-          <button type="button" class="btn back" id="setRoleDropdownBtn" style="justify-content:flex-start;text-align:left" data-i18n="ma.select_titles">Select titles…</button>
-          <div id="setRoleDropdownPanel" class="hide" style="position:absolute;z-index:5;top:100%;left:0;right:0;background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px;margin-top:4px;max-height:260px;overflow:auto;box-shadow:0 4px 14px rgba(0,0,0,.15)"></div>
+      <div id="maMemberOnlySections">
+        <div class="row">
+          <label data-i18n="ma.locations_label">Locations this member can report against</label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;margin-bottom:6px"><input type="checkbox" id="setLocAll" style="width:auto"> <span data-i18n="ma.select_all">Select all locations</span></label>
+          <div id="setLocTree" style="max-height:260px;overflow:auto;border:1px solid var(--line);border-radius:10px;padding:8px"></div>
+        </div>
+        <div class="row"><label><span data-i18n="ma.titles_label">Functional titles</span> <span class="muted" style="font-weight:400" data-i18n="ma.titles_hint">(applies at every location checked above; independent of owner/admin/member)</span></label>
+          <div style="position:relative">
+            <button type="button" class="btn back" id="setRoleDropdownBtn" style="justify-content:flex-start;text-align:left" data-i18n="ma.select_titles">Select titles…</button>
+            <div id="setRoleDropdownPanel" class="hide" style="position:absolute;z-index:5;top:100%;left:0;right:0;background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px;margin-top:4px;max-height:260px;overflow:auto;box-shadow:0 4px 14px rgba(0,0,0,.15)"></div>
+          </div>
+        </div>
+        <div class="row" style="border-top:1px solid var(--line);padding-top:10px">
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600"><input type="checkbox" id="setViewOnly" style="width:auto"> <span data-i18n="ma.view_only_label">View only (cannot create reports)</span></label>
+          <small class="hint" data-i18n="ma.view_only_hint">Can sign in and browse/print via Recall only — no new reports, progress, confirmations, or deletion requests, even if they hold a title above.</small>
         </div>
       </div>
       <div class="row" style="border-top:1px solid var(--line);padding-top:10px">
-        <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600"><input type="checkbox" id="setViewOnly" style="width:auto"> <span data-i18n="ma.view_only_label">View only (cannot create reports)</span></label>
-        <small class="hint" data-i18n="ma.view_only_hint">Can sign in and browse/print via Recall only — no new reports, progress, confirmations, or deletion requests, even if they hold a title above.</small>
+        <label data-i18n="notify.member_section_label">Notify about new reports</label>
+        <div class="muted" style="font-size:12px;margin:2px 0 6px" data-i18n="notify.departments_label">Departments</div>
+        <div id="notifyDeptWrap" style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:10px"></div>
+        <div class="muted" style="font-size:12px;margin:2px 0 6px" data-i18n="notify.locations_label">Locations</div>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;margin-bottom:6px"><input type="checkbox" id="notifyLocAll" style="width:auto"> <span data-i18n="ma.select_all">Select all locations</span></label>
+        <div id="notifyLocTree" style="max-height:220px;overflow:auto;border:1px solid var(--line);border-radius:10px;padding:8px"></div>
       </div>
       <div class="msg" id="setMsg"></div>
       <div class="btnrow2" style="margin-top:8px">
@@ -553,7 +546,7 @@
    All maint_* tables are new and separate. See Maintenance_Project_Plan.md
    and Maintenance_Project_Schema.sql for the full spec this implements.
 ===================================================================== */
-var APP_VERSION="v2.1"; // bump this with each build so it's visible which version is deployed (shown in the footer, bottom of the page)
+var APP_VERSION="v2.3"; // bump this with each build so it's visible which version is deployed (shown in the footer, bottom of the page)
 var BUILTIN={url:"https://clprrwuizmlsddxmlvrh.supabase.co", key:"sb_publishable_bY46Emu9VVzYZEhpjxnr2A_9_ranhHt"};
 var sb=null;
 var $=function(id){return document.getElementById(id);};
@@ -692,11 +685,9 @@ id: {
   "ph.prompt_delete":"Masukkan ulang kata sandi admin Anda untuk menghapus laporan {id} secara permanen:",
   "ph.delete_failed":"Gagal menghapus: ",
   "notify.banner":"🔔 Laporan baru untuk Anda:",
-  "notify.settings_title":"Notifikasi", "notify.settings_desc":"Pilih siapa yang menerima notifikasi dalam aplikasi saat laporan baru dibuat untuk departemen dan lokasi tertentu.",
-  "notify.pick_member":"Anggota tim", "notify.departments_label":"Departemen", "notify.locations_label":"Lokasi",
-  "notify.save":"Simpan langganan", "notify.saved":"Tersimpan.", "notify.save_failed":"Gagal menyimpan: ",
-  "notify.list_title":"Langganan saat ini", "notify.no_rules":"Belum ada yang berlangganan.", "notify.remove":"Hapus",
-  "notify.confirm_remove":"Hapus langganan notifikasi ini?",
+  "notify.departments_label":"Departemen", "notify.locations_label":"Lokasi",
+  "notify.member_section_label":"Beri tahu saat ada laporan baru", "notify.edit_notifications":"Notifikasi",
+  "notify.subscribed_prefix":"Diberi tahu: ",
   "notify.title":"Notifikasi", "notify.no_notifications":"Tidak ada notifikasi.", "notify.new_tag":"baru"
 },
 en: {
@@ -819,11 +810,9 @@ en: {
   "ph.prompt_delete":"Re-enter your admin password to permanently delete report {id}:",
   "ph.delete_failed":"Delete failed: ",
   "notify.banner":"🔔 New reports for you:",
-  "notify.settings_title":"Notifications", "notify.settings_desc":"Choose who gets an in-app notification when a new report is submitted for specific departments and locations.",
-  "notify.pick_member":"Team member", "notify.departments_label":"Departments", "notify.locations_label":"Locations",
-  "notify.save":"Save subscription", "notify.saved":"Saved.", "notify.save_failed":"Save failed: ",
-  "notify.list_title":"Current subscriptions", "notify.no_rules":"No one is subscribed yet.", "notify.remove":"Remove",
-  "notify.confirm_remove":"Remove this notification subscription?",
+  "notify.departments_label":"Departments", "notify.locations_label":"Locations",
+  "notify.member_section_label":"Notify about new reports", "notify.edit_notifications":"Notifications",
+  "notify.subscribed_prefix":"Notified: ",
   "notify.title":"Notifications", "notify.no_notifications":"No notifications.", "notify.new_tag":"new"
 }
 };
@@ -856,7 +845,7 @@ function setLang(l, skipSave){
       if(!$("homeView").classList.contains("hide")) renderHome();
       if(!$("recallListView").classList.contains("hide")) runRecallSearch();
       if(!$("itemDetailView").classList.contains("hide") && currentItem){ renderProgressList(); renderApprovals(); }
-      if(!$("settingsView").classList.contains("hide")){ renderTeam(); renderBrandTree(); renderCkList(); renderNotifyRuleList(); }
+      if(!$("settingsView").classList.contains("hide")){ renderTeam(); renderBrandTree(); renderCkList(); }
       if(!$("newReportView").classList.contains("hide")){ renderNrDeptWrap(); renderNrList(); }
       if(!$("notifyView").classList.contains("hide")) openNotifyView();
     }
@@ -2158,6 +2147,17 @@ async function renderTeam(){
     var tdEmail=document.createElement("td"); tdEmail.textContent=p.email||""; tdEmail.style.fontSize="12px"; tr.appendChild(tdEmail);
     var tdUser=document.createElement("td"); var us=document.createElement("span"); us.className="uname"; us.textContent=p.username||"—"; tdUser.appendChild(us); tr.appendChild(tdUser);
     var tdRole=document.createElement("td"); var sel=document.createElement("select"); sel.className="tcell-in";
+    // Self-heal: if this row's role isn't exactly one of the three known values (e.g. null —
+    // seen on accounts created outside this app's own invite flow), the <select> below would
+    // silently default to showing "member" without that ever being written back, which also
+    // made isMemberLevel() checks elsewhere fail and hid their "Edit access" button entirely
+    // (so nobody could ever grant them a location — the real cause of "can't make a report").
+    // Normalize it to 'member' here, both on screen and in the database, once.
+    if(p.role!=="member" && p.role!=="admin" && p.role!=="owner"){
+      var badRole=p.role; p.role="member";
+      sb.from("profiles").update({role:"member"}).eq("id",p.id).then(function(){});
+      console.warn("Normalized unexpected role", JSON.stringify(badRole), "->","member for", p.email||p.username||p.id);
+    }
     ["member","admin","owner"].forEach(function(role){ var o=document.createElement("option"); o.value=role; o.textContent=role; if(p.role===role) o.selected=true; sel.appendChild(o); });
     sel.addEventListener("change", async function(){
       msg.className="msg"; msg.textContent=t("settings.saving");
@@ -2168,28 +2168,42 @@ async function renderTeam(){
     });
     tdRole.appendChild(sel); tr.appendChild(tdRole);
     var tdAccess=document.createElement("td");
-    if(p.role==="member"){
-      var accBtn=document.createElement("button"); accBtn.type="button"; accBtn.className="btn small proceed"; accBtn.style.width="auto"; accBtn.textContent=t("settings.edit_access");
-      accBtn.addEventListener("click", function(){ openMemberAccessModal(p); });
-      tdAccess.appendChild(accBtn);
-      var sum=document.createElement("div"); sum.className="muted"; sum.style.cssText="font-size:11px;margin-top:3px"; sum.id="maSum_"+p.id; sum.textContent=t("settings.loading");
-      tdAccess.appendChild(sum);
-    } else {
-      var full=document.createElement("span"); full.className="muted"; full.style.fontSize="12px"; full.textContent=t("settings.full_access"); tdAccess.appendChild(full);
+    // Everyone gets an access/notifications button now — members configure location access,
+    // titles, view-only AND notifications; owner/admin only configure notifications (they
+    // always have full access implicitly, so those other sections stay hidden for them).
+    var accBtn=document.createElement("button"); accBtn.type="button"; accBtn.className="btn small proceed"; accBtn.style.width="auto";
+    accBtn.textContent = p.role==="member" ? t("settings.edit_access") : t("notify.edit_notifications");
+    accBtn.addEventListener("click", function(){ openMemberAccessModal(p); });
+    tdAccess.appendChild(accBtn);
+    if(p.role!=="member"){
+      var full=document.createElement("div"); full.className="muted"; full.style.cssText="font-size:11px;margin-top:3px"; full.textContent=t("settings.full_access"); tdAccess.appendChild(full);
     }
+    var sum=document.createElement("div"); sum.className="muted"; sum.style.cssText="font-size:11px;margin-top:3px"; sum.id="maSum_"+p.id; sum.textContent=t("settings.loading");
+    tdAccess.appendChild(sum);
     tr.appendChild(tdAccess);
     tb.appendChild(tr);
   });
   tbl.appendChild(tb);
   box.innerHTML=""; box.appendChild(tbl);
-  rows.filter(function(p){ return p.role==="member"; }).forEach(async function(p){
+  rows.forEach(async function(p){
     var el=$("maSum_"+p.id); if(!el) return;
-    var acc=await sb.from("maint_access").select("location_ids,view_only").eq("user_id",p.id).limit(1);
-    var accRow=(acc.data&&acc.data.length)?acc.data[0]:null;
-    var ids=accRow?(accRow.location_ids||[]):[];
-    var rr=await sb.from("maint_roles").select("role").eq("user_id",p.id);
-    var titles=(rr.data||[]).map(function(x){return GRANULAR_LABEL[x.role]||ROLE_LABEL[x.role]||x.role;}).filter(function(v,i,a){return a.indexOf(v)===i;});
-    if(el) el.textContent=ids.length+t("settings.locations_suffix")+(titles.length? " · "+titles.join(", ") : "")+((accRow&&accRow.view_only)? " · "+t("home.view_only_tag") : "");
+    var parts=[];
+    if(p.role==="member"){
+      var acc=await sb.from("maint_access").select("location_ids,view_only").eq("user_id",p.id).limit(1);
+      var accRow=(acc.data&&acc.data.length)?acc.data[0]:null;
+      var ids=accRow?(accRow.location_ids||[]):[];
+      var rr=await sb.from("maint_roles").select("role").eq("user_id",p.id);
+      var titles=(rr.data||[]).map(function(x){return GRANULAR_LABEL[x.role]||ROLE_LABEL[x.role]||x.role;}).filter(function(v,i,a){return a.indexOf(v)===i;});
+      parts.push(ids.length+t("settings.locations_suffix"));
+      if(titles.length) parts.push(titles.join(", "));
+      if(accRow&&accRow.view_only) parts.push(t("home.view_only_tag"));
+    }
+    var nr=await sb.from("maint_notify_rules").select("departments,location_ids").eq("user_id",p.id).limit(1);
+    var nrow=(nr.data&&nr.data.length)?nr.data[0]:null;
+    if(nrow && (nrow.departments||[]).length && (nrow.location_ids||[]).length){
+      parts.push(t("notify.subscribed_prefix")+(nrow.departments||[]).join("/")+" ("+(nrow.location_ids||[]).length+t("settings.locations_suffix")+")");
+    }
+    if(el) el.textContent = parts.join(" · ");
   });
 }
 
@@ -2549,21 +2563,31 @@ async function openMemberAccessModal(m){
   maCurrentMember=m;
   $("maTitle").textContent=m.name||m.username||t("ma.member_fallback");
   $("setMsg").textContent="";
-  $("setLocTree").innerHTML=t("settings.loading");
-  $("setRoleDropdownPanel").innerHTML=""; $("setRoleDropdownPanel").classList.add("hide");
-  $("setRoleDropdownBtn").textContent=t("ma.select_titles");
-  $("setViewOnly").checked=false;
+  // Location access / titles / view-only only apply to members — owner/admin always have
+  // full access implicitly, so those sections are hidden and only Notifications shows.
+  $("maMemberOnlySections").classList.toggle("hide", m.role!=="member");
   $("memberAccessModal").classList.remove("hide");
 
-  var acc=await sb.from("maint_access").select("location_ids,view_only").eq("user_id",m.id).limit(1);
-  var accRow=(acc.data && acc.data.length)? acc.data[0] : null;
-  var accIds=accRow ? (accRow.location_ids||[]) : [];
-  $("setViewOnly").checked=!!(accRow && accRow.view_only);
-  renderSetLocTree(accIds);
+  if(m.role==="member"){
+    $("setLocTree").innerHTML=t("settings.loading");
+    $("setRoleDropdownPanel").innerHTML=""; $("setRoleDropdownPanel").classList.add("hide");
+    $("setRoleDropdownBtn").textContent=t("ma.select_titles");
+    $("setViewOnly").checked=false;
 
-  var rr=await sb.from("maint_roles").select("role").eq("user_id",m.id);
-  var haveKeys=(rr.data||[]).map(function(x){return x.role;});
-  renderRoleDropdown(haveKeys);
+    var acc=await sb.from("maint_access").select("location_ids,view_only").eq("user_id",m.id).limit(1);
+    var accRow=(acc.data && acc.data.length)? acc.data[0] : null;
+    var accIds=accRow ? (accRow.location_ids||[]) : [];
+    $("setViewOnly").checked=!!(accRow && accRow.view_only);
+    renderSetLocTree(accIds);
+
+    var rr=await sb.from("maint_roles").select("role").eq("user_id",m.id);
+    var haveKeys=(rr.data||[]).map(function(x){return x.role;});
+    renderRoleDropdown(haveKeys);
+  }
+
+  var rule=await loadNotifyRuleFor(m.id);
+  renderNotifyDeptWrap(rule.departments);
+  renderNotifyLocTree(rule.location_ids);
 }
 $("btnSetCancel").addEventListener("click", function(){ $("memberAccessModal").classList.add("hide"); });
 $("btnSetSave").addEventListener("click", async function(){
@@ -2571,18 +2595,24 @@ $("btnSetSave").addEventListener("click", async function(){
   var uid=maCurrentMember.id;
   $("setMsg").textContent="";
   try{
-    var ids=Array.prototype.slice.call($("setLocTree").querySelectorAll(".setLocCb")).filter(function(cb){return cb.checked;}).map(function(cb){return cb.dataset.id;});
-    var up=await sb.from("maint_access").upsert({user_id:uid, location_ids:ids, view_only:$("setViewOnly").checked, updated_by:me.id, updated_at:new Date().toISOString()});
-    if(up.error) throw up.error;
-    await sb.from("maint_roles").delete().eq("user_id",uid);
-    var selectedRoles=Array.prototype.filter.call($("setRoleDropdownPanel").querySelectorAll(".setRoleCb"), function(cb){return cb.checked;}).map(function(cb){return cb.value;});
-    var rows=[];
-    // Title applies at every location checked above — no separate "which location" picker.
-    selectedRoles.forEach(function(role){
-      if(ids.length){ ids.forEach(function(locId){ rows.push({user_id:uid, role:role, location_id:locId}); }); }
-      else { rows.push({user_id:uid, role:role, location_id:null}); } // no locations checked yet -> global for now
-    });
-    if(rows.length){ var ins=await sb.from("maint_roles").insert(rows); if(ins.error) throw ins.error; }
+    if(maCurrentMember.role==="member"){
+      var ids=Array.prototype.slice.call($("setLocTree").querySelectorAll(".setLocCb")).filter(function(cb){return cb.checked;}).map(function(cb){return cb.dataset.id;});
+      var up=await sb.from("maint_access").upsert({user_id:uid, location_ids:ids, view_only:$("setViewOnly").checked, updated_by:me.id, updated_at:new Date().toISOString()});
+      if(up.error) throw up.error;
+      await sb.from("maint_roles").delete().eq("user_id",uid);
+      var selectedRoles=Array.prototype.filter.call($("setRoleDropdownPanel").querySelectorAll(".setRoleCb"), function(cb){return cb.checked;}).map(function(cb){return cb.value;});
+      var rows=[];
+      // Title applies at every location checked above — no separate "which location" picker.
+      selectedRoles.forEach(function(role){
+        if(ids.length){ ids.forEach(function(locId){ rows.push({user_id:uid, role:role, location_id:locId}); }); }
+        else { rows.push({user_id:uid, role:role, location_id:null}); } // no locations checked yet -> global for now
+      });
+      if(rows.length){ var ins=await sb.from("maint_roles").insert(rows); if(ins.error) throw ins.error; }
+    }
+    var notifyDepts=Array.prototype.slice.call($("notifyDeptWrap").querySelectorAll(".notifyDeptCb")).filter(function(cb){return cb.checked;}).map(function(cb){return cb.value;});
+    var notifyIds=Array.prototype.slice.call($("notifyLocTree").querySelectorAll(".notifyLocCb")).filter(function(cb){return cb.checked;}).map(function(cb){return cb.dataset.id;});
+    var nUp=await sb.from("maint_notify_rules").upsert({user_id:uid, departments:notifyDepts, location_ids:notifyIds, updated_by:me.id, updated_at:new Date().toISOString()});
+    if(nUp.error) throw nUp.error;
     $("setMsg").className="msg ok"; $("setMsg").textContent=t("ma.saved");
     await renderTeam();
     setTimeout(function(){ $("memberAccessModal").classList.add("hide"); }, 500);
@@ -2662,70 +2692,12 @@ $("notifyLocAll").addEventListener("change", function(){
   Array.prototype.forEach.call($("notifyLocTree").querySelectorAll(".notifyLocCb"), function(cb){ cb.checked=on; });
   recomputeNotifyLocTreeChecks();
 });
-function fillNotifyMemberSel(){
-  var s=$("notifyMemberSel"); var prev=s.value;
-  s.innerHTML="";
-  (allMembers||[]).forEach(function(p){
-    var o=document.createElement("option"); o.value=p.id; o.textContent=(p.name||p.username||p.email||"—")+" ("+p.role+")";
-    s.appendChild(o);
-  });
-  if(prev && (allMembers||[]).some(function(p){return p.id===prev;})) s.value=prev;
-}
+// Reads one member's saved notification subscription — used by openMemberAccessModal()
+// to pre-fill the Notifications section inside the (now per-member) access modal.
 async function loadNotifyRuleFor(uid){
   var r=await sb.from("maint_notify_rules").select("departments,location_ids").eq("user_id",uid).limit(1);
   var row=(r.data && r.data.length)? r.data[0] : null;
   return {departments:row?(row.departments||[]):[], location_ids:row?(row.location_ids||[]):[]};
-}
-async function renderNotifyPanel(){
-  fillNotifyMemberSel();
-  if(!$("notifyMemberSel").options.length){ renderNotifyDeptWrap([]); $("notifyLocTree").innerHTML=""; }
-  else{
-    var uid=$("notifyMemberSel").value;
-    var rule=await loadNotifyRuleFor(uid);
-    renderNotifyDeptWrap(rule.departments);
-    renderNotifyLocTree(rule.location_ids);
-  }
-  await renderNotifyRuleList();
-}
-$("notifyMemberSel").addEventListener("change", async function(){
-  var rule=await loadNotifyRuleFor(this.value);
-  renderNotifyDeptWrap(rule.departments);
-  renderNotifyLocTree(rule.location_ids);
-});
-$("btnNotifySave").addEventListener("click", async function(){
-  var uid=$("notifyMemberSel").value;
-  if(!uid) return;
-  $("notifyMsg").textContent="";
-  try{
-    var depts=Array.prototype.slice.call($("notifyDeptWrap").querySelectorAll(".notifyDeptCb")).filter(function(cb){return cb.checked;}).map(function(cb){return cb.value;});
-    var ids=Array.prototype.slice.call($("notifyLocTree").querySelectorAll(".notifyLocCb")).filter(function(cb){return cb.checked;}).map(function(cb){return cb.dataset.id;});
-    var up=await sb.from("maint_notify_rules").upsert({user_id:uid, departments:depts, location_ids:ids, updated_by:me.id, updated_at:new Date().toISOString()});
-    if(up.error) throw up.error;
-    $("notifyMsg").className="msg ok"; $("notifyMsg").textContent=t("notify.saved");
-    await renderNotifyRuleList();
-  }catch(e){ $("notifyMsg").className="msg err"; $("notifyMsg").textContent=t("notify.save_failed")+(e.message||e); }
-});
-async function renderNotifyRuleList(){
-  var box=$("notifyRuleList");
-  var r=await sb.from("maint_notify_rules").select("user_id,departments,location_ids").order("updated_at",{ascending:false});
-  var rows=(r.data||[]).filter(function(row){ return (row.departments||[]).length && (row.location_ids||[]).length; });
-  $("notifyRuleEmpty").style.display = rows.length? "none":"block";
-  box.innerHTML="";
-  rows.forEach(function(row){
-    var p=(allMembers||[]).find(function(x){return x.id===row.user_id;});
-    var name=p?(p.name||p.username||p.email):row.user_id;
-    var d=document.createElement("div"); d.className="listcard";
-    d.innerHTML='<div class="t">'+escapeHtml(name)+'</div><div class="m">'+(row.departments||[]).join(", ")+' · '+(row.location_ids||[]).length+t("settings.locations_suffix")+'</div>'+
-      '<div class="btnrow2 noprint" style="margin-top:8px"><button class="btn back small" style="width:auto">'+t("settings.edit_access")+'</button><button class="btn cancel small" style="width:auto">'+t("notify.remove")+'</button></div>';
-    var btns=d.querySelectorAll("button");
-    btns[0].addEventListener("click", function(){ $("notifyMemberSel").value=row.user_id; renderNotifyDeptWrap(row.departments||[]); renderNotifyLocTree(row.location_ids||[]); window.scrollTo(0, Math.max(0,$("notifyMemberSel").getBoundingClientRect().top+window.scrollY-80)); });
-    btns[1].addEventListener("click", async function(){
-      if(!confirm(t("notify.confirm_remove"))) return;
-      await sb.from("maint_notify_rules").delete().eq("user_id", row.user_id);
-      await renderNotifyRuleList();
-    });
-    box.appendChild(d);
-  });
 }
 
 async function openSettings(){
@@ -2735,7 +2707,6 @@ async function openSettings(){
   await loadLocations();   // refresh so codes/visibility reflect the latest Store Visit tree
   renderBrandTree();
   renderCkList();
-  await renderNotifyPanel();
   show("settingsView");
 }
 $("btnSetBack").addEventListener("click", function(){ show("homeView"); });
