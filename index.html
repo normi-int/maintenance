@@ -196,7 +196,9 @@
     </div>
     <div class="card">
       <h2 class="section" data-i18n="nr.new_finding">New Finding</h2>
-      <div class="row"><label data-i18n="nr.department">Department (choose 1)</label><div class="dept-wrap" id="nrDeptWrap"></div></div>
+      <div class="row"><label data-i18n="nr.department">Department (choose 1)</label><div class="dept-wrap" id="nrDeptWrap"></div>
+        <p class="muted" id="nrDeptEmpty" style="display:none;font-size:13px" data-i18n="nr.no_dept_for_you">You don't have a department to report at this location.</p>
+      </div>
       <div class="row"><label data-i18n="nr.issue">Issue</label><textarea id="nrIssue" placeholder="Describe what you found..." data-i18n-ph="nr.issue_ph"></textarea></div>
       <div class="row">
         <label data-i18n="nr.photos">Photos (up to 3)</label>
@@ -283,7 +285,7 @@
       <p class="muted" id="idProgEmpty" data-i18n="id.no_progress">No progress logged yet.</p>
       <button class="btn add noprint" id="btnAddProgress" style="margin-top:10px" data-i18n="id.add_progress">+ Add progress</button>
     </div>
-    <div class="card noprint">
+    <div class="card noprint hide" id="idApprovalCard">
       <h2 class="section" data-i18n="id.resolution_approval">Resolution approval</h2>
       <p class="muted" style="font-size:13px;margin-bottom:10px" data-i18n="id.resolution_hint">Every role below must confirm before this item is marked resolved.</p>
       <div id="idApprovals"></div>
@@ -546,7 +548,7 @@
    All maint_* tables are new and separate. See Maintenance_Project_Plan.md
    and Maintenance_Project_Schema.sql for the full spec this implements.
 ===================================================================== */
-var APP_VERSION="v2.3"; // bump this with each build so it's visible which version is deployed (shown in the footer, bottom of the page)
+var APP_VERSION="v2.5"; // bump this with each build so it's visible which version is deployed (shown in the footer, bottom of the page)
 var BUILTIN={url:"https://clprrwuizmlsddxmlvrh.supabase.co", key:"sb_publishable_bY46Emu9VVzYZEhpjxnr2A_9_ranhHt"};
 var sb=null;
 var $=function(id){return document.getElementById(id);};
@@ -596,7 +598,7 @@ id: {
   "home.uncoded_hint":"⚠ {n} outlet di Store Visit belum memiliki kode pemeliharaan — tambahkan di Pengaturan.",
   "home.signed_in_as":"Masuk sebagai ", "home.requests_banner":"🔔 Permintaan hapus tertunda:", "home.overdue_banner":"⚠ Laporan terbuka 30+ hari:", "home.review":"tinjau",
   "home.status_open":"terbuka", "home.status_finished":"selesai",
-  "nr.new_finding":"Temuan Baru", "nr.department":"Departemen (pilih 1)", "nr.issue":"Masalah", "nr.issue_ph":"Jelaskan apa yang Anda temukan...",
+  "nr.new_finding":"Temuan Baru", "nr.department":"Departemen (pilih 1)", "nr.no_dept_for_you":"Anda tidak memiliki departemen yang dapat dilaporkan di lokasi ini.", "nr.issue":"Masalah", "nr.issue_ph":"Jelaskan apa yang Anda temukan...",
   "nr.photos":"Foto (maks. 3)", "nr.add_photo":"📷 Tambah foto (kamera atau galeri)",
   "nr.video_label":"Video", "nr.video_hint":"(opsional, maks. 20MB — buat klip singkat, ~15–20 detik)", "nr.add_video":"🎥 Tambah video (kamera atau galeri)",
   "nr.add_video_short":"🎥 Tambah video",
@@ -721,7 +723,7 @@ en: {
   "home.uncoded_hint":"⚠ {n} outlet(s) in Store Visit have no maintenance code yet — add them in Settings.",
   "home.signed_in_as":"Signed in as ", "home.requests_banner":"🔔 Delete requests pending:", "home.overdue_banner":"⚠ Reports open 30+ days:", "home.review":"review",
   "home.status_open":"open", "home.status_finished":"finished",
-  "nr.new_finding":"New Finding", "nr.department":"Department (choose 1)", "nr.issue":"Issue", "nr.issue_ph":"Describe what you found...",
+  "nr.new_finding":"New Finding", "nr.department":"Department (choose 1)", "nr.no_dept_for_you":"You don't have a department to report at this location.", "nr.issue":"Issue", "nr.issue_ph":"Describe what you found...",
   "nr.photos":"Photos (up to 3)", "nr.add_photo":"📷 Add photo (camera or gallery)",
   "nr.video_label":"Video", "nr.video_hint":"(optional, max 20MB — keep clips short, ~15–20 sec)", "nr.add_video":"🎥 Add video (camera or gallery)",
   "nr.add_video_short":"🎥 Add video",
@@ -855,35 +857,54 @@ $("btnLangID").addEventListener("click", function(){ setLang("id"); });
 $("btnLangEN").addEventListener("click", function(){ setLang("en"); });
 applyI18n(); // apply default language immediately, even before login (login screen defaults to Indonesian)
 
-// These 6 keys are the approval "slots" the resolution-approval matrix (maint_approval_rules)
-// is built on — unchanged since launch, no SQL migration needed for what follows below.
+// 7 approval "slots" the resolution-approval matrix (maint_approval_rules) is built on:
+// store_manager_spv (FOH oversight), barista (BAR), kitchen_leader (BOH), pastry_leader
+// (PASTRY), ck (Central Kitchen), maintenance_team, om (Area Manager / OM, Central Kitchen
+// oversight — also now required on STORE/FOH items alongside store_manager_spv).
 var ROLE_LABEL={
-  store_manager_spv:"Store Leader", barista:"Barista", kitchen_leader:"Kitchen Leader",
-  pastry_leader:"Pastry Team/Leader", maintenance_team:"Maintenance", om:"Operational Manager"
+  store_manager_spv:"FOH", barista:"Barista", kitchen_leader:"Kitchen Leader",
+  pastry_leader:"Pastry Team/Leader", maintenance_team:"Maintenance", om:"Area Manager / OM", ck:"CK"
 };
 
 // Granular functional titles a member can actually be assigned (shown in the member-access
-// modal / Team table). Each maps to one of the 6 slot keys above via GRANULAR_TO_SLOT --
-// holding ANY title in a group satisfies that slot's approval requirement (see hasRole()).
-// This keeps job titles specific without the approval matrix needing to know about them.
+// modal / Team table). Each maps to one of the slot keys above via GRANULAR_TO_SLOT --
+// holding that title satisfies the corresponding slot's approval requirement (see hasRole()).
+// Only the HEAD-level title in BAR/BOH/CK counts as an approver for that division (Senior
+// Barista/Barista, Sous Chef/CDP, and CK Staff can hold the title and are still restricted to
+// reporting only their own department, but don't sign off resolutions) — junior titles are
+// intentionally left out of GRANULAR_TO_SLOT below.
 var GRANULAR_LABEL={
   foh_area_manager:"FOH - Area Manager", foh_store_manager:"FOH - Store Manager", foh_spv:"FOH - SPV", foh_captain:"FOH - Captain",
   bar_head:"BAR - Head Bar", bar_senior_barista:"BAR - Senior Barista", bar_barista:"BAR - Barista",
   boh_head_chef:"BOH - Head Chef", boh_sous_chef:"BOH - Sous Chef", boh_cdp:"BOH - CDP",
-  pastry:"Pastry", maintenance_team:"Maintenance", om:"Operational Manager"
+  pastry:"Pastry", ck_head:"CK - Head", ck_staff:"CK - Staff",
+  maintenance_team:"Maintenance", om:"Operational Manager", others:"Others"
 };
 var GRANULAR_TO_SLOT={
   foh_area_manager:"store_manager_spv", foh_store_manager:"store_manager_spv", foh_spv:"store_manager_spv", foh_captain:"store_manager_spv",
-  bar_head:"barista", bar_senior_barista:"barista", bar_barista:"barista",
-  boh_head_chef:"kitchen_leader", boh_sous_chef:"kitchen_leader", boh_cdp:"kitchen_leader",
-  pastry:"pastry_leader", maintenance_team:"maintenance_team", om:"om"
+  bar_head:"barista",
+  boh_head_chef:"kitchen_leader",
+  pastry:"pastry_leader", ck_head:"ck",
+  maintenance_team:"maintenance_team", om:"om"
+  // bar_senior_barista, bar_barista, boh_sous_chef, boh_cdp, ck_staff, others: deliberately
+  // absent — valid titles to hold (and they still gate which department someone can report,
+  // see DEPT_SCOPE_FOR_GROUP), but they don't satisfy any approval slot.
 };
 var ROLE_GROUPS=[
   {label:"FOH", keys:["foh_area_manager","foh_store_manager","foh_spv","foh_captain"]},
   {label:"BAR", keys:["bar_head","bar_senior_barista","bar_barista"]},
   {label:"BOH", keys:["boh_head_chef","boh_sous_chef","boh_cdp"]},
-  {label:"Other", keys:["pastry","maintenance_team","om"]}
+  {label:"CK", keys:["ck_head","ck_staff"]},
+  {label:"PASTRY", keys:["pastry"]},
+  {label:"Other", keys:["maintenance_team","om","others"]}
 ];
+// Which department(s) each title GROUP can create new-report findings for. Groups not
+// listed here (FOH, Other) can report every department available at the location — FOH and
+// Area Manager/OM oversee the whole store, "Others" is an unrestricted catch-all, and holding
+// no title at all also means unrestricted (preserves pre-existing behavior). BAR/BOH/PASTRY/CK
+// are narrowed to their own specialty, regardless of whether the specific title held is the
+// head or a junior one (both still count for this — only approval sign-off is head-only).
+var DEPT_SCOPE_FOR_GROUP={ "BAR":["BAR"], "BOH":["BOH"], "PASTRY":["PASTRY"], "CK":["BOH","PASTRY"] };
 
 function show(v){
   ["loginView","setpwView","homeView","newReportView","recallListView","itemDetailView","settingsView","requestsView","notifyView"]
@@ -1037,6 +1058,11 @@ async function afterLogin(){
 }
 
 function isStaff(){ return me && (me.role==="owner"||me.role==="admin"); }
+// Owner/admin can always approve/reject deletion requests. Area Manager/OM titleholders can
+// too now — checked at ANY location they hold the title (OM is inherently a multi-location
+// oversight role, so this doesn't narrow it down per-location the way approval confirmation
+// does). Everyone else still only gets "Request deletion", never direct approve/reject.
+function canManageDeletions(){ return isStaff() || (!!myRoles && myRoles.some(function(r){ return r.role==="om"; })); }
 // View-only members can sign in, pick a location, and use Recall to browse/print — but
 // cannot create reports, add progress, confirm resolution, or request deletion, even if
 // they also hold a functional title. Scoped to this app only (maint_access.view_only),
@@ -1183,7 +1209,7 @@ function renderHome(){
 }
 
 async function refreshRequestsBadge(){
-  if(!isStaff()){ $("btnRequestsBanner").classList.add("hide"); return; }
+  if(!canManageDeletions()){ $("btnRequestsBanner").classList.add("hide"); return; }
   var r=await sb.from("maint_delete_requests").select("id",{count:"exact"}).eq("status","pending");
   var n=(r.count)||0;
   $("reqCount").textContent=n;
@@ -1453,9 +1479,32 @@ function deptsForLocation(loc){
   if(loc && loc.type==="CENTRAL_KITCHEN") return ["BOH","PASTRY"];
   return DEPTS;
 }
+// Departments this account may create NEW findings for, or null if unrestricted (sees every
+// department the location offers — this is the pre-existing default). Owner/admin, anyone
+// holding an all-access title (FOH, Area Manager/OM, Others, Maintenance), or anyone with no
+// title at all stay unrestricted. Holding only specialty titles (BAR/BOH/PASTRY/CK — head or
+// junior, doesn't matter for this) narrows the picker to just those department(s), even
+// though only the head-level title in each of those groups can actually sign off approvals.
+function myReportDeptScope(){
+  if(isStaff() || !myRoles || !myRoles.length) return null;
+  var sawUnrestricted=false, restrictive=[];
+  myRoles.forEach(function(r){
+    var group=ROLE_GROUPS.find(function(g){ return g.keys.indexOf(r.role)>=0; });
+    if(!group) return;
+    var scope=DEPT_SCOPE_FOR_GROUP[group.label];
+    if(!scope){ sawUnrestricted=true; return; }
+    scope.forEach(function(d){ if(restrictive.indexOf(d)<0) restrictive.push(d); });
+  });
+  if(sawUnrestricted || !restrictive.length) return null;
+  return restrictive;
+}
 function renderNrDeptWrap(){
   var w=$("nrDeptWrap"); w.innerHTML="";
-  deptsForLocation(currentLocation).forEach(function(d){
+  var depts=deptsForLocation(currentLocation);
+  var scope=myReportDeptScope();
+  if(scope) depts=depts.filter(function(d){ return scope.indexOf(d)>=0; });
+  $("nrDeptEmpty").style.display = depts.length? "none":"block";
+  depts.forEach(function(d){
     var b=document.createElement("button"); b.type="button"; b.className="dept"+(nrDept===d?" on":"");
     b.textContent=d;
     b.addEventListener("click", function(){ nrDept=d; renderNrDeptWrap(); });
@@ -1655,7 +1704,7 @@ async function wireReportDeleteActions(rep){
   var existing=(pend.data && pend.data.length)? pend.data[0] : null;
 
   if(existing){
-    var canCancel = existing.requester_id===me.id || isStaff();
+    var canCancel = existing.requester_id===me.id || canManageDeletions();
     host.innerHTML='<div class="msg" style="margin-top:10px">'+t("ph.delete_pending_prefix")+existing.requester_name+t("ph.delete_pending_suffix")+(canCancel?' <a href="#" id="phCancelReq">'+t("ph.cancel_request")+'</a>':'')+'</div>';
     var a=host.querySelector("#phCancelReq");
     if(a) a.addEventListener("click", async function(e){ e.preventDefault(); await sb.from("maint_delete_requests").delete().eq("id",existing.id); openReportPrint(rep.id); });
@@ -1862,6 +1911,16 @@ function renderProgressList(){
 }
 
 function renderApprovals(){
+  // Resolution approval only makes sense once someone has actually marked the item fixed —
+  // the most recent progress entry says "resolved" (i.e. the last technician/staff visit
+  // logged is a "Selesai"). If nothing's been logged yet, or the latest entry says
+  // "unresolved" (still in progress or reopened), there's nothing to sign off on yet.
+  var prog=currentItem.progress||[];
+  var lastProg=prog.length? prog[prog.length-1] : null;
+  var readyForApproval=!!(lastProg && lastProg.resolution==="resolved");
+  $("idApprovalCard").classList.toggle("hide", !readyForApproval);
+  if(!readyForApproval) return;
+
   var host=$("idApprovals"); host.innerHTML="";
   var apps=currentItem.approvals||[];
   var loc=locations.find(function(l){ return l.id===currentItem.location_id; });
@@ -2050,7 +2109,12 @@ $("apSubmit").addEventListener("click", async function(){
 });
 function myRolesFor(uid, role, locId){
   if(uid!==me.id || !myRoles) return false;
-  return myRoles.some(function(r){ return r.role===role && (r.location_id===null || r.location_id===locId); });
+  // maint_roles stores GRANULAR titles (e.g. "bar_head"), but `role` here is the approval
+  // SLOT key (e.g. "barista") — must translate via GRANULAR_TO_SLOT before comparing, same
+  // as hasRole() does. Without this, a non-staff person confirming with their OWN username/
+  // password always failed this check (granular key never equals a slot key), so only
+  // owner/admin could ever actually confirm an approval — real members never could.
+  return myRoles.some(function(r){ return (GRANULAR_TO_SLOT[r.role]||r.role)===role && (r.location_id===null || r.location_id===locId); });
 }
 async function recomputeReportStatus(reportId){
   var r=await sb.from("maint_items").select("status").eq("report_id",reportId);
@@ -2075,11 +2139,16 @@ $("btnIdPrint").addEventListener("click", function(){
   html+='</div></div>';
   showPrintable(html, t("ph.back_item"), function(){ openItemDetail(it.id); });
 });
-// Store-level titles (Store Leader/Barista/Kitchen Leader/Pastry Team-Leader) print as the
-// item's department code (FOH/BAR/BOH/PASTRY) for STORE locations, or "CK" for Central
-// Kitchen locations, instead of the person's functional title. Maintenance/OM keep their
-// own labels either way.
-var STORE_LEVEL_ROLES=["store_manager_spv","barista","kitchen_leader","pastry_leader"];
+// Department-SPECIFIC approver slots (Barista/Kitchen Leader/Pastry Team-Leader — each maps
+// 1:1 onto exactly one department) print as that item's own department code instead of the
+// role name, since it's always redundant (a BAR item's "barista" slot is always "BAR").
+// store_manager_spv is intentionally NOT in this list — it's the FOH/oversight slot that
+// appears on every store department's approval chain, so it must always read "FOH" via
+// ROLE_LABEL below, never collapse to whatever department the item happens to be. (This was
+// the bug behind a BAR item showing "BAR" twice instead of "BAR" + "FOH".) "ck" also isn't
+// here — it already reads "CK" directly via ROLE_LABEL, since it only ever appears on Central
+// Kitchen items anyway. Maintenance/OM keep their own labels either way.
+var STORE_LEVEL_ROLES=["barista","kitchen_leader","pastry_leader"];
 function approvalLabelFor(role, it, loc){
   if(STORE_LEVEL_ROLES.indexOf(role)<0) return ROLE_LABEL[role]||role;
   return (loc && loc.type==="CENTRAL_KITCHEN") ? "CK" : it.department;
