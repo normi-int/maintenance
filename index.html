@@ -300,7 +300,9 @@
     <div class="card">
       <div class="sec-head"><h2 class="section" style="margin:0;border:none" data-i18n="settings.title">Settings</h2><button class="btn back small" id="btnSetBack" data-i18n="settings.back">← Back</button></div>
       <h2 class="section" style="margin-top:10px" data-i18n="settings.team_title">Team &amp; account levels</h2>
+      <div class="row"><input type="text" id="teamSearch" class="n" data-i18n-ph="settings.search_ph" placeholder="Search by name, email, or username..."></div>
       <div id="teamList" class="teamtab-scroll" style="overflow-x:auto"></div>
+      <p class="muted" id="teamSearchEmpty" style="display:none;font-size:13px" data-i18n="settings.search_no_match">No one matches your search.</p>
       <div class="msg" id="teamMsg"></div>
     </div>
     <div class="card">
@@ -548,7 +550,7 @@
    All maint_* tables are new and separate. See Maintenance_Project_Plan.md
    and Maintenance_Project_Schema.sql for the full spec this implements.
 ===================================================================== */
-var APP_VERSION="v2.5"; // bump this with each build so it's visible which version is deployed (shown in the footer, bottom of the page)
+var APP_VERSION="v2.6"; // bump this with each build so it's visible which version is deployed (shown in the footer, bottom of the page)
 var BUILTIN={url:"https://clprrwuizmlsddxmlvrh.supabase.co", key:"sb_publishable_bY46Emu9VVzYZEhpjxnr2A_9_ranhHt"};
 var sb=null;
 var $=function(id){return document.getElementById(id);};
@@ -651,6 +653,7 @@ id: {
   "ap.err_failed":"Gagal: ", "ap.err_password_wrong":"Kata sandi salah.",
   "del.title":"Ajukan penghapusan", "del.reason":"Alasan", "del.send":"Kirim permintaan", "del.err_reason":"Berikan alasan.", "del.err_failed":"Gagal: ",
   "settings.title":"Pengaturan", "settings.back":"← Kembali", "settings.team_title":"Tim & Tingkat Akun", "settings.outlets_title":"Outlet",
+  "settings.search_ph":"Cari berdasarkan nama, email, atau username...", "settings.search_no_match":"Tidak ada yang cocok dengan pencarian Anda.",
   "settings.add_brand":"Tambah brand", "settings.add_brand_ph":"mis. Devon", "settings.add":"Tambah",
   "settings.ck_title":"Dapur Pusat", "settings.ck_desc":"Bukan outlet ritel, jadi tidak termasuk dalam daftar Store Visit — hanya dikelola di sini.",
   "settings.add_ck":"Tambah Dapur Pusat", "settings.ck_name_ph":"Nama, mis. Dapur Pusat 3", "settings.city_ph":"Kota", "settings.ck_code_ph":"Kode, mis. GW21",
@@ -776,6 +779,7 @@ en: {
   "ap.err_failed":"Failed: ", "ap.err_password_wrong":"Password incorrect.",
   "del.title":"Request deletion", "del.reason":"Reason", "del.send":"Send request", "del.err_reason":"Give a reason.", "del.err_failed":"Failed: ",
   "settings.title":"Settings", "settings.back":"← Back", "settings.team_title":"Team & account levels", "settings.outlets_title":"Outlets",
+  "settings.search_ph":"Search by name, email, or username...", "settings.search_no_match":"No one matches your search.",
   "settings.add_brand":"Add a brand", "settings.add_brand_ph":"e.g. Devon", "settings.add":"Add",
   "settings.ck_title":"Central Kitchens", "settings.ck_desc":"Not retail outlets, so they're not part of Store Visit's list — managed only here.",
   "settings.add_ck":"Add a Central Kitchen", "settings.ck_name_ph":"Name, e.g. Central Kitchen 3", "settings.city_ph":"City", "settings.ck_code_ph":"Code, e.g. GW21",
@@ -2188,6 +2192,21 @@ function progressPrintBlockHtml(p){
 
 /* ---------------- team & account levels (shared profiles table — same as Store Visit) ---------------- */
 var allMembers=[];
+function filterTeamRows(){
+  var input=$("teamSearch"); if(!input) return;
+  var q=input.value.trim().toLowerCase();
+  var box=$("teamList"); var tbody=box && box.querySelector("tbody");
+  if(!tbody){ var empty=$("teamSearchEmpty"); if(empty) empty.style.display="none"; return; }
+  var trs=tbody.querySelectorAll("tr");
+  var visibleCount=0;
+  trs.forEach(function(tr){
+    var match=!q || (tr.dataset.search||"").indexOf(q)!==-1;
+    tr.style.display=match? "":"none";
+    if(match) visibleCount++;
+  });
+  var emptyEl=$("teamSearchEmpty");
+  if(emptyEl) emptyEl.style.display=(q && visibleCount===0)? "":"none";
+}
 async function renderTeam(){
   var box=$("teamList"), msg=$("teamMsg"); msg.textContent=""; box.innerHTML=t("common.please_wait");
   var r=await sb.from("profiles").select("id,email,name,role,username").order("created_at",{ascending:true});
@@ -2201,6 +2220,7 @@ async function renderTeam(){
   rows.forEach(function(p){
     var isMe=(me && p.id===me.id);
     var tr=document.createElement("tr");
+    tr.dataset.search=((p.name||"")+" "+(p.email||"")+" "+(p.username||"")).toLowerCase();
     var tdName=document.createElement("td");
     var ni=document.createElement("input"); ni.type="text"; ni.className="tcell-in"; ni.value=p.name||""; tdName.appendChild(ni);
     if(isMe){ var tag=document.createElement("div"); tag.className="muted"; tag.style.fontSize="11px"; tag.textContent=t("settings.you"); tdName.appendChild(tag); }
@@ -2254,6 +2274,7 @@ async function renderTeam(){
   });
   tbl.appendChild(tb);
   box.innerHTML=""; box.appendChild(tbl);
+  filterTeamRows(); // re-apply whatever's currently typed in the search box after a rebuild
   rows.forEach(async function(p){
     var el=$("maSum_"+p.id); if(!el) return;
     var parts=[];
@@ -2761,6 +2782,7 @@ $("notifyLocAll").addEventListener("change", function(){
   Array.prototype.forEach.call($("notifyLocTree").querySelectorAll(".notifyLocCb"), function(cb){ cb.checked=on; });
   recomputeNotifyLocTreeChecks();
 });
+$("teamSearch").addEventListener("input", filterTeamRows);
 // Reads one member's saved notification subscription — used by openMemberAccessModal()
 // to pre-fill the Notifications section inside the (now per-member) access modal.
 async function loadNotifyRuleFor(uid){
