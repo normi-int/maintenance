@@ -115,6 +115,12 @@
   }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- Real client-side PDF generation (not browser print-to-PDF) so exported files get a
+     controlled filename and guaranteed-clickable links (video / item-code deep link),
+     including on mobile browsers where "Save as PDF" from the print dialog often flattens
+     links to plain unclickable text. -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/4.2.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/5.0.8/jspdf.plugin.autotable.min.js"></script>
 </head>
 <body>
 <header class="appbar">
@@ -291,7 +297,7 @@
       <div id="idApprovals"></div>
     </div>
     <div class="card noprint">
-      <button class="btn preview" id="btnIdPrint" data-i18n="id.print_btn">Print progress report</button>
+      <button class="btn preview" id="btnIdPrint" data-i18n="id.print_btn">View / export progress report</button>
     </div>
   </section>
 
@@ -550,7 +556,7 @@
    All maint_* tables are new and separate. See Maintenance_Project_Plan.md
    and Maintenance_Project_Schema.sql for the full spec this implements.
 ===================================================================== */
-var APP_VERSION="v2.6"; // bump this with each build so it's visible which version is deployed (shown in the footer, bottom of the page)
+var APP_VERSION="v2.7"; // bump this with each build so it's visible which version is deployed (shown in the footer, bottom of the page)
 var BUILTIN={url:"https://clprrwuizmlsddxmlvrh.supabase.co", key:"sb_publishable_bY46Emu9VVzYZEhpjxnr2A_9_ranhHt"};
 var sb=null;
 var $=function(id){return document.getElementById(id);};
@@ -623,7 +629,7 @@ id: {
   "id.initial_report":"Laporan Awal", "id.progress":"Progres (", "id.no_progress":"Belum ada progres yang dicatat.",
   "id.add_progress":"+ Tambah progres", "id.resolution_approval":"Persetujuan Penyelesaian",
   "id.resolution_hint":"Setiap peran di bawah ini harus mengonfirmasi sebelum item ini ditandai selesai.",
-  "id.print_btn":"Cetak laporan progres", "id.status_resolved":"SELESAI", "id.status_unresolved":"BELUM SELESAI",
+  "id.print_btn":"Lihat / export laporan progres", "id.status_resolved":"SELESAI", "id.status_unresolved":"BELUM SELESAI",
   "id.confirmed_by":"Dikonfirmasi oleh ", "id.pending":"Menunggu", "id.confirm_btn":"Konfirmasi", "id.waiting":"Menunggu Giliran",
   "id.request_no_label":"No. Permintaan:", "id.date_label":"Tanggal:", "id.submitted_by_label":"Dikirim oleh:",
   "id.broken_part_label":"Komponen rusak:", "id.sn_label":" (SN ", "id.findings_label":"Temuan:", "id.proposed_action_label":"Tindakan yang Diusulkan:",
@@ -684,7 +690,7 @@ id: {
   "home.view_only_tag":"hanya lihat",
   "req.title":"Permintaan penghapusan", "req.no_pending":"Tidak ada permintaan tertunda.", "req.report_prefix":"Laporan ", "req.requested_by":"Diminta oleh ",
   "req.approve":"Setujui (hapus)", "req.reject":"Tolak",
-  "ph.save_print":"Simpan sebagai PDF / Cetak", "ph.back_home":"Kembali ke beranda", "ph.back_item":"← Kembali ke item",
+  "ph.export_pdf":"Export ke PDF", "ph.exporting":"Membuat PDF...", "ph.export_failed":"Gagal membuat PDF: ", "ph.back_home":"Kembali ke beranda", "ph.back_item":"← Kembali ke item",
   "ph.delete_pending_prefix":"🕓 Penghapusan diminta oleh ", "ph.delete_pending_suffix":" — menunggu peninjauan.", "ph.cancel_request":"batalkan permintaan ini",
   "ph.delete_report_btn":"Hapus laporan (admin — perlu kata sandi)", "ph.request_delete_btn":"Ajukan penghapusan",
   "ph.prompt_delete":"Masukkan ulang kata sandi admin Anda untuk menghapus laporan {id} secara permanen:",
@@ -749,7 +755,7 @@ en: {
   "id.initial_report":"Initial Report", "id.progress":"Progress (", "id.no_progress":"No progress logged yet.",
   "id.add_progress":"+ Add progress", "id.resolution_approval":"Resolution approval",
   "id.resolution_hint":"Every role below must confirm before this item is marked resolved.",
-  "id.print_btn":"Print progress report", "id.status_resolved":"RESOLVED", "id.status_unresolved":"UNRESOLVED",
+  "id.print_btn":"View / export progress report", "id.status_resolved":"RESOLVED", "id.status_unresolved":"UNRESOLVED",
   "id.confirmed_by":"Confirmed by ", "id.pending":"Pending", "id.confirm_btn":"Confirm", "id.waiting":"Waiting",
   "id.request_no_label":"Request No.:", "id.date_label":"Date:", "id.submitted_by_label":"Submitted by:",
   "id.broken_part_label":"Broken part:", "id.sn_label":" (SN ", "id.findings_label":"Findings:", "id.proposed_action_label":"Proposed Action:",
@@ -810,7 +816,7 @@ en: {
   "home.view_only_tag":"view only",
   "req.title":"Deletion requests", "req.no_pending":"No pending requests.", "req.report_prefix":"Report ", "req.requested_by":"Requested by ",
   "req.approve":"Approve (delete)", "req.reject":"Reject",
-  "ph.save_print":"Save as PDF / Print", "ph.back_home":"Back to home", "ph.back_item":"← Back to item",
+  "ph.export_pdf":"Export to PDF", "ph.exporting":"Generating PDF...", "ph.export_failed":"Failed to generate PDF: ", "ph.back_home":"Back to home", "ph.back_item":"← Back to item",
   "ph.delete_pending_prefix":"🕓 Deletion requested by ", "ph.delete_pending_suffix":" — pending review.", "ph.cancel_request":"cancel this request",
   "ph.delete_report_btn":"Delete report (admin — password required)", "ph.request_delete_btn":"Request deletion",
   "ph.prompt_delete":"Re-enter your admin password to permanently delete report {id}:",
@@ -1056,9 +1062,18 @@ async function afterLogin(){
   await loadApprovalRules();
   $("btnSettings").classList.toggle("hide", !isStaff());
   $("btnLogout").classList.remove("hide");
+  if(isStaff()) runMediaCleanup(); // fire-and-forget background housekeeping, never blocks the UI
+  // Deep link from an exported PDF's "Kode Item" link (?item=<code>) — jump straight to that
+  // item instead of the home screen, so following up off a shared PDF is a single tap. Strip
+  // the param afterwards so a later refresh doesn't keep reopening the same item.
+  var deepLinkItem=new URLSearchParams(location.search).get("item");
+  if(deepLinkItem){
+    try{ history.replaceState(null,"",location.pathname); }catch(e){}
+    var opened=await openItemDetail(deepLinkItem);
+    if(opened!==false) return;
+  }
   renderHome();
   show("homeView");
-  if(isStaff()) runMediaCleanup(); // fire-and-forget background housekeeping, never blocks the UI
 }
 
 function isStaff(){ return me && (me.role==="owner"||me.role==="admin"); }
@@ -1658,6 +1673,111 @@ async function notifyForNewReport(reportCode, loc, itemRows){
   }catch(e){ /* best-effort — never block report submission on notification delivery */ }
 }
 
+/* ---------------- PDF export (real client-side PDF via jsPDF — not browser print-to-PDF) ----------------
+   Why: browser print/"Save as PDF" (a) always used the static page <title> as filename, and
+   (b) on several mobile browsers flattens hyperlinks to plain unclickable text. Building the
+   PDF directly with jsPDF fixes both: we control the exact filename, and every link is a real
+   clickable annotation on every platform. */
+var PDF_MARGIN=14, PDF_PAGE_W=210, PDF_PAGE_H=297;
+function sanitizeFilename(s){
+  return String(s||"").replace(/[\\/:*?"<>|]/g,"").replace(/\s+/g," ").trim();
+}
+function yymmdd(dateInput){
+  var d=new Date(dateInput);
+  var yy=String(d.getFullYear()).slice(-2), mm=String(d.getMonth()+1).padStart(2,"0"), dd=String(d.getDate()).padStart(2,"0");
+  return yy+mm+dd;
+}
+// Deep-link back into the app, straight to a given item's detail page — handled by the
+// ?item= check added to afterLogin() below. Makes following up off a shared PDF a single tap.
+function appItemUrl(itemCode){
+  return location.origin+location.pathname+"?item="+encodeURIComponent(itemCode);
+}
+// Fetches a Supabase Storage image and returns a data: URL jsPDF can embed, plus its natural
+// pixel size (so photos keep their aspect ratio instead of being stretched into a fixed box).
+// Best-effort: a single photo failing to load (network hiccup, storage CORS) must not fail the
+// whole export — the caller just gets null back and skips that image.
+async function fetchImageForPdf(url){
+  if(!url) return null;
+  try{
+    var res=await fetch(url);
+    if(!res.ok) return null;
+    var blob=await res.blob();
+    var dataUrl=await new Promise(function(resolve,reject){
+      var fr=new FileReader();
+      fr.onload=function(){resolve(fr.result);};
+      fr.onerror=reject;
+      fr.readAsDataURL(blob);
+    });
+    var dims=await new Promise(function(resolve){
+      var img=new Image();
+      img.onload=function(){resolve({w:img.naturalWidth||1,h:img.naturalHeight||1});};
+      img.onerror=function(){resolve({w:1,h:1});};
+      img.src=dataUrl;
+    });
+    var fmt = dataUrl.indexOf("image/png")>=0 ? "PNG" : (dataUrl.indexOf("image/webp")>=0 ? "WEBP" : "JPEG");
+    return {dataUrl:dataUrl, w:dims.w, h:dims.h, fmt:fmt};
+  }catch(e){ return null; }
+}
+function fitBox(iw,ih,maxW,maxH){
+  var r=Math.min(maxW/iw, maxH/ih, 1);
+  return {w:iw*r, h:ih*r};
+}
+function pdfNewDoc(){
+  var jsPDFCtor=window.jspdf.jsPDF;
+  return new jsPDFCtor({unit:"mm",format:"a4"});
+}
+// Bold "Label: value" pair at a fixed x — mirrors the two-column key/value rows in the old
+// printed header (Brand / Outlet / No. Permintaan / Tanggal / Dikirim oleh).
+function pdfKv(doc,label,value,x,y){
+  doc.setFont("helvetica","bold"); doc.text(label,x,y);
+  var w=doc.getTextWidth(label+" ");
+  doc.setFont("helvetica","normal"); doc.text(String(value||""),x+w,y);
+  doc.setFontSize(10);
+}
+// Grey department/section header bar — same visual role as .sec-h in the old printed HTML.
+function pdfSectionBar(doc,label,y){
+  y=pdfEnsureSpace(doc,y,11);
+  doc.setFillColor(90,98,110);
+  doc.rect(PDF_MARGIN,y,PDF_PAGE_W-2*PDF_MARGIN,7,"F");
+  doc.setTextColor(255,255,255); doc.setFont("helvetica","bold"); doc.setFontSize(11);
+  doc.text(String(label||"").toUpperCase(),PDF_MARGIN+2,y+5);
+  doc.setTextColor(0,0,0); doc.setFontSize(10); doc.setFont("helvetica","normal");
+  return y+11;
+}
+function pdfEnsureSpace(doc,y,need){
+  if(y+need > PDF_PAGE_H-PDF_MARGIN){ doc.addPage(); return PDF_MARGIN; }
+  return y;
+}
+function pdfDrawWrapped(doc,text,x,y,maxW){
+  var lines=doc.splitTextToSize(String(text||""), maxW);
+  lines.forEach(function(line){
+    y=pdfEnsureSpace(doc,y,6);
+    doc.text(line,x,y); y+=5;
+  });
+  return y;
+}
+// Row of square-cropped thumbnails, wrapping onto further rows if there are more than fit.
+function pdfDrawImageRow(doc,cache,urls,x,y,maxW){
+  var imgs=(urls||[]).filter(Boolean);
+  if(!imgs.length) return y;
+  var thumb=22, gap=3, perRow=Math.max(1, Math.floor((maxW+gap)/(thumb+gap)));
+  y=pdfEnsureSpace(doc,y,thumb+4);
+  var cx=x;
+  imgs.forEach(function(u,i){
+    if(i>0 && i%perRow===0){ y=pdfEnsureSpace(doc,y+thumb+gap,thumb+4); cx=x; }
+    var img=cache[u];
+    if(img){
+      var box=fitBox(img.w,img.h,thumb,thumb);
+      doc.addImage(img.dataUrl,img.fmt,cx+(thumb-box.w)/2,y+(thumb-box.h)/2,box.w,box.h);
+    }
+    cx+=thumb+gap;
+  });
+  return y+thumb+4;
+}
+function triggerPdfDownload(doc,filename){
+  doc.save(sanitizeFilename(filename));
+}
+
 /* ---------------- printable: Maintenance Request (new report) ---------------- */
 async function openReportPrint(reportCode){
   var rr=await sb.from("maint_reports").select("*").eq("id",reportCode).limit(1);
@@ -1666,15 +1786,15 @@ async function openReportPrint(reportCode){
   var rep=rr.data[0], its=items.data||[];
   var byDept={};
   its.forEach(function(it){ (byDept[it.department]=byDept[it.department]||[]).push(it); });
-  // Printed output is Indonesian-only always, regardless of the on-screen language toggle.
+  // On-screen preview only — Indonesian-only always, regardless of the on-screen language
+  // toggle. The actual downloadable file comes from exportReportPdf() below, built straight
+  // from the same rep/its data (not scraped from this HTML), so it always matches.
   var html='<div class="report-paper"><div class="report-page">'+
     '<div class="rep-title"><span>PERMINTAAN PEMELIHARAAN</span></div>'+
     '<div class="rep-head"><div class="rr"><span><b>Brand:</b> '+rep.brand+'</span><span><b>Outlet:</b> '+rep.outlet+'</span></div>'+
     '<div class="rr"><span><b>No. Permintaan:</b> '+rep.id+'</span><span><b>Tanggal:</b> '+new Date(rep.submitted_at).toLocaleDateString()+'</span></div>'+
     '<div><b>Dikirim oleh:</b> '+rep.submitted_name+'</div></div></div>';
   Object.keys(byDept).forEach(function(dept, i){
-    // No forced page break here — content flows onto page 1 and only spills to
-    // further pages if it's actually too long to fit (natural print pagination).
     html+='<div class="report-page"><div class="sec-h">'+dept+'</div><table class="rep"><thead><tr><th>No</th><th>Masalah</th><th>Foto / Video</th><th>Tindakan yang Diusulkan</th><th>Kode Item</th></tr></thead><tbody>';
     byDept[dept].forEach(function(it, idx){
       var media=(it.photos||[]).map(function(p){return '<img src="'+p+'">';}).join("")+(it.video_url?'<div><a href="'+it.video_url+'" target="_blank">▶ video</a></div>':"");
@@ -1683,19 +1803,97 @@ async function openReportPrint(reportCode){
     html+='</tbody></table></div>';
   });
   html+='</div>';
-  showPrintable(html, t("ph.back_home"), function(){ show("homeView"); renderHome(); });
+  showPrintable(html, t("ph.back_home"), function(){ show("homeView"); renderHome(); }, function(){ return exportReportPdf(rep, its); });
   await wireReportDeleteActions(rep);
 }
 
-function showPrintable(html, backLabel, backFn){
+// Builds and downloads the real "PERMINTAAN PEMELIHARAAN" PDF for a whole report (all
+// departments filed together in one submission get their own section + table, same as the
+// on-screen preview). Filename: <no. permintaan> - <yymmdd> - <brand> - <outlet> - <dept1+dept2...>.pdf
+async function exportReportPdf(rep, its){
+  var byDept={}; its.forEach(function(it){ (byDept[it.department]=byDept[it.department]||[]).push(it); });
+  var depts=Object.keys(byDept);
+  // autoTable's per-cell drawing hook runs synchronously, so every photo it might need has to
+  // already be fetched and decoded before we call it.
+  var photoCache={};
+  for(var d=0; d<depts.length; d++){
+    var rows=byDept[depts[d]];
+    for(var i=0;i<rows.length;i++){
+      var firstPhoto=(rows[i].photos||[])[0];
+      if(firstPhoto && !photoCache[firstPhoto]) photoCache[firstPhoto]=await fetchImageForPdf(firstPhoto);
+    }
+  }
+  var doc=pdfNewDoc();
+  var y=18;
+  doc.setFont("helvetica","bold"); doc.setFontSize(16);
+  doc.text("PERMINTAAN PEMELIHARAAN", PDF_MARGIN, y);
+  y+=4; doc.setDrawColor(0); doc.setLineWidth(0.6); doc.line(PDF_MARGIN,y,PDF_PAGE_W-PDF_MARGIN,y); y+=7;
+  doc.setFontSize(10); doc.setFont("helvetica","normal");
+  pdfKv(doc,"Brand:",rep.brand,PDF_MARGIN,y); pdfKv(doc,"Outlet:",rep.outlet,110,y); y+=6;
+  pdfKv(doc,"No. Permintaan:",rep.id,PDF_MARGIN,y); pdfKv(doc,"Tanggal:",new Date(rep.submitted_at).toLocaleDateString(),110,y); y+=6;
+  pdfKv(doc,"Dikirim oleh:",rep.submitted_name,PDF_MARGIN,y); y+=9;
+
+  depts.forEach(function(dept){
+    y=pdfSectionBar(doc,dept,y);
+    var rows=byDept[dept];
+    var body=rows.map(function(it,idx){
+      return [idx+1, it.issue||"", "", it.proposal==="sparepart"?"Minta Suku Cadang":"Panggil Teknisi / Vendor", ""];
+    });
+    doc.autoTable({
+      startY:y,
+      head:[["No","Masalah","Foto / Video","Tindakan yang Diusulkan","Kode Item"]],
+      body:body,
+      styles:{fontSize:9,valign:"top",minCellHeight:24,cellPadding:2},
+      headStyles:{fillColor:[230,230,230],textColor:[20,20,20],fontStyle:"bold"},
+      columnStyles:{0:{cellWidth:8},2:{cellWidth:30},3:{cellWidth:36},4:{cellWidth:33}}, // column 1 (Masalah) intentionally left unset so autoTable auto-sizes it to soak up whatever width the fixed columns don't use — keeps totals exact and avoids a console overflow warning
+      margin:{left:PDF_MARGIN,right:PDF_MARGIN},
+      didDrawCell:function(data){
+        if(data.section!=="body") return;
+        var it=rows[data.row.index];
+        if(data.column.index===2){
+          var firstPhoto=(it.photos||[])[0];
+          var img=firstPhoto? photoCache[firstPhoto] : null;
+          var cx=data.cell.x+2, cy=data.cell.y+2;
+          if(img){
+            var box=fitBox(img.w,img.h,18,14);
+            doc.addImage(img.dataUrl,img.fmt,cx,cy,box.w,box.h);
+            cy+=box.h+2;
+          }
+          if(it.video_url){
+            doc.setTextColor(37,99,235); doc.setFontSize(8);
+            doc.textWithLink("▶ video", cx, cy+3, {url:it.video_url});
+            doc.setTextColor(0,0,0); doc.setFontSize(9);
+          }
+        }
+        if(data.column.index===4){
+          doc.setTextColor(37,99,235); doc.setFontSize(8.5);
+          doc.textWithLink(it.id, data.cell.x+2, data.cell.y+data.cell.height/2+1, {url:appItemUrl(it.id)});
+          doc.setTextColor(0,0,0); doc.setFontSize(9);
+        }
+      }
+    });
+    y=doc.lastAutoTable.finalY+8;
+  });
+
+  var filename=[sanitizeFilename(rep.id), yymmdd(rep.submitted_at), sanitizeFilename(rep.brand), sanitizeFilename(rep.outlet), sanitizeFilename(depts.join("+"))].join(" - ")+".pdf";
+  triggerPdfDownload(doc, filename);
+}
+
+function showPrintable(html, backLabel, backFn, onExport){
   ["loginView","setpwView","homeView","newReportView","recallListView","itemDetailView","settingsView","requestsView","notifyView"]
     .forEach(function(x){$(x).classList.add("hide");});
   var old=document.getElementById("printHost"); if(old) old.remove();
   var host=document.createElement("section"); host.id="printHost";
   document.querySelector(".wrap").appendChild(host);
   window.scrollTo(0,0);
-  host.innerHTML='<div class="noprint card"><div class="btnrow2"><button class="btn preview" id="phPrint">'+t("ph.save_print")+'</button><button class="btn back" id="phBack">'+backLabel+'</button></div><div id="phExtra"></div></div>'+html;
-  host.querySelector("#phPrint").addEventListener("click", function(){ window.print(); });
+  host.innerHTML='<div class="noprint card"><div class="btnrow2"><button class="btn preview" id="phPrint">'+t("ph.export_pdf")+'</button><button class="btn back" id="phBack">'+backLabel+'</button></div><div id="phExtra"></div></div>'+html;
+  host.querySelector("#phPrint").addEventListener("click", async function(){
+    var btn=host.querySelector("#phPrint"); var orig=btn.textContent;
+    btn.disabled=true; btn.textContent=t("ph.exporting");
+    try{ await onExport(); }
+    catch(e){ alert(t("ph.export_failed")+(e.message||e)); }
+    finally{ btn.disabled=false; btn.textContent=orig; }
+  });
   host.querySelector("#phBack").addEventListener("click", function(){ host.remove(); backFn(); });
 }
 
@@ -1852,7 +2050,10 @@ function renderRecallList(rows){
 /* ---------------- item detail ---------------- */
 async function openItemDetail(itemId){
   var r=await sb.from("maint_items").select("*").eq("id",itemId).limit(1);
-  if(!r.data || !r.data.length) return;
+  // Explicit `false` (not just undefined) so callers like the ?item= deep-link handler in
+  // afterLogin() can tell "not found / no access" apart from a normal successful open and
+  // fall back to the home screen instead of leaving the app stuck on a blank item view.
+  if(!r.data || !r.data.length) return false;
   currentItem=r.data[0];
   var loc=locations.find(function(l){return l.id===currentItem.location_id;});
   $("idTitle").textContent=currentItem.id;
@@ -2141,7 +2342,7 @@ $("btnIdPrint").addEventListener("click", function(){
   });
   html+=approvalSignatureBlockHtml(it);
   html+='</div></div>';
-  showPrintable(html, t("ph.back_item"), function(){ openItemDetail(it.id); });
+  showPrintable(html, t("ph.back_item"), function(){ openItemDetail(it.id); }, function(){ return exportProgressPdf(it); });
 });
 // Department-SPECIFIC approver slots (Barista/Kitchen Leader/Pastry Team-Leader — each maps
 // 1:1 onto exactly one department) print as that item's own department code instead of the
@@ -2188,6 +2389,141 @@ function progressPrintBlockHtml(p){
     if(p.resolution==="unresolved") html+='<div><b>Alasan:</b> '+escapeHtml(p.reason||"")+'</div>';
   }
   return html;
+}
+
+// Builds and downloads the real "Laporan progres" PDF for one item: initial report + every
+// progress entry logged so far + the approval/signature block, matching the on-screen preview.
+// Filename: <no. laporan> - <kode item> - Progress<N> - Done|Unfinished.pdf, where N is the
+// number of progress entries included (i.e. as-of-this-export progress count).
+async function exportProgressPdf(it){
+  var urls=(it.photos||[]).slice();
+  if(it.broken_part && it.broken_part.photo) urls.push(it.broken_part.photo);
+  (it.progress||[]).forEach(function(p){
+    var list = p.type==="tech_visit"
+      ? [p.tech_photo,p.finding_photo,p.after_photo,p.broken_photo,p.tech_form_photo]
+      : [p.parts_photo,p.after_photo];
+    list.filter(Boolean).forEach(function(u){ urls.push(u); });
+  });
+  var cache={};
+  for(var i=0;i<urls.length;i++){ if(urls[i] && !cache[urls[i]]) cache[urls[i]]=await fetchImageForPdf(urls[i]); }
+
+  var doc=pdfNewDoc();
+  var y=18;
+  var statusLabel = it.status==="resolved" ? "SELESAI" : "BELUM SELESAI";
+  doc.setFont("helvetica","bold"); doc.setFontSize(15);
+  doc.text("Laporan progres untuk "+it.id, PDF_MARGIN, y);
+  doc.setFontSize(10);
+  doc.setTextColor.apply(doc, it.status==="resolved" ? [22,120,60] : [180,60,20]);
+  doc.text(statusLabel, PDF_PAGE_W-PDF_MARGIN-doc.getTextWidth(statusLabel), y);
+  doc.setTextColor(0,0,0);
+  y+=4; doc.setDrawColor(0); doc.setLineWidth(0.6); doc.line(PDF_MARGIN,y,PDF_PAGE_W-PDF_MARGIN,y); y+=7;
+
+  doc.setFontSize(10); doc.setFont("helvetica","normal");
+  pdfKv(doc,"Brand:",it.brand,PDF_MARGIN,y); pdfKv(doc,"Outlet:",it.outlet,110,y); y+=6;
+  pdfKv(doc,"No. Laporan:",it.report_id,PDF_MARGIN,y); pdfKv(doc,"Tanggal:",new Date(it.created_at).toLocaleDateString(),110,y); y+=6;
+  pdfKv(doc,"Dikirim oleh:",it.created_name,PDF_MARGIN,y); pdfKv(doc,"Departemen:",it.department,110,y); y+=9;
+
+  y=pdfSectionBar(doc,"Laporan Awal",y);
+  y=pdfDrawFirstReportBlock(doc,it,cache,y);
+
+  (it.progress||[]).forEach(function(p,i){
+    y=pdfSectionBar(doc,"Progres "+(i+1),y);
+    doc.setFontSize(9); doc.setFont("helvetica","normal");
+    y=pdfEnsureSpace(doc,y,6);
+    doc.text("No. Laporan: "+it.id+"-P"+(i+1)+"   Tanggal: "+new Date(p.at).toLocaleString()+"   Dikirim oleh: "+p.by_name, PDF_MARGIN, y);
+    y+=6;
+    y=pdfDrawProgressBlock(doc,p,cache,y);
+  });
+
+  y=pdfSectionBar(doc,"Persetujuan",y);
+  y=pdfDrawApprovalBlock(doc,it,y);
+
+  var lastN=(it.progress||[]).length;
+  var filename=[sanitizeFilename(it.report_id), sanitizeFilename(it.id), "Progress"+lastN, (it.status==="resolved"?"Done":"Unfinished")].join(" - ")+".pdf";
+  triggerPdfDownload(doc, filename);
+}
+function pdfDrawFirstReportBlock(doc,it,cache,y){
+  doc.setFontSize(9); doc.setFont("helvetica","normal");
+  y=pdfEnsureSpace(doc,y,8);
+  doc.text("No. Permintaan: "+it.id+"   Tanggal: "+new Date(it.created_at).toLocaleString()+"   Dikirim oleh: "+it.created_name, PDF_MARGIN, y);
+  y+=6;
+  y=pdfDrawImageRow(doc,cache,it.photos||[],PDF_MARGIN,y,PDF_PAGE_W-2*PDF_MARGIN);
+  if(it.video_url){
+    y=pdfEnsureSpace(doc,y,6);
+    doc.setTextColor(37,99,235); doc.textWithLink("▶ video", PDF_MARGIN, y, {url:it.video_url}); doc.setTextColor(0,0,0);
+    y+=6;
+  }
+  y=pdfEnsureSpace(doc,y,7);
+  doc.setFont("helvetica","bold"); doc.text("Temuan:",PDF_MARGIN,y); doc.setFont("helvetica","normal");
+  y=pdfDrawWrapped(doc, it.issue||"", PDF_MARGIN+18, y, PDF_PAGE_W-2*PDF_MARGIN-18);
+  y+=2;
+  y=pdfEnsureSpace(doc,y,7);
+  doc.setFont("helvetica","bold"); doc.text("Tindakan yang diusulkan:",PDF_MARGIN,y); doc.setFont("helvetica","normal");
+  doc.text(it.proposal==="sparepart"?"Minta Suku Cadang":"Panggil Teknisi / Vendor", PDF_MARGIN+52, y);
+  y+=7;
+  if(it.broken_part){
+    y=pdfEnsureSpace(doc,y,7);
+    doc.setFont("helvetica","bold"); doc.text("Komponen rusak:",PDF_MARGIN,y); doc.setFont("helvetica","normal");
+    doc.text((it.broken_part.name||"")+(it.broken_part.serial?" (SN "+it.broken_part.serial+")":""), PDF_MARGIN+34, y);
+    y+=6;
+    if(it.broken_part.photo) y=pdfDrawImageRow(doc,cache,[it.broken_part.photo],PDF_MARGIN,y,PDF_PAGE_W-2*PDF_MARGIN);
+  }
+  return y+4;
+}
+function pdfDrawProgressBlock(doc,p,cache,y){
+  var imgs = p.type==="tech_visit"
+    ? [p.tech_photo,p.finding_photo,p.after_photo,p.broken_photo,p.tech_form_photo]
+    : [p.parts_photo,p.after_photo];
+  y=pdfDrawImageRow(doc,cache,imgs,PDF_MARGIN,y,PDF_PAGE_W-2*PDF_MARGIN);
+  var resLabel=p.resolution==="resolved"?"selesai":"belum selesai";
+  doc.setFontSize(9); doc.setFont("helvetica","normal");
+  y=pdfEnsureSpace(doc,y,6);
+  doc.text((p.type==="tech_visit"?"Kunjungan teknisi":"Perbaikan oleh staf")+" — penyelesaian: "+resLabel, PDF_MARGIN, y);
+  y+=6;
+  if(p.type==="tech_visit"){
+    y=pdfEnsureSpace(doc,y,7);
+    doc.setFont("helvetica","bold"); doc.text("Temuan:",PDF_MARGIN,y); doc.setFont("helvetica","normal");
+    y=pdfDrawWrapped(doc, p.finding_text||"", PDF_MARGIN+18, y, PDF_PAGE_W-2*PDF_MARGIN-18);
+    if(p.resolution==="unresolved"){
+      y=pdfEnsureSpace(doc,y,7);
+      doc.setFont("helvetica","bold"); doc.text("Langkah selanjutnya:",PDF_MARGIN,y); doc.setFont("helvetica","normal");
+      var ns = p.next_step==="__other__" ? (p.next_step_other||"") : (p.next_step||"");
+      y=pdfDrawWrapped(doc, ns, PDF_MARGIN+42, y, PDF_PAGE_W-2*PDF_MARGIN-42);
+      if(p.broken_name){
+        y=pdfEnsureSpace(doc,y,6);
+        doc.setFont("helvetica","bold"); doc.text("Komponen rusak:",PDF_MARGIN,y); doc.setFont("helvetica","normal");
+        doc.text(p.broken_name+(p.broken_serial?" (SN "+p.broken_serial+")":""), PDF_MARGIN+34, y);
+        y+=6;
+      }
+    }
+  } else {
+    if(p.resolution==="unresolved"){
+      y=pdfEnsureSpace(doc,y,7);
+      doc.setFont("helvetica","bold"); doc.text("Alasan:",PDF_MARGIN,y); doc.setFont("helvetica","normal");
+      y=pdfDrawWrapped(doc, p.reason||"", PDF_MARGIN+16, y, PDF_PAGE_W-2*PDF_MARGIN-16);
+    }
+  }
+  return y+4;
+}
+function pdfDrawApprovalBlock(doc,it,y){
+  var apps=it.approvals||[];
+  if(!apps.length) return y;
+  var loc=locations.find(function(l){ return l.id===it.location_id; });
+  doc.setFontSize(9.5);
+  apps.forEach(function(a){
+    y=pdfEnsureSpace(doc,y,8);
+    var label=approvalLabelFor(a.role,it,loc);
+    doc.setFont("helvetica","bold"); doc.text(label,PDF_MARGIN,y);
+    doc.setFont("helvetica","normal");
+    var status = a.confirmed ? (a.by_name||"")+"  "+new Date(a.at).toLocaleString() : "Menunggu";
+    var w=doc.getTextWidth(status);
+    doc.text(status, PDF_PAGE_W-PDF_MARGIN-w, y);
+    doc.setDrawColor(200,200,200); doc.setLineWidth(0.2);
+    doc.line(PDF_MARGIN,y+2,PDF_PAGE_W-PDF_MARGIN,y+2);
+    doc.setDrawColor(0);
+    y+=8;
+  });
+  return y;
 }
 
 /* ---------------- team & account levels (shared profiles table — same as Store Visit) ---------------- */
