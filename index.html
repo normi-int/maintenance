@@ -556,7 +556,7 @@
    All maint_* tables are new and separate. See Maintenance_Project_Plan.md
    and Maintenance_Project_Schema.sql for the full spec this implements.
 ===================================================================== */
-var APP_VERSION="v2.8"; // bump this with each build so it's visible which version is deployed (shown in the footer, bottom of the page)
+var APP_VERSION="v2.9"; // bump this with each build so it's visible which version is deployed (shown in the footer, bottom of the page)
 var BUILTIN={url:"https://clprrwuizmlsddxmlvrh.supabase.co", key:"sb_publishable_bY46Emu9VVzYZEhpjxnr2A_9_ranhHt"};
 var sb=null;
 var $=function(id){return document.getElementById(id);};
@@ -1843,9 +1843,13 @@ async function exportReportPdf(rep, its){
       startY:y,
       head:[["No","Masalah","Foto / Video","Tindakan yang Diusulkan","Kode Item"]],
       body:body,
-      styles:{fontSize:9,valign:"top",minCellHeight:24,cellPadding:2},
-      headStyles:{fillColor:[230,230,230],textColor:[20,20,20],fontStyle:"bold"},
-      columnStyles:{0:{cellWidth:8},2:{cellWidth:30},3:{cellWidth:36},4:{cellWidth:33}}, // column 1 (Masalah) intentionally left unset so autoTable auto-sizes it to soak up whatever width the fixed columns don't use — keeps totals exact and avoids a console overflow warning
+      styles:{fontSize:9,valign:"top",cellPadding:2},
+      // Only body rows need to be tall enough for a photo thumbnail — applying that same
+      // height to the header row was making the grey header band oversized. headStyles
+      // overrides get their own (default/auto) height instead.
+      bodyStyles:{minCellHeight:24},
+      headStyles:{fillColor:[230,230,230],textColor:[20,20,20],fontStyle:"bold",minCellHeight:0},
+      columnStyles:{0:{cellWidth:8},2:{cellWidth:28},3:{cellWidth:34},4:{cellWidth:40}}, // column 1 (Masalah) intentionally left unset so autoTable auto-sizes it to soak up whatever width the fixed columns don't use — keeps totals exact and avoids a console overflow warning
       margin:{left:PDF_MARGIN,right:PDF_MARGIN},
       didDrawCell:function(data){
         if(data.section!=="body") return;
@@ -1860,14 +1864,33 @@ async function exportReportPdf(rep, its){
             cy+=box.h+2;
           }
           if(it.video_url){
+            // Standard PDF fonts (Helvetica etc.) only support the WinAnsi character set, so
+            // the ▶ symbol used on-screen renders as garbage glyphs here — plain text + a
+            // manual underline instead, so it still visually reads as a link.
             doc.setTextColor(37,99,235); doc.setFontSize(8);
-            doc.textWithLink("▶ video", cx, cy+3, {url:it.video_url});
-            doc.setTextColor(0,0,0); doc.setFontSize(9);
+            var vlabel="Video";
+            doc.text(vlabel, cx, cy+3);
+            doc.setLineWidth(0.15); doc.setDrawColor(37,99,235);
+            doc.line(cx, cy+3.6, cx+doc.getTextWidth(vlabel), cy+3.6);
+            doc.link(cx-1, cy-1, doc.getTextWidth(vlabel)+2, 6, {url:it.video_url});
+            doc.setDrawColor(0); doc.setTextColor(0,0,0); doc.setFontSize(9);
           }
         }
         if(data.column.index===4){
-          doc.setTextColor(37,99,235); doc.setFontSize(8.5);
-          doc.textWithLink(it.id, data.cell.x+2, data.cell.y+data.cell.height/2+1, {url:appItemUrl(it.id)});
+          // Item codes (e.g. TEKKMBOH-260726-001) are too long for a single line at a
+          // readable size, so wrap them and make the whole cell clickable (not just one line).
+          doc.setTextColor(37,99,235); doc.setFontSize(7.5);
+          var maxW=data.cell.width-4;
+          var lines=doc.splitTextToSize(it.id, maxW);
+          var ty=data.cell.y+data.cell.height/2-(lines.length-1)*1.6+1;
+          lines.forEach(function(line){
+            doc.text(line, data.cell.x+2, ty);
+            doc.setLineWidth(0.15); doc.setDrawColor(37,99,235);
+            doc.line(data.cell.x+2, ty+0.8, data.cell.x+2+doc.getTextWidth(line), ty+0.8);
+            ty+=3.4;
+          });
+          doc.setDrawColor(0);
+          doc.link(data.cell.x, data.cell.y, data.cell.width, data.cell.height, {url:appItemUrl(it.id)});
           doc.setTextColor(0,0,0); doc.setFontSize(9);
         }
       }
@@ -2450,7 +2473,13 @@ function pdfDrawFirstReportBlock(doc,it,cache,y){
   y=pdfDrawImageRow(doc,cache,it.photos||[],PDF_MARGIN,y,PDF_PAGE_W-2*PDF_MARGIN);
   if(it.video_url){
     y=pdfEnsureSpace(doc,y,6);
-    doc.setTextColor(37,99,235); doc.textWithLink("▶ video", PDF_MARGIN, y, {url:it.video_url}); doc.setTextColor(0,0,0);
+    // Plain text, not the ▶ symbol — standard PDF fonts don't cover it and it renders as
+    // garbled glyphs (see matching note in exportReportPdf's didDrawCell above).
+    doc.setTextColor(37,99,235);
+    doc.textWithLink("Video", PDF_MARGIN, y, {url:it.video_url});
+    doc.setLineWidth(0.15); doc.setDrawColor(37,99,235);
+    doc.line(PDF_MARGIN, y+0.8, PDF_MARGIN+doc.getTextWidth("Video"), y+0.8);
+    doc.setDrawColor(0); doc.setTextColor(0,0,0);
     y+=6;
   }
   y=pdfEnsureSpace(doc,y,7);
