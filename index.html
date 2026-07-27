@@ -556,7 +556,7 @@
    All maint_* tables are new and separate. See Maintenance_Project_Plan.md
    and Maintenance_Project_Schema.sql for the full spec this implements.
 ===================================================================== */
-var APP_VERSION="v2.7"; // bump this with each build so it's visible which version is deployed (shown in the footer, bottom of the page)
+var APP_VERSION="v2.8"; // bump this with each build so it's visible which version is deployed (shown in the footer, bottom of the page)
 var BUILTIN={url:"https://clprrwuizmlsddxmlvrh.supabase.co", key:"sb_publishable_bY46Emu9VVzYZEhpjxnr2A_9_ranhHt"};
 var sb=null;
 var $=function(id){return document.getElementById(id);};
@@ -604,7 +604,7 @@ id: {
   "home.choose_brand":"— pilih brand —", "home.choose_city":"— pilih kota —", "home.choose_outlet":"— pilih outlet —",
   "home.stale_note":" ⚠ sudah tidak ada di daftar Store Visit",
   "home.uncoded_hint":"⚠ {n} outlet di Store Visit belum memiliki kode pemeliharaan — tambahkan di Pengaturan.",
-  "home.signed_in_as":"Masuk sebagai ", "home.requests_banner":"🔔 Permintaan hapus tertunda:", "home.overdue_banner":"⚠ Laporan terbuka 30+ hari:", "home.review":"tinjau",
+  "home.signed_in_as":"Masuk sebagai ", "home.id_prefix":" | ID: ", "home.requests_banner":"🔔 Permintaan hapus tertunda:", "home.overdue_banner":"⚠ Laporan terbuka 30+ hari:", "home.review":"tinjau",
   "home.status_open":"terbuka", "home.status_finished":"selesai",
   "nr.new_finding":"Temuan Baru", "nr.department":"Departemen (pilih 1)", "nr.no_dept_for_you":"Anda tidak memiliki departemen yang dapat dilaporkan di lokasi ini.", "nr.issue":"Masalah", "nr.issue_ph":"Jelaskan apa yang Anda temukan...",
   "nr.photos":"Foto (maks. 3)", "nr.add_photo":"📷 Tambah foto (kamera atau galeri)",
@@ -730,7 +730,7 @@ en: {
   "home.choose_brand":"— choose brand —", "home.choose_city":"— choose city —", "home.choose_outlet":"— choose outlet —",
   "home.stale_note":" ⚠ not in Store Visit's list anymore",
   "home.uncoded_hint":"⚠ {n} outlet(s) in Store Visit have no maintenance code yet — add them in Settings.",
-  "home.signed_in_as":"Signed in as ", "home.requests_banner":"🔔 Delete requests pending:", "home.overdue_banner":"⚠ Reports open 30+ days:", "home.review":"review",
+  "home.signed_in_as":"Signed in as ", "home.id_prefix":" | ID: ", "home.requests_banner":"🔔 Delete requests pending:", "home.overdue_banner":"⚠ Reports open 30+ days:", "home.review":"review",
   "home.status_open":"open", "home.status_finished":"finished",
   "nr.new_finding":"New Finding", "nr.department":"Department (choose 1)", "nr.no_dept_for_you":"You don't have a department to report at this location.", "nr.issue":"Issue", "nr.issue_ph":"Describe what you found...",
   "nr.photos":"Photos (up to 3)", "nr.add_photo":"📷 Add photo (camera or gallery)",
@@ -1215,7 +1215,7 @@ function selectedHomeLocation(){
 }
 
 function renderHome(){
-  $("authBarText").textContent=t("home.signed_in_as")+me.name+" ("+me.role+(myRoles.length?", "+myRoles.map(function(r){return GRANULAR_LABEL[r.role]||ROLE_LABEL[r.role]||r.role;}).join(", "):"")+(isViewOnly()?", "+t("home.view_only_tag"):"")+")";
+  $("authBarText").textContent=t("home.signed_in_as")+me.name+t("home.id_prefix")+(me.username||me.id);
   fillHomeBrands();
   $("btnNewReport").classList.toggle("hide", isViewOnly());
   if(isStaff() && uncodedOutlets.length){
