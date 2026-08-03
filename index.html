@@ -306,7 +306,10 @@
     <div class="card">
       <div class="sec-head"><h2 class="section" style="margin:0;border:none" data-i18n="settings.title">Settings</h2><button class="btn back small" id="btnSetBack" data-i18n="settings.back">← Back</button></div>
       <h2 class="section" style="margin-top:10px" data-i18n="settings.team_title">Team &amp; account levels</h2>
-      <div class="row"><input type="text" id="teamSearch" class="n" data-i18n-ph="settings.search_ph" placeholder="Search by name, email, or username..."></div>
+      <div class="row" style="display:flex;gap:8px;flex-wrap:wrap">
+        <input type="text" id="teamSearch" class="n" style="flex:1;min-width:220px" data-i18n-ph="settings.search_ph" placeholder="Search by name, email, or username...">
+        <select id="teamStoreFilter" class="n" style="max-width:240px"></select>
+      </div>
       <div id="teamList" class="teamtab-scroll" style="overflow-x:auto"></div>
       <p class="muted" id="teamSearchEmpty" style="display:none;font-size:13px" data-i18n="settings.search_no_match">No one matches your search.</p>
       <div class="msg" id="teamMsg"></div>
@@ -660,6 +663,7 @@ id: {
   "del.title":"Ajukan penghapusan", "del.reason":"Alasan", "del.send":"Kirim permintaan", "del.err_reason":"Berikan alasan.", "del.err_failed":"Gagal: ",
   "settings.title":"Pengaturan", "settings.back":"← Kembali", "settings.team_title":"Tim & Tingkat Akun", "settings.outlets_title":"Outlet",
   "settings.search_ph":"Cari berdasarkan nama, email, atau username...", "settings.search_no_match":"Tidak ada yang cocok dengan pencarian Anda.",
+  "settings.filter_store_all":"Semua outlet", "settings.filter_store_ck":"Dapur Pusat — ",
   "settings.add_brand":"Tambah brand", "settings.add_brand_ph":"mis. Devon", "settings.add":"Tambah",
   "settings.ck_title":"Dapur Pusat", "settings.ck_desc":"Bukan outlet ritel, jadi tidak termasuk dalam daftar Store Visit — hanya dikelola di sini.",
   "settings.add_ck":"Tambah Dapur Pusat", "settings.ck_name_ph":"Nama, mis. Dapur Pusat 3", "settings.city_ph":"Kota", "settings.ck_code_ph":"Kode, mis. GW21",
@@ -786,6 +790,7 @@ en: {
   "del.title":"Request deletion", "del.reason":"Reason", "del.send":"Send request", "del.err_reason":"Give a reason.", "del.err_failed":"Failed: ",
   "settings.title":"Settings", "settings.back":"← Back", "settings.team_title":"Team & account levels", "settings.outlets_title":"Outlets",
   "settings.search_ph":"Search by name, email, or username...", "settings.search_no_match":"No one matches your search.",
+  "settings.filter_store_all":"All outlets", "settings.filter_store_ck":"Central Kitchen — ",
   "settings.add_brand":"Add a brand", "settings.add_brand_ph":"e.g. Devon", "settings.add":"Add",
   "settings.ck_title":"Central Kitchens", "settings.ck_desc":"Not retail outlets, so they're not part of Store Visit's list — managed only here.",
   "settings.add_ck":"Add a Central Kitchen", "settings.ck_name_ph":"Name, e.g. Central Kitchen 3", "settings.city_ph":"City", "settings.ck_code_ph":"Code, e.g. GW21",
@@ -2557,20 +2562,44 @@ function pdfDrawApprovalBlock(doc,it,y){
 
 /* ---------------- team & account levels (shared profiles table — same as Store Visit) ---------------- */
 var allMembers=[];
+function fillTeamStoreFilter(){
+  var sel=$("teamStoreFilter"); if(!sel) return;
+  var prev=sel.value;
+  var opts=locations.filter(function(l){ return l.active!==false; })
+    .slice()
+    .sort(function(a,b){
+      var ka=(a.brand||"")+"|"+(a.city||"")+"|"+(a.name||"");
+      var kb=(b.brand||"")+"|"+(b.city||"")+"|"+(b.name||"");
+      return ka.localeCompare(kb);
+    });
+  var html="<option value=''>"+t("settings.filter_store_all")+"</option>";
+  opts.forEach(function(l){
+    var label = l.type==="CENTRAL_KITCHEN"
+      ? t("settings.filter_store_ck")+(l.name||l.city)
+      : (l.brand||"")+" — "+(l.city||"")+" — "+(l.name||"");
+    html+="<option value='"+l.id+"'>"+escapeHtml(label)+"</option>";
+  });
+  sel.innerHTML=html;
+  if(prev && opts.some(function(l){return l.id===prev;})) sel.value=prev;
+}
 function filterTeamRows(){
   var input=$("teamSearch"); if(!input) return;
   var q=input.value.trim().toLowerCase();
+  var storeSel=$("teamStoreFilter"); var storeVal=storeSel? storeSel.value : "";
   var box=$("teamList"); var tbody=box && box.querySelector("tbody");
   if(!tbody){ var empty=$("teamSearchEmpty"); if(empty) empty.style.display="none"; return; }
   var trs=tbody.querySelectorAll("tr");
   var visibleCount=0;
   trs.forEach(function(tr){
-    var match=!q || (tr.dataset.search||"").indexOf(q)!==-1;
+    var textMatch=!q || (tr.dataset.search||"").indexOf(q)!==-1;
+    var locids=tr.dataset.locids||"";
+    var storeMatch=!storeVal || locids==="ALL" || (locids && (","+locids+",").indexOf(","+storeVal+",")!==-1);
+    var match=textMatch && storeMatch;
     tr.style.display=match? "":"none";
     if(match) visibleCount++;
   });
   var emptyEl=$("teamSearchEmpty");
-  if(emptyEl) emptyEl.style.display=(q && visibleCount===0)? "":"none";
+  if(emptyEl) emptyEl.style.display=((q||storeVal) && visibleCount===0)? "":"none";
 }
 async function renderTeam(){
   var box=$("teamList"), msg=$("teamMsg"); msg.textContent=""; box.innerHTML=t("common.please_wait");
@@ -2586,6 +2615,8 @@ async function renderTeam(){
     var isMe=(me && p.id===me.id);
     var tr=document.createElement("tr");
     tr.dataset.search=((p.name||"")+" "+(p.email||"")+" "+(p.username||"")).toLowerCase();
+    tr.dataset.uid=p.id;
+    tr.dataset.locids = p.role==="member" ? "" : "ALL"; // members get real ids filled in below once fetched; owner/admin always match any store filter
     var tdName=document.createElement("td");
     var ni=document.createElement("input"); ni.type="text"; ni.className="tcell-in"; ni.value=p.name||""; tdName.appendChild(ni);
     if(isMe){ var tag=document.createElement("div"); tag.className="muted"; tag.style.fontSize="11px"; tag.textContent=t("settings.you"); tdName.appendChild(tag); }
@@ -2639,7 +2670,8 @@ async function renderTeam(){
   });
   tbl.appendChild(tb);
   box.innerHTML=""; box.appendChild(tbl);
-  filterTeamRows(); // re-apply whatever's currently typed in the search box after a rebuild
+  fillTeamStoreFilter();
+  filterTeamRows(); // re-apply whatever's currently typed in the search box / store filter after a rebuild
   rows.forEach(async function(p){
     var el=$("maSum_"+p.id); if(!el) return;
     var parts=[];
@@ -2647,6 +2679,7 @@ async function renderTeam(){
       var acc=await sb.from("maint_access").select("location_ids,view_only").eq("user_id",p.id).limit(1);
       var accRow=(acc.data&&acc.data.length)?acc.data[0]:null;
       var ids=accRow?(accRow.location_ids||[]):[];
+      var trEl=el.closest("tr"); if(trEl){ trEl.dataset.locids=ids.join(","); filterTeamRows(); }
       var rr=await sb.from("maint_roles").select("role").eq("user_id",p.id);
       var titles=(rr.data||[]).map(function(x){return GRANULAR_LABEL[x.role]||ROLE_LABEL[x.role]||x.role;}).filter(function(v,i,a){return a.indexOf(v)===i;});
       parts.push(ids.length+t("settings.locations_suffix"));
@@ -3148,6 +3181,7 @@ $("notifyLocAll").addEventListener("change", function(){
   recomputeNotifyLocTreeChecks();
 });
 $("teamSearch").addEventListener("input", filterTeamRows);
+$("teamStoreFilter").addEventListener("change", filterTeamRows);
 // Reads one member's saved notification subscription — used by openMemberAccessModal()
 // to pre-fill the Notifications section inside the (now per-member) access modal.
 async function loadNotifyRuleFor(uid){
