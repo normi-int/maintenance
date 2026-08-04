@@ -572,7 +572,7 @@
    All maint_* tables are new and separate. See Maintenance_Project_Plan.md
    and Maintenance_Project_Schema.sql for the full spec this implements.
 ===================================================================== */
-var APP_VERSION="v3.3"; // bump this with each build so it's visible which version is deployed (shown in the footer, bottom of the page)
+var APP_VERSION="v3.4"; // bump this with each build so it's visible which version is deployed (shown in the footer, bottom of the page)
 var BUILTIN={url:"https://clprrwuizmlsddxmlvrh.supabase.co", key:"sb_publishable_bY46Emu9VVzYZEhpjxnr2A_9_ranhHt"};
 var sb=null;
 var $=function(id){return document.getElementById(id);};
@@ -1652,8 +1652,9 @@ var WA_NEXT_STEP_HELP={
   not_repairable:"mengganti barang yang sudah tidak dapat diperbaiki",
   needs_reinspection:"memeriksa ulang kondisi di lapangan"
 };
-// Message for a brand-new report: greeting + report no. + outlet/divisi + list of item codes
-// + the requested action (call technician / send sparepart, or both if the report mixes both).
+// Message for a brand-new report: greeting + report no. + outlet/divisi + list of item codes,
+// each followed by its issue description in parentheses, + the requested action (call
+// technician / send sparepart, or both if the report mixes both).
 function buildWaReportMessage(rep, its){
   var depts=[]; its.forEach(function(it){ if(depts.indexOf(it.department)<0) depts.push(it.department); });
   var actions=[]; its.forEach(function(it){
@@ -1662,7 +1663,7 @@ function buildWaReportMessage(rep, its){
   });
   var lines=["Selamat "+waGreeting()+",","Berikut laporan no. "+rep.id,"Outlet: "+rep.brand+" "+rep.outlet,
     "Divisi: "+depts.join("/"),"","dengan item kerusakan nomor",""];
-  its.forEach(function(it){ lines.push("- "+it.id); });
+  its.forEach(function(it){ lines.push("- "+it.id); if(it.issue){ lines.push("("+it.issue+")"); } });
   lines.push("", "Adapun mohon bantuannya untuk "+(actions.join(" dan ")||"menindaklanjuti laporan ini"),
     "", "Detail bisa dilihat di laporan terlampir.", "", "Terima kasih.");
   return lines.join("\n");
