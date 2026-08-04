@@ -437,22 +437,35 @@
           <div class="row"><label data-i18n="pg.next_step">Next step</label>
             <select id="pgNextStep">
               <option value="" data-i18n="common.choose">— choose —</option>
-              <option data-i18n="pg.order_part">Order replacement part</option>
-              <option data-i18n="pg.schedule_cleaning">Schedule cleaning</option>
-              <option data-i18n="pg.not_repairable">Not repairable — needs replacement</option>
-              <option data-i18n="pg.needs_reinspection">Needs re-inspection</option>
+              <option value="order_part" data-i18n="pg.order_part">Order replacement part</option>
+              <option value="schedule_cleaning" data-i18n="pg.schedule_cleaning">Schedule cleaning</option>
+              <option value="not_repairable" data-i18n="pg.not_repairable">Not repairable</option>
+              <option value="needs_reinspection" data-i18n="pg.needs_reinspection">Needs re-inspection</option>
               <option value="__other__" data-i18n="pg.other">Other</option>
             </select>
           </div>
           <div class="row hide" id="pgNextStepOtherWrap"><label data-i18n="pg.specify">Specify</label><input type="text" id="pgNextStepOther"></div>
-          <div class="row"><label data-i18n="pg.broken_photo">Broken part photo</label>
-            <label class="add-photo-lbl" for="pgBrokenPhoto" data-i18n="pg.add_photo">📷 Add photo</label>
-            <input type="file" id="pgBrokenPhoto" accept="image/*" class="hide">
-            <div class="thumbrow" id="pgBrokenPhotoPrev"></div>
+          <div id="pgOrderPartFields" class="hide">
+            <div class="row"><label data-i18n="pg.broken_photo">Sparepart photo</label>
+              <label class="add-photo-lbl" for="pgBrokenPhoto" data-i18n="pg.add_photo">📷 Add photo</label>
+              <input type="file" id="pgBrokenPhoto" accept="image/*" class="hide">
+              <div class="thumbrow" id="pgBrokenPhotoPrev"></div>
+            </div>
+            <div class="two">
+              <div class="row"><label data-i18n="pg.part_name">Part name</label><input type="text" id="pgBrokenName"></div>
+              <div class="row"><label><span data-i18n="nr.serial">Serial number</span> <span class="muted" style="font-weight:400" data-i18n="common.optional">(optional)</span></label><input type="text" id="pgBrokenSerial"></div>
+            </div>
           </div>
-          <div class="two">
-            <div class="row"><label data-i18n="pg.part_name">Part name</label><input type="text" id="pgBrokenName"></div>
-            <div class="row"><label><span data-i18n="nr.serial">Serial number</span> <span class="muted" style="font-weight:400" data-i18n="common.optional">(optional)</span></label><input type="text" id="pgBrokenSerial"></div>
+          <div id="pgNotRepairableFields" class="hide">
+            <div class="row"><label data-i18n="pg.not_repairable_reason">Reason</label><textarea id="pgNotRepairableReason"></textarea></div>
+            <div class="row"><label><span data-i18n="pg.not_repairable_photo">Photo of the broken item</span> <span class="muted" style="font-weight:400" data-i18n="common.optional">(optional)</span></label>
+              <label class="add-photo-lbl" for="pgNotRepairablePhoto" data-i18n="pg.add_photo">📷 Add photo</label>
+              <input type="file" id="pgNotRepairablePhoto" accept="image/*" class="hide">
+              <div class="thumbrow" id="pgNotRepairablePhotoPrev"></div>
+            </div>
+          </div>
+          <div id="pgReinspectFields" class="hide">
+            <div class="row"><label data-i18n="pg.reinspect_reason">Reason</label><textarea id="pgReinspectReason"></textarea></div>
           </div>
         </div>
         <div id="pgTechResolved" class="hide">
@@ -559,7 +572,7 @@
    All maint_* tables are new and separate. See Maintenance_Project_Plan.md
    and Maintenance_Project_Schema.sql for the full spec this implements.
 ===================================================================== */
-var APP_VERSION="v2.9"; // bump this with each build so it's visible which version is deployed (shown in the footer, bottom of the page)
+var APP_VERSION="v3.0"; // bump this with each build so it's visible which version is deployed (shown in the footer, bottom of the page)
 var BUILTIN={url:"https://clprrwuizmlsddxmlvrh.supabase.co", key:"sb_publishable_bY46Emu9VVzYZEhpjxnr2A_9_ranhHt"};
 var sb=null;
 var $=function(id){return document.getElementById(id);};
@@ -637,20 +650,22 @@ id: {
   "id.request_no_label":"No. Permintaan:", "id.date_label":"Tanggal:", "id.submitted_by_label":"Dikirim oleh:",
   "id.broken_part_label":"Komponen rusak:", "id.sn_label":" (SN ", "id.findings_label":"Temuan:", "id.proposed_action_label":"Tindakan yang Diusulkan:",
   "id.report_no_label":"No. Laporan:", "id.department_label":"Departemen:", "id.brand_label":"Brand:", "id.outlet_label":"Outlet:",
-  "id.progress_n_prefix":"Progres ", "id.finding_label":"Temuan:", "id.resolution_label":"Penyelesaian:", "id.next_step_label":"Langkah selanjutnya:",
+  "id.progress_n_prefix":"Progres ", "id.finding_label":"Temuan/Progress:", "id.resolution_label":"Penyelesaian:", "id.next_step_label":"Langkah selanjutnya:",
   "id.why_label":"Alasan:", "id.approval_title":"Persetujuan",
   "pg.title":"Tambah progres", "pg.type":"Jenis", "pg.tech_visit":"Kunjungan teknisi", "pg.repair_staff":"Perbaikan oleh staf",
-  "pg.tech_photo":"Foto teknisi saat bekerja", "pg.add_photo":"📷 Tambah foto", "pg.finding":"Temuan", "pg.finding_photo":"Foto temuan",
+  "pg.tech_photo":"Foto teknisi saat bekerja", "pg.add_photo":"📷 Tambah foto", "pg.finding":"Temuan/Progress", "pg.finding_photo":"Foto temuan",
   "pg.eg_sparepart":"(opsional, mis. suku cadang yang perlu diganti)", "pg.resolution":"Penyelesaian", "pg.resolved":"Selesai", "pg.unresolved":"Belum Selesai",
   "pg.next_step":"Langkah selanjutnya", "pg.order_part":"Pesan suku cadang pengganti", "pg.schedule_cleaning":"Jadwalkan pembersihan",
-  "pg.not_repairable":"Tidak dapat diperbaiki — perlu diganti", "pg.needs_reinspection":"Perlu diperiksa ulang", "pg.other":"Lainnya",
-  "pg.specify":"Sebutkan", "pg.broken_photo":"Foto komponen rusak", "pg.part_name":"Nama komponen", "pg.after_photo":"Foto \"setelah\"",
+  "pg.not_repairable":"Tidak dapat diperbaiki lagi", "pg.needs_reinspection":"Perlu diperiksa ulang", "pg.other":"Lainnya",
+  "pg.not_repairable_reason":"Alasan", "pg.not_repairable_photo":"Foto barang yang rusak", "pg.reinspect_reason":"Alasan",
+  "pg.specify":"Sebutkan", "pg.broken_photo":"Foto suku cadang", "pg.part_name":"Nama komponen", "pg.after_photo":"Foto \"setelah\"",
   "pg.tech_form":"Unggah formulir kunjungan teknisi", "pg.add_photo_scan":"📷 Tambah foto/scan", "pg.parts_photo":"Foto suku cadang yang diterima",
   "pg.why_unresolved":"Alasan belum selesai", "pg.submit":"Kirim progres",
   "pg.err_type":"Pilih jenis.", "pg.err_tech_photo":"Foto teknisi saat bekerja wajib diisi.", "pg.err_finding":"Temuan wajib diisi.",
   "pg.err_choose_res":"Pilih Selesai atau Belum Selesai.", "pg.err_tech_form":"Unggahan formulir kunjungan teknisi wajib diisi.",
   "pg.err_next_step":"Pilih langkah selanjutnya.", "pg.err_specify":"Sebutkan langkah selanjutnya.",
-  "pg.err_broken_photo":"Foto komponen rusak wajib diisi.", "pg.err_broken_name":"Nama komponen rusak wajib diisi.",
+  "pg.err_broken_photo":"Foto suku cadang wajib diisi.", "pg.err_broken_name":"Nama komponen wajib diisi.",
+  "pg.err_not_repairable_reason":"Alasan wajib diisi.", "pg.err_reinspect_reason":"Alasan wajib diisi.",
   "pg.err_after_photo":"Foto \"setelah\" wajib diisi.", "pg.err_parts_photo":"Foto suku cadang yang diterima wajib diisi.",
   "pg.err_why":"Jelaskan alasan belum selesai.", "pg.err_save_failed":"Gagal menyimpan: ",
   "ap.title_prefix":"Konfirmasi selesai — ", "ap.sub":"Item hanya akan tampil Selesai setelah setiap peran yang diperlukan mengonfirmasi.",
@@ -764,20 +779,22 @@ en: {
   "id.request_no_label":"Request No.:", "id.date_label":"Date:", "id.submitted_by_label":"Submitted by:",
   "id.broken_part_label":"Broken part:", "id.sn_label":" (SN ", "id.findings_label":"Findings:", "id.proposed_action_label":"Proposed Action:",
   "id.report_no_label":"Report No.:", "id.department_label":"Department:", "id.brand_label":"Brand:", "id.outlet_label":"Outlet:",
-  "id.progress_n_prefix":"Progress ", "id.finding_label":"Finding:", "id.resolution_label":"Resolution:", "id.next_step_label":"Next step:",
+  "id.progress_n_prefix":"Progress ", "id.finding_label":"Finding/Progress:", "id.resolution_label":"Resolution:", "id.next_step_label":"Next step:",
   "id.why_label":"Why:", "id.approval_title":"Approval",
   "pg.title":"Add progress", "pg.type":"Type", "pg.tech_visit":"Technician's visit", "pg.repair_staff":"Repair by staff",
-  "pg.tech_photo":"Photo of technician at work", "pg.add_photo":"📷 Add photo", "pg.finding":"Finding", "pg.finding_photo":"Finding photo",
+  "pg.tech_photo":"Photo of technician at work", "pg.add_photo":"📷 Add photo", "pg.finding":"Finding/Progress", "pg.finding_photo":"Finding photo",
   "pg.eg_sparepart":"(optional, e.g. sparepart to change)", "pg.resolution":"Resolution", "pg.resolved":"Resolved", "pg.unresolved":"Unresolved",
   "pg.next_step":"Next step", "pg.order_part":"Order replacement part", "pg.schedule_cleaning":"Schedule cleaning",
-  "pg.not_repairable":"Not repairable — needs replacement", "pg.needs_reinspection":"Needs re-inspection", "pg.other":"Other",
-  "pg.specify":"Specify", "pg.broken_photo":"Broken part photo", "pg.part_name":"Part name", "pg.after_photo":"Photo of \"after\"",
+  "pg.not_repairable":"Not repairable", "pg.needs_reinspection":"Needs re-inspection", "pg.other":"Other",
+  "pg.not_repairable_reason":"Reason", "pg.not_repairable_photo":"Photo of the broken item", "pg.reinspect_reason":"Reason",
+  "pg.specify":"Specify", "pg.broken_photo":"Sparepart photo", "pg.part_name":"Part name", "pg.after_photo":"Photo of \"after\"",
   "pg.tech_form":"Upload tech visit form", "pg.add_photo_scan":"📷 Add photo/scan", "pg.parts_photo":"Photo of parts received",
   "pg.why_unresolved":"Why unresolved", "pg.submit":"Submit progress",
   "pg.err_type":"Choose a type.", "pg.err_tech_photo":"Photo of technician at work is required.", "pg.err_finding":"Finding is required.",
   "pg.err_choose_res":"Choose Resolved or Unresolved.", "pg.err_tech_form":"Tech visit form upload is required.",
   "pg.err_next_step":"Choose a next step.", "pg.err_specify":"Specify the next step.",
-  "pg.err_broken_photo":"Broken part photo is required.", "pg.err_broken_name":"Broken part name is required.",
+  "pg.err_broken_photo":"Sparepart photo is required.", "pg.err_broken_name":"Part name is required.",
+  "pg.err_not_repairable_reason":"Reason is required.", "pg.err_reinspect_reason":"Reason is required.",
   "pg.err_after_photo":"Photo of 'after' is required.", "pg.err_parts_photo":"Photo of parts received is required.",
   "pg.err_why":"Explain why it's unresolved.", "pg.err_save_failed":"Save failed: ",
   "ap.title_prefix":"Confirm resolved — ", "ap.sub":"Item only shows Resolved once every required role has confirmed.",
@@ -1587,6 +1604,30 @@ function renderNrList(){
   });
 }
 function escapeHtml(s){ return (s||"").replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+// next_step is stored as a code (order_part/schedule_cleaning/not_repairable/needs_reinspection/__other__) for entries
+// created after this fix, translated to the current language at display time. Older entries stored the raw label
+// text at submit time (no code) -- those fall through and are shown as-is, untranslated.
+var NEXT_STEP_CODES=["order_part","schedule_cleaning","not_repairable","needs_reinspection"];
+function nextStepLabel(p){
+  if(!p || !p.next_step) return "";
+  if(p.next_step==="__other__") return p.next_step_other||"";
+  if(NEXT_STEP_CODES.indexOf(p.next_step)>=0) return t("pg."+p.next_step);
+  return p.next_step; // legacy freeform text
+}
+function nextStepDetail(p){
+  if(!p) return "";
+  if(p.next_step==="not_repairable" && p.not_repairable_reason) return t("id.why_label")+" "+p.not_repairable_reason;
+  if(p.next_step==="needs_reinspection" && p.reinspect_reason) return t("id.why_label")+" "+p.reinspect_reason;
+  return "";
+}
+// Mirrors renderApprovals()'s gating: approval sign-off only makes sense once the most recent
+// progress entry actually marked the item "Selesai" -- otherwise nobody is being asked to
+// confirm anything yet, so the Persetujuan section shouldn't appear in print/PDF exports either.
+function itemReadyForApproval(it){
+  var prog=(it && it.progress)||[];
+  var lastProg=prog.length? prog[prog.length-1] : null;
+  return !!(lastProg && lastProg.resolution==="resolved");
+}
 
 $("btnNrAdd").addEventListener("click", function(){
   $("nrMsg").textContent="";
@@ -2124,11 +2165,13 @@ function renderProgressList(){
         (p.finding_photo?'<div class="t"><img src="'+p.finding_photo+'"></div>':"")+
         (p.after_photo?'<div class="t"><img src="'+p.after_photo+'"></div>':"")+
         (p.broken_photo?'<div class="t"><img src="'+p.broken_photo+'"></div>':"")+
+        (p.not_repairable_photo?'<div class="t"><img src="'+p.not_repairable_photo+'"></div>':"")+
         (p.tech_form_photo?'<div class="t"><img src="'+p.tech_form_photo+'"></div>':"")+
         '</div>'+
         '<div style="margin-top:4px"><b>'+t("id.finding_label")+'</b> '+escapeHtml(p.finding_text||"")+'</div>'+
         '<div><b>'+t("id.resolution_label")+'</b> '+(p.resolution==="resolved"?t("pg.resolved"):t("pg.unresolved"))+'</div>'+
-        (p.resolution==="unresolved"? '<div><b>'+t("id.next_step_label")+'</b> '+escapeHtml(p.next_step==="__other__"?p.next_step_other:p.next_step||"")+'</div>'+
+        (p.resolution==="unresolved"? '<div><b>'+t("id.next_step_label")+'</b> '+escapeHtml(nextStepLabel(p))+'</div>'+
+          (nextStepDetail(p)? '<div>'+escapeHtml(nextStepDetail(p))+'</div>':"")+
           (p.broken_name? '<div><b>'+t("id.broken_part_label")+'</b> '+escapeHtml(p.broken_name)+(p.broken_serial?t("id.sn_label")+escapeHtml(p.broken_serial)+")":"")+'</div>':"") : "");
     } else {
       media='<div class="thumbrow">'+
@@ -2176,9 +2219,10 @@ function resetProgressModal(){
   $("pgType").value=""; $("pgTechFields").classList.add("hide"); $("pgStaffFields").classList.add("hide");
   $("pgTechFinding").value=""; $("pgNextStep").value=""; $("pgNextStepOtherWrap").classList.add("hide"); $("pgNextStepOther").value="";
   $("pgBrokenName").value=""; $("pgBrokenSerial").value=""; $("pgStaffWhy").value=""; $("pgStaffWhyWrap").classList.add("hide");
-  ["pgTechUnresolved","pgTechResolved"].forEach(function(id){$(id).classList.add("hide");});
+  $("pgNotRepairableReason").value=""; $("pgReinspectReason").value="";
+  ["pgTechUnresolved","pgTechResolved","pgOrderPartFields","pgNotRepairableFields","pgReinspectFields"].forEach(function(id){$(id).classList.add("hide");});
   pgPhotos={};
-  ["pgTechPhotoPrev","pgTechFindingPhotoPrev","pgBrokenPhotoPrev","pgAfterPhotoTechPrev","pgTechFormPrev","pgPartsPhotoPrev","pgAfterPhotoStaffPrev"].forEach(function(id){ $(id).innerHTML=""; });
+  ["pgTechPhotoPrev","pgTechFindingPhotoPrev","pgBrokenPhotoPrev","pgAfterPhotoTechPrev","pgTechFormPrev","pgPartsPhotoPrev","pgAfterPhotoStaffPrev","pgNotRepairablePhotoPrev"].forEach(function(id){ $(id).innerHTML=""; });
   $("pgMsg").textContent="";
   [["pgTechResBtn1","tech_res"],["pgTechResBtn2","tech_res"],["pgStaffResBtn1","staff_res"],["pgStaffResBtn2","staff_res"]].forEach(function(p){ $(p[0]).classList.remove("on"); });
   pgPhotos.tech_res=null; pgPhotos.staff_res=null;
@@ -2190,7 +2234,13 @@ $("pgType").addEventListener("change", function(){
   $("pgTechFields").classList.toggle("hide", v!=="tech_visit");
   $("pgStaffFields").classList.toggle("hide", v!=="repair_staff");
 });
-$("pgNextStep").addEventListener("change", function(){ $("pgNextStepOtherWrap").classList.toggle("hide", $("pgNextStep").value!=="__other__"); });
+$("pgNextStep").addEventListener("change", function(){
+  var v=$("pgNextStep").value;
+  $("pgNextStepOtherWrap").classList.toggle("hide", v!=="__other__");
+  $("pgOrderPartFields").classList.toggle("hide", v!=="order_part");
+  $("pgNotRepairableFields").classList.toggle("hide", v!=="not_repairable");
+  $("pgReinspectFields").classList.toggle("hide", v!=="needs_reinspection");
+});
 
 function wirePhotoField(inputId, prevId, key, multi){
   $(inputId).addEventListener("change", async function(){
@@ -2206,6 +2256,7 @@ function wirePhotoField(inputId, prevId, key, multi){
 wirePhotoField("pgTechPhoto","pgTechPhotoPrev","tech_photo");
 wirePhotoField("pgTechFindingPhoto","pgTechFindingPhotoPrev","finding_photo");
 wirePhotoField("pgBrokenPhoto","pgBrokenPhotoPrev","broken_photo");
+wirePhotoField("pgNotRepairablePhoto","pgNotRepairablePhotoPrev","not_repairable_photo");
 wirePhotoField("pgAfterPhotoTech","pgAfterPhotoTechPrev","after_photo_tech");
 wirePhotoField("pgTechForm","pgTechFormPrev","tech_form_photo");
 wirePhotoField("pgPartsPhoto","pgPartsPhotoPrev","parts_photo");
@@ -2236,10 +2287,16 @@ $("pgSubmit").addEventListener("click", async function(){
       if(pgPhotos.tech_res==="unresolved"){
         var ns=$("pgNextStep").value; if(!ns){ $("pgMsg").textContent=t("pg.err_next_step"); return; }
         if(ns==="__other__" && !$("pgNextStepOther").value.trim()){ $("pgMsg").textContent=t("pg.err_specify"); return; }
-        if(!pgPhotos.broken_photo){ $("pgMsg").textContent=t("pg.err_broken_photo"); return; }
-        if(!$("pgBrokenName").value.trim()){ $("pgMsg").textContent=t("pg.err_broken_name"); return; }
+        if(ns==="order_part"){
+          if(!pgPhotos.broken_photo){ $("pgMsg").textContent=t("pg.err_broken_photo"); return; }
+          if(!$("pgBrokenName").value.trim()){ $("pgMsg").textContent=t("pg.err_broken_name"); return; }
+        }
+        if(ns==="not_repairable" && !$("pgNotRepairableReason").value.trim()){ $("pgMsg").textContent=t("pg.err_not_repairable_reason"); return; }
+        if(ns==="needs_reinspection" && !$("pgReinspectReason").value.trim()){ $("pgMsg").textContent=t("pg.err_reinspect_reason"); return; }
         entry.next_step=ns; entry.next_step_other= ns==="__other__"?$("pgNextStepOther").value.trim():null;
-        entry.broken_name=$("pgBrokenName").value.trim(); entry.broken_serial=$("pgBrokenSerial").value.trim();
+        if(ns==="order_part"){ entry.broken_name=$("pgBrokenName").value.trim(); entry.broken_serial=$("pgBrokenSerial").value.trim(); }
+        if(ns==="not_repairable"){ entry.not_repairable_reason=$("pgNotRepairableReason").value.trim(); }
+        if(ns==="needs_reinspection"){ entry.reinspect_reason=$("pgReinspectReason").value.trim(); }
       } else {
         if(!pgPhotos.after_photo_tech){ $("pgMsg").textContent=t("pg.err_after_photo"); return; }
       }
@@ -2248,7 +2305,10 @@ $("pgSubmit").addEventListener("click", async function(){
       entry.tech_photo=await uploadPhoto(pgPhotos.tech_photo, pfx);
       entry.finding_photo=pgPhotos.finding_photo? await uploadPhoto(pgPhotos.finding_photo, pfx) : null;
       entry.tech_form_photo=await uploadPhoto(pgPhotos.tech_form_photo, pfx);
-      if(pgPhotos.tech_res==="unresolved"){ entry.broken_photo=await uploadPhoto(pgPhotos.broken_photo, pfx); }
+      if(pgPhotos.tech_res==="unresolved"){
+        if(entry.next_step==="order_part"){ entry.broken_photo=await uploadPhoto(pgPhotos.broken_photo, pfx); }
+        if(entry.next_step==="not_repairable" && pgPhotos.not_repairable_photo){ entry.not_repairable_photo=await uploadPhoto(pgPhotos.not_repairable_photo, pfx); }
+      }
       else { entry.after_photo=await uploadPhoto(pgPhotos.after_photo_tech, pfx); }
     } else if(type==="repair_staff"){
       if(!pgPhotos.parts_photo){ $("pgMsg").textContent=t("pg.err_parts_photo"); return; }
@@ -2388,7 +2448,7 @@ function approvalLabelFor(role, it, loc){
 }
 function approvalSignatureBlockHtml(it){
   var apps=it.approvals||[];
-  if(!apps.length) return "";
+  if(!apps.length || !itemReadyForApproval(it)) return "";
   var loc=locations.find(function(l){ return l.id===it.location_id; });
   var rows=apps.map(function(a){
     var label=approvalLabelFor(a.role, it, loc);
@@ -2401,16 +2461,17 @@ function approvalSignatureBlockHtml(it){
 }
 function progressPrintBlockHtml(p){
   var imgs = p.type==="tech_visit"
-    ? [p.tech_photo,p.finding_photo,p.after_photo,p.broken_photo,p.tech_form_photo]
+    ? [p.tech_photo,p.finding_photo,p.after_photo,p.broken_photo,p.not_repairable_photo,p.tech_form_photo]
     : [p.parts_photo,p.after_photo];
   var media=imgs.filter(Boolean).map(function(u){return '<img src="'+u+'" style="width:70px;height:70px;object-fit:cover;border-radius:8px;margin:3px">';}).join("");
   var resLabel=p.resolution==="resolved"?"selesai":"belum selesai";
   var html='<div style="margin-top:6px">'+media+'</div>'+
     '<div style="margin-top:4px">'+(p.type==="tech_visit"?"Kunjungan teknisi":"Perbaikan oleh staf")+' — penyelesaian: '+resLabel+'</div>';
   if(p.type==="tech_visit"){
-    html+='<div style="margin-top:4px"><b>Temuan:</b> '+escapeHtml(p.finding_text||"")+'</div>';
+    html+='<div style="margin-top:4px"><b>Temuan/Progress:</b> '+escapeHtml(p.finding_text||"")+'</div>';
     if(p.resolution==="unresolved"){
-      html+='<div><b>Langkah selanjutnya:</b> '+escapeHtml(p.next_step==="__other__"?(p.next_step_other||""):(p.next_step||""))+'</div>';
+      html+='<div><b>Langkah selanjutnya:</b> '+escapeHtml(nextStepLabel(p))+'</div>';
+      if(nextStepDetail(p)) html+='<div>'+escapeHtml(nextStepDetail(p))+'</div>';
       if(p.broken_name) html+='<div><b>Komponen rusak:</b> '+escapeHtml(p.broken_name)+(p.broken_serial?" (SN "+escapeHtml(p.broken_serial)+")":"")+'</div>';
     }
   } else {
@@ -2463,8 +2524,10 @@ async function exportProgressPdf(it){
     y=pdfDrawProgressBlock(doc,p,cache,y);
   });
 
-  y=pdfSectionBar(doc,"Persetujuan",y);
-  y=pdfDrawApprovalBlock(doc,it,y);
+  if((it.approvals||[]).length && itemReadyForApproval(it)){
+    y=pdfSectionBar(doc,"Persetujuan",y);
+    y=pdfDrawApprovalBlock(doc,it,y);
+  }
 
   var lastN=(it.progress||[]).length;
   var filename=[sanitizeFilename(it.report_id), sanitizeFilename(it.id), "Progress"+lastN, (it.status==="resolved"?"Done":"Unfinished")].join(" - ")+".pdf";
@@ -2506,7 +2569,7 @@ function pdfDrawFirstReportBlock(doc,it,cache,y){
 }
 function pdfDrawProgressBlock(doc,p,cache,y){
   var imgs = p.type==="tech_visit"
-    ? [p.tech_photo,p.finding_photo,p.after_photo,p.broken_photo,p.tech_form_photo]
+    ? [p.tech_photo,p.finding_photo,p.after_photo,p.broken_photo,p.not_repairable_photo,p.tech_form_photo]
     : [p.parts_photo,p.after_photo];
   y=pdfDrawImageRow(doc,cache,imgs,PDF_MARGIN,y,PDF_PAGE_W-2*PDF_MARGIN);
   var resLabel=p.resolution==="resolved"?"selesai":"belum selesai";
@@ -2516,13 +2579,17 @@ function pdfDrawProgressBlock(doc,p,cache,y){
   y+=6;
   if(p.type==="tech_visit"){
     y=pdfEnsureSpace(doc,y,7);
-    doc.setFont("helvetica","bold"); doc.text("Temuan:",PDF_MARGIN,y); doc.setFont("helvetica","normal");
-    y=pdfDrawWrapped(doc, p.finding_text||"", PDF_MARGIN+18, y, PDF_PAGE_W-2*PDF_MARGIN-18);
+    doc.setFont("helvetica","bold"); doc.text("Temuan/Progress:",PDF_MARGIN,y); doc.setFont("helvetica","normal");
+    y=pdfDrawWrapped(doc, p.finding_text||"", PDF_MARGIN+34, y, PDF_PAGE_W-2*PDF_MARGIN-34);
     if(p.resolution==="unresolved"){
       y=pdfEnsureSpace(doc,y,7);
       doc.setFont("helvetica","bold"); doc.text("Langkah selanjutnya:",PDF_MARGIN,y); doc.setFont("helvetica","normal");
-      var ns = p.next_step==="__other__" ? (p.next_step_other||"") : (p.next_step||"");
+      var ns = nextStepLabel(p);
       y=pdfDrawWrapped(doc, ns, PDF_MARGIN+42, y, PDF_PAGE_W-2*PDF_MARGIN-42);
+      if(nextStepDetail(p)){
+        y=pdfEnsureSpace(doc,y,6);
+        y=pdfDrawWrapped(doc, nextStepDetail(p), PDF_MARGIN, y, PDF_PAGE_W-2*PDF_MARGIN);
+      }
       if(p.broken_name){
         y=pdfEnsureSpace(doc,y,6);
         doc.setFont("helvetica","bold"); doc.text("Komponen rusak:",PDF_MARGIN,y); doc.setFont("helvetica","normal");
