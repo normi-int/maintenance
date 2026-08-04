@@ -572,7 +572,7 @@
    All maint_* tables are new and separate. See Maintenance_Project_Plan.md
    and Maintenance_Project_Schema.sql for the full spec this implements.
 ===================================================================== */
-var APP_VERSION="v3.1"; // bump this with each build so it's visible which version is deployed (shown in the footer, bottom of the page)
+var APP_VERSION="v3.2"; // bump this with each build so it's visible which version is deployed (shown in the footer, bottom of the page)
 var BUILTIN={url:"https://clprrwuizmlsddxmlvrh.supabase.co", key:"sb_publishable_bY46Emu9VVzYZEhpjxnr2A_9_ranhHt"};
 var sb=null;
 var $=function(id){return document.getElementById(id);};
@@ -891,22 +891,27 @@ $("btnLangID").addEventListener("click", function(){ setLang("id"); });
 $("btnLangEN").addEventListener("click", function(){ setLang("en"); });
 applyI18n(); // apply default language immediately, even before login (login screen defaults to Indonesian)
 
-// 7 approval "slots" the resolution-approval matrix (maint_approval_rules) is built on:
-// store_manager_spv (FOH oversight), barista (BAR), kitchen_leader (BOH), pastry_leader
-// (PASTRY), ck (Central Kitchen), maintenance_team, om (Area Manager / OM, Central Kitchen
-// oversight — also now required on STORE/FOH items alongside store_manager_spv).
+// 9 approval "slots" the resolution-approval matrix (maint_approval_rules) is built on:
+// store_manager_spv (FOH oversight), barista (BAR - Head Bar), bar_staff (BAR - Senior
+// Barista/Barista, added v11 as an extra required layer alongside Head Bar), kitchen_leader
+// (BOH - Head Chef), boh_staff (BOH - Sous Chef/CDP, added v11 alongside Head Chef),
+// pastry_leader (PASTRY), ck (Central Kitchen), maintenance_team, om (Operational Manager,
+// Central Kitchen oversight — also required on STORE/FOH items alongside store_manager_spv).
+// NOTE: om is its own distinct slot, separate from the "Area Manager" title (which is one of
+// the 4 interchangeable store_manager_spv title-holders below) — an Area Manager does NOT
+// satisfy the om slot and vice versa, even though the two are easy to conflate by name.
 var ROLE_LABEL={
-  store_manager_spv:"FOH", barista:"Barista", kitchen_leader:"Kitchen Leader",
-  pastry_leader:"Pastry Team/Leader", maintenance_team:"Maintenance", om:"Area Manager / OM", ck:"CK"
+  store_manager_spv:"FOH", barista:"Barista", bar_staff:"Bar Staff", kitchen_leader:"Kitchen Leader",
+  boh_staff:"BOH Staff", pastry_leader:"Pastry Team/Leader", maintenance_team:"Maintenance", om:"OM", ck:"CK"
 };
 
 // Granular functional titles a member can actually be assigned (shown in the member-access
 // modal / Team table). Each maps to one of the slot keys above via GRANULAR_TO_SLOT --
 // holding that title satisfies the corresponding slot's approval requirement (see hasRole()).
-// Only the HEAD-level title in BAR/BOH/CK counts as an approver for that division (Senior
-// Barista/Barista, Sous Chef/CDP, and CK Staff can hold the title and are still restricted to
-// reporting only their own department, but don't sign off resolutions) — junior titles are
-// intentionally left out of GRANULAR_TO_SLOT below.
+// v11: Senior Barista/Barista and Sous Chef/CDP now ALSO count as approvers (bar_staff /
+// boh_staff slots) — an extra required layer alongside the Head-level title, not a
+// replacement for it. Only CK Staff remains deliberately excluded (Central Kitchen still
+// Head-only for approvals).
 var GRANULAR_LABEL={
   foh_area_manager:"FOH - Area Manager", foh_store_manager:"FOH - Store Manager", foh_spv:"FOH - SPV", foh_captain:"FOH - Captain",
   bar_head:"BAR - Head Bar", bar_senior_barista:"BAR - Senior Barista", bar_barista:"BAR - Barista",
@@ -916,13 +921,13 @@ var GRANULAR_LABEL={
 };
 var GRANULAR_TO_SLOT={
   foh_area_manager:"store_manager_spv", foh_store_manager:"store_manager_spv", foh_spv:"store_manager_spv", foh_captain:"store_manager_spv",
-  bar_head:"barista",
-  boh_head_chef:"kitchen_leader",
+  bar_head:"barista", bar_senior_barista:"bar_staff", bar_barista:"bar_staff",
+  boh_head_chef:"kitchen_leader", boh_sous_chef:"boh_staff", boh_cdp:"boh_staff",
   pastry:"pastry_leader", ck_head:"ck",
   maintenance_team:"maintenance_team", om:"om"
-  // bar_senior_barista, bar_barista, boh_sous_chef, boh_cdp, ck_staff, others: deliberately
-  // absent — valid titles to hold (and they still gate which department someone can report,
-  // see DEPT_SCOPE_FOR_GROUP), but they don't satisfy any approval slot.
+  // ck_staff, others: deliberately absent — valid titles to hold (and they still gate which
+  // department someone can report, see DEPT_SCOPE_FOR_GROUP), but they don't satisfy any
+  // approval slot.
 };
 var ROLE_GROUPS=[
   {label:"FOH", keys:["foh_area_manager","foh_store_manager","foh_spv","foh_captain"]},
