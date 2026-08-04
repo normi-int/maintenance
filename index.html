@@ -572,7 +572,7 @@
    All maint_* tables are new and separate. See Maintenance_Project_Plan.md
    and Maintenance_Project_Schema.sql for the full spec this implements.
 ===================================================================== */
-var APP_VERSION="v3.0"; // bump this with each build so it's visible which version is deployed (shown in the footer, bottom of the page)
+var APP_VERSION="v3.1"; // bump this with each build so it's visible which version is deployed (shown in the footer, bottom of the page)
 var BUILTIN={url:"https://clprrwuizmlsddxmlvrh.supabase.co", key:"sb_publishable_bY46Emu9VVzYZEhpjxnr2A_9_ranhHt"};
 var sb=null;
 var $=function(id){return document.getElementById(id);};
@@ -710,6 +710,7 @@ id: {
   "req.title":"Permintaan penghapusan", "req.no_pending":"Tidak ada permintaan tertunda.", "req.report_prefix":"Laporan ", "req.requested_by":"Diminta oleh ",
   "req.approve":"Setujui (hapus)", "req.reject":"Tolak",
   "ph.export_pdf":"Export ke PDF", "ph.exporting":"Membuat PDF...", "ph.export_failed":"Gagal membuat PDF: ", "ph.back_home":"Kembali ke beranda", "ph.back_item":"← Kembali ke item",
+  "ph.copy_wa":"📋 Salin pesan WhatsApp", "ph.copied":"Tersalin!", "ph.copy_failed":"Gagal menyalin pesan.",
   "ph.delete_pending_prefix":"🕓 Penghapusan diminta oleh ", "ph.delete_pending_suffix":" — menunggu peninjauan.", "ph.cancel_request":"batalkan permintaan ini",
   "ph.delete_report_btn":"Hapus laporan (admin — perlu kata sandi)", "ph.request_delete_btn":"Ajukan penghapusan",
   "ph.prompt_delete":"Masukkan ulang kata sandi admin Anda untuk menghapus laporan {id} secara permanen:",
@@ -839,6 +840,7 @@ en: {
   "req.title":"Deletion requests", "req.no_pending":"No pending requests.", "req.report_prefix":"Report ", "req.requested_by":"Requested by ",
   "req.approve":"Approve (delete)", "req.reject":"Reject",
   "ph.export_pdf":"Export to PDF", "ph.exporting":"Generating PDF...", "ph.export_failed":"Failed to generate PDF: ", "ph.back_home":"Back to home", "ph.back_item":"← Back to item",
+  "ph.copy_wa":"📋 Copy WhatsApp message", "ph.copied":"Copied!", "ph.copy_failed":"Failed to copy message.",
   "ph.delete_pending_prefix":"🕓 Deletion requested by ", "ph.delete_pending_suffix":" — pending review.", "ph.cancel_request":"cancel this request",
   "ph.delete_report_btn":"Delete report (admin — password required)", "ph.request_delete_btn":"Request deletion",
   "ph.prompt_delete":"Re-enter your admin password to permanently delete report {id}:",
@@ -1629,6 +1631,78 @@ function itemReadyForApproval(it){
   return !!(lastProg && lastProg.resolution==="resolved");
 }
 
+/* ---------------- WhatsApp caption templates (Indonesian-only, always -- these are copied
+   straight into WhatsApp regardless of the on-screen language toggle, matching the print/PDF
+   views which follow the same rule) ---------------- */
+function waGreeting(){
+  var h=new Date().getHours();
+  if(h>=4 && h<11) return "pagi";
+  if(h>=11 && h<15) return "siang";
+  if(h>=15 && h<19) return "sore";
+  return "malam";
+}
+var WA_NEXT_STEP_HELP={
+  order_part:"mendatangkan sparepart",
+  schedule_cleaning:"menjadwalkan pembersihan",
+  not_repairable:"mengganti barang yang sudah tidak dapat diperbaiki",
+  needs_reinspection:"memeriksa ulang kondisi di lapangan"
+};
+// Message for a brand-new report: greeting + report no. + outlet/divisi + list of item codes
+// + the requested action (call technician / send sparepart, or both if the report mixes both).
+function buildWaReportMessage(rep, its){
+  var depts=[]; its.forEach(function(it){ if(depts.indexOf(it.department)<0) depts.push(it.department); });
+  var actions=[]; its.forEach(function(it){
+    var a = it.proposal==="sparepart" ? "mengirimkan suku cadang" : "memanggil teknisi terkait";
+    if(actions.indexOf(a)<0) actions.push(a);
+  });
+  var lines=["Selamat "+waGreeting()+",","Berikut laporan no. "+rep.id,"Outlet: "+rep.brand+" "+rep.outlet,
+    "Divisi: "+depts.join("/"),"","dengan item kerusakan nomor",""];
+  its.forEach(function(it){ lines.push("- "+it.id); });
+  lines.push("", "Adapun mohon bantuannya untuk "+(actions.join(" dan ")||"menindaklanjuti laporan ini"),
+    "", "Detail bisa dilihat di laporan terlampir.", "", "Terima kasih.");
+  return lines.join("\n");
+}
+// Message for a progress update on one item: greeting + item code + outlet/divisi + the latest
+// update text + resolved/unresolved, then either what help is still needed (unresolved) or who
+// still needs to confirm (resolved, pending approvals).
+function buildWaProgressMessage(it){
+  var prog=it.progress||[];
+  var p=prog.length? prog[prog.length-1] : null;
+  var updateText="";
+  if(p){
+    if(p.type==="tech_visit"){ updateText=p.finding_text||""; }
+    else { updateText = p.resolution==="resolved" ? "Perbaikan telah dilakukan oleh staf." : ("Perbaikan oleh staf — "+(p.reason||"")); }
+  }
+  var resolved = !!(p && p.resolution==="resolved");
+  var lines=["Selamat "+waGreeting()+",","Berikut update untuk laporan "+it.id,"Outlet: "+it.brand+" "+it.outlet,
+    "Divisi: "+it.department,"",updateText,"","Adapun kerusakan ini "+(resolved?"selesai":"belum selesai"),""];
+  if(resolved){
+    var loc=locations.find(function(l){ return l.id===it.location_id; });
+    var pending=(it.approvals||[]).filter(function(a){ return !a.confirmed; }).map(function(a){ return approvalLabelFor(a.role,it,loc); });
+    lines.push(pending.length
+      ? "Berikut laporan kerusakan saya close, mohon bantuan "+pending.join(", ")+" untuk memberi konfirmasi penyelesaian laporan."
+      : "Berikut laporan kerusakan saya close.");
+  } else {
+    var help = (p && p.type==="tech_visit" && p.next_step)
+      ? (p.next_step==="__other__" ? (p.next_step_other||"menindaklanjuti perbaikan") : (WA_NEXT_STEP_HELP[p.next_step]||"menindaklanjuti perbaikan"))
+      : "menindaklanjuti perbaikan";
+    lines.push("Mohon bantuannya untuk "+help+".");
+  }
+  lines.push("", "Detail terlampir.", "", "Terima kasih.");
+  return lines.join("\n");
+}
+async function copyToClipboard(text){
+  try{ await navigator.clipboard.writeText(text); return true; }
+  catch(e){
+    try{
+      var ta=document.createElement("textarea"); ta.value=text; ta.style.position="fixed"; ta.style.opacity="0";
+      document.body.appendChild(ta); ta.focus(); ta.select();
+      var ok=document.execCommand("copy"); document.body.removeChild(ta);
+      return ok;
+    }catch(e2){ return false; }
+  }
+}
+
 $("btnNrAdd").addEventListener("click", function(){
   $("nrMsg").textContent="";
   if(!nrDept){ $("nrMsg").textContent=t("nr.err_dept"); return; }
@@ -1849,7 +1923,7 @@ async function openReportPrint(reportCode){
     html+='</tbody></table></div>';
   });
   html+='</div>';
-  showPrintable(html, t("ph.back_home"), function(){ show("homeView"); renderHome(); }, function(){ return exportReportPdf(rep, its); });
+  showPrintable(html, t("ph.back_home"), function(){ show("homeView"); renderHome(); }, function(){ return exportReportPdf(rep, its); }, function(){ return buildWaReportMessage(rep, its); });
   await wireReportDeleteActions(rep);
 }
 
@@ -1948,14 +2022,16 @@ async function exportReportPdf(rep, its){
   triggerPdfDownload(doc, filename);
 }
 
-function showPrintable(html, backLabel, backFn, onExport){
+function showPrintable(html, backLabel, backFn, onExport, waMsgFn){
   ["loginView","setpwView","homeView","newReportView","recallListView","itemDetailView","settingsView","requestsView","notifyView"]
     .forEach(function(x){$(x).classList.add("hide");});
   var old=document.getElementById("printHost"); if(old) old.remove();
   var host=document.createElement("section"); host.id="printHost";
   document.querySelector(".wrap").appendChild(host);
   window.scrollTo(0,0);
-  host.innerHTML='<div class="noprint card"><div class="btnrow2"><button class="btn preview" id="phPrint">'+t("ph.export_pdf")+'</button><button class="btn back" id="phBack">'+backLabel+'</button></div><div id="phExtra"></div></div>'+html;
+  host.innerHTML='<div class="noprint card"><div class="btnrow2"><button class="btn preview" id="phPrint">'+t("ph.export_pdf")+'</button>'+
+    (waMsgFn? '<button class="btn preview" id="phCopyWa">'+t("ph.copy_wa")+'</button>':'')+
+    '<button class="btn back" id="phBack">'+backLabel+'</button></div><div id="phExtra"></div></div>'+html;
   host.querySelector("#phPrint").addEventListener("click", async function(){
     var btn=host.querySelector("#phPrint"); var orig=btn.textContent;
     btn.disabled=true; btn.textContent=t("ph.exporting");
@@ -1963,6 +2039,14 @@ function showPrintable(html, backLabel, backFn, onExport){
     catch(e){ alert(t("ph.export_failed")+(e.message||e)); }
     finally{ btn.disabled=false; btn.textContent=orig; }
   });
+  if(waMsgFn){
+    host.querySelector("#phCopyWa").addEventListener("click", async function(){
+      var btn=host.querySelector("#phCopyWa"); var orig=btn.textContent;
+      var ok=await copyToClipboard(waMsgFn());
+      btn.textContent = ok? t("ph.copied") : t("ph.copy_failed");
+      setTimeout(function(){ btn.textContent=orig; }, 1800);
+    });
+  }
   host.querySelector("#phBack").addEventListener("click", function(){ host.remove(); backFn(); });
 }
 
@@ -2430,7 +2514,7 @@ $("btnIdPrint").addEventListener("click", function(){
   });
   html+=approvalSignatureBlockHtml(it);
   html+='</div></div>';
-  showPrintable(html, t("ph.back_item"), function(){ openItemDetail(it.id); }, function(){ return exportProgressPdf(it); });
+  showPrintable(html, t("ph.back_item"), function(){ openItemDetail(it.id); }, function(){ return exportProgressPdf(it); }, function(){ return buildWaProgressMessage(it); });
 });
 // Department-SPECIFIC approver slots (Barista/Kitchen Leader/Pastry Team-Leader — each maps
 // 1:1 onto exactly one department) print as that item's own department code instead of the
