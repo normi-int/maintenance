@@ -572,7 +572,7 @@
    All maint_* tables are new and separate. See Maintenance_Project_Plan.md
    and Maintenance_Project_Schema.sql for the full spec this implements.
 ===================================================================== */
-var APP_VERSION="v3.2"; // bump this with each build so it's visible which version is deployed (shown in the footer, bottom of the page)
+var APP_VERSION="v3.3"; // bump this with each build so it's visible which version is deployed (shown in the footer, bottom of the page)
 var BUILTIN={url:"https://clprrwuizmlsddxmlvrh.supabase.co", key:"sb_publishable_bY46Emu9VVzYZEhpjxnr2A_9_ranhHt"};
 var sb=null;
 var $=function(id){return document.getElementById(id);};
@@ -901,8 +901,8 @@ applyI18n(); // apply default language immediately, even before login (login scr
 // the 4 interchangeable store_manager_spv title-holders below) — an Area Manager does NOT
 // satisfy the om slot and vice versa, even though the two are easy to conflate by name.
 var ROLE_LABEL={
-  store_manager_spv:"FOH", barista:"Barista", bar_staff:"Bar Staff", kitchen_leader:"Kitchen Leader",
-  boh_staff:"BOH Staff", pastry_leader:"Pastry Team/Leader", maintenance_team:"Maintenance", om:"OM", ck:"CK"
+  store_manager_spv:"FOH", barista:"Head Bar", bar_staff:"Barista", kitchen_leader:"Head Kitchen",
+  boh_staff:"BOH", pastry_leader:"Pastry Team/Leader", maintenance_team:"Maintenance", om:"OM", ck:"CK"
 };
 
 // Granular functional titles a member can actually be assigned (shown in the member-access
@@ -2523,14 +2523,19 @@ $("btnIdPrint").addEventListener("click", function(){
 });
 // Department-SPECIFIC approver slots (Barista/Kitchen Leader/Pastry Team-Leader — each maps
 // 1:1 onto exactly one department) print as that item's own department code instead of the
-// role name, since it's always redundant (a BAR item's "barista" slot is always "BAR").
+// role name, since it's always redundant. v11: barista and kitchen_leader were REMOVED from
+// this list — now that BAR/BOH each have TWO required slots (Head + staff), collapsing the
+// Head slot to the bare dept code ("BAR"/"BOH") reads as a duplicate of the staff slot's own
+// label. They now read their explicit ROLE_LABEL ("Head Bar" / "Head Kitchen") instead, same
+// as bar_staff/boh_staff ("Barista" / "BOH"). pastry_leader stays collapsed to dept code —
+// PASTRY still has only one slot, no Head/staff split, so no ambiguity there.
 // store_manager_spv is intentionally NOT in this list — it's the FOH/oversight slot that
 // appears on every store department's approval chain, so it must always read "FOH" via
 // ROLE_LABEL below, never collapse to whatever department the item happens to be. (This was
 // the bug behind a BAR item showing "BAR" twice instead of "BAR" + "FOH".) "ck" also isn't
 // here — it already reads "CK" directly via ROLE_LABEL, since it only ever appears on Central
 // Kitchen items anyway. Maintenance/OM keep their own labels either way.
-var STORE_LEVEL_ROLES=["barista","kitchen_leader","pastry_leader"];
+var STORE_LEVEL_ROLES=["pastry_leader"];
 function approvalLabelFor(role, it, loc){
   if(STORE_LEVEL_ROLES.indexOf(role)<0) return ROLE_LABEL[role]||role;
   return (loc && loc.type==="CENTRAL_KITCHEN") ? "CK" : it.department;
