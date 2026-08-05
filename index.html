@@ -165,7 +165,8 @@
       <span class="grow" id="authBarText"></span>
     </div>
     <button class="btn hide" id="btnRequestsBanner" style="background:#fef3c7;color:#92400e;border:1px solid #fcd34d;margin-bottom:16px"><span data-i18n="home.requests_banner">🔔 Delete requests pending:</span> <span id="reqCount">0</span> — <span data-i18n="home.review">review</span></button>
-    <button class="btn hide" id="btnOverdueBanner" style="background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;margin-bottom:16px"><span data-i18n="home.overdue_banner">⚠ Reports open 30+ days:</span> <span id="overdueCount">0</span> — <span data-i18n="home.review">review</span></button>
+    <button class="btn hide" id="btnOverdue2wBanner" style="background:#ffedd5;color:#9a3412;border:1px solid #fdba74;margin-bottom:16px"><span data-i18n="home.overdue2w_banner">⚠ Unresolved items, 2+ weeks:</span> <span id="overdue2wCount">0</span> — <span data-i18n="home.review">review</span></button>
+    <button class="btn hide" id="btnOverdueBanner" style="background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;margin-bottom:16px"><span data-i18n="home.overdue_banner">⛔ Unresolved items, 30+ days:</span> <span id="overdue30Count">0</span> — <span data-i18n="home.review">review</span></button>
     <button class="btn hide" id="btnNotifyBanner" style="background:#dbeafe;color:#1e3a8a;border:1px solid #93c5fd;margin-bottom:16px"><span data-i18n="notify.banner">🔔 New reports for you:</span> <span id="notifyBannerCount">0</span> — <span data-i18n="home.review">review</span></button>
     <div class="card">
       <h2 class="section" data-i18n="home.pick_location">Pick a location</h2>
@@ -206,6 +207,12 @@
         <p class="muted" id="nrDeptEmpty" style="display:none;font-size:13px" data-i18n="nr.no_dept_for_you">You don't have a department to report at this location.</p>
       </div>
       <div class="row"><label data-i18n="nr.issue">Issue</label><textarea id="nrIssue" placeholder="Describe what you found..." data-i18n-ph="nr.issue_ph"></textarea></div>
+      <!-- v13: required "cause/chronology" field alongside Issue, per maintenance team feedback
+           that findings alone didn't explain how/why the damage happened. Stored in
+           maint_items.cause (new column, see Maintenance_Project_Schema.sql v13) -- surfaces in
+           Item Detail, the printed Maintenance Request, and the exported PDF, same places Issue
+           does. -->
+      <div class="row"><label data-i18n="nr.cause">Cause / Chronology</label><textarea id="nrCause" placeholder="Describe what led to this and the likely cause..." data-i18n-ph="nr.cause_ph"></textarea></div>
       <div class="row">
         <label data-i18n="nr.photos">Photos (up to 3)</label>
         <label class="add-photo-lbl" for="nrPhoto" data-i18n="nr.add_photo">📷 Add photo (camera or gallery)</label>
@@ -572,7 +579,7 @@
    All maint_* tables are new and separate. See Maintenance_Project_Plan.md
    and Maintenance_Project_Schema.sql for the full spec this implements.
 ===================================================================== */
-var APP_VERSION="v3.5"; // bump this with each build so it's visible which version is deployed (shown in the footer, bottom of the page)
+var APP_VERSION="v3.6"; // bump this with each build so it's visible which version is deployed (shown in the footer, bottom of the page)
 var BUILTIN={url:"https://clprrwuizmlsddxmlvrh.supabase.co", key:"sb_publishable_bY46Emu9VVzYZEhpjxnr2A_9_ranhHt"};
 var sb=null;
 var $=function(id){return document.getElementById(id);};
@@ -620,9 +627,10 @@ id: {
   "home.choose_brand":"— pilih brand —", "home.choose_city":"— pilih kota —", "home.choose_outlet":"— pilih outlet —",
   "home.stale_note":" ⚠ sudah tidak ada di daftar Store Visit",
   "home.uncoded_hint":"⚠ {n} outlet di Store Visit belum memiliki kode pemeliharaan — tambahkan di Pengaturan.",
-  "home.signed_in_as":"Masuk sebagai ", "home.id_prefix":" | ID: ", "home.requests_banner":"🔔 Permintaan hapus tertunda:", "home.overdue_banner":"⚠ Laporan terbuka 30+ hari:", "home.review":"tinjau",
+  "home.signed_in_as":"Masuk sebagai ", "home.id_prefix":" | ID: ", "home.requests_banner":"🔔 Permintaan hapus tertunda:", "home.overdue2w_banner":"⚠ Item belum selesai, 2+ minggu:", "home.overdue_banner":"⛔ Item belum selesai, 30+ hari:", "home.review":"tinjau",
   "home.status_open":"terbuka", "home.status_finished":"selesai",
   "nr.new_finding":"Temuan Baru", "nr.department":"Departemen (pilih 1)", "nr.no_dept_for_you":"Anda tidak memiliki departemen yang dapat dilaporkan di lokasi ini.", "nr.issue":"Masalah", "nr.issue_ph":"Jelaskan apa yang Anda temukan...",
+  "nr.cause":"Kronologi / Penyebab", "nr.cause_ph":"Jelaskan kronologi kejadiannya & dugaan penyebabnya...",
   "nr.photos":"Foto (maks. 3)", "nr.add_photo":"📷 Tambah foto (kamera atau galeri)",
   "nr.video_label":"Video", "nr.video_hint":"(opsional, maks. 20MB — buat klip singkat, ~15–20 detik)", "nr.add_video":"🎥 Tambah video (kamera atau galeri)",
   "nr.add_video_short":"🎥 Tambah video",
@@ -632,7 +640,7 @@ id: {
   "nr.findings_in_report":"Temuan dalam laporan ini (", "nr.no_findings":"Belum ada temuan ditambahkan.",
   "nr.back_home":"← Kembali ke beranda", "nr.submit_report":"Kirim laporan", "nr.submitting":"Mengirim…",
   "nr.hint":"Setelah dikirim, temuan tidak dapat diedit — hanya dapat ditambahkan seiring waktu melalui pembaruan progres.",
-  "nr.err_dept":"Pilih departemen.", "nr.err_issue":"Jelaskan masalahnya.", "nr.err_proposal":"Pilih tindakan.",
+  "nr.err_dept":"Pilih departemen.", "nr.err_issue":"Jelaskan masalahnya.", "nr.err_cause":"Jelaskan kronologi/penyebabnya.", "nr.err_proposal":"Pilih tindakan.",
   "nr.err_broken_photo":"Foto suku cadang rusak wajib diisi.", "nr.err_broken_name":"Nama komponen rusak wajib diisi.",
   "nr.err_add_one":"Tambahkan setidaknya satu temuan terlebih dahulu.", "nr.err_submit_failed":"Gagal mengirim: ",
   "nr.video_too_big":"Video tersebut berukuran {n} — maksimal 20MB. Rekam klip yang lebih pendek (15–20 detik) dan coba lagi.",
@@ -648,7 +656,7 @@ id: {
   "id.print_btn":"Lihat / export laporan progres", "id.status_resolved":"SELESAI", "id.status_unresolved":"BELUM SELESAI",
   "id.confirmed_by":"Dikonfirmasi oleh ", "id.pending":"Menunggu", "id.confirm_btn":"Konfirmasi", "id.waiting":"Menunggu Giliran",
   "id.request_no_label":"No. Permintaan:", "id.date_label":"Tanggal:", "id.submitted_by_label":"Dikirim oleh:",
-  "id.broken_part_label":"Komponen rusak:", "id.sn_label":" (SN ", "id.findings_label":"Temuan:", "id.proposed_action_label":"Tindakan yang Diusulkan:",
+  "id.broken_part_label":"Komponen rusak:", "id.sn_label":" (SN ", "id.findings_label":"Temuan:", "id.cause_label":"Kronologi/Penyebab:", "id.proposed_action_label":"Tindakan yang Diusulkan:",
   "id.report_no_label":"No. Laporan:", "id.department_label":"Departemen:", "id.brand_label":"Brand:", "id.outlet_label":"Outlet:",
   "id.progress_n_prefix":"Progres ", "id.finding_label":"Temuan/Progress:", "id.resolution_label":"Penyelesaian:", "id.next_step_label":"Langkah selanjutnya:",
   "id.why_label":"Alasan:", "id.approval_title":"Persetujuan",
@@ -750,9 +758,10 @@ en: {
   "home.choose_brand":"— choose brand —", "home.choose_city":"— choose city —", "home.choose_outlet":"— choose outlet —",
   "home.stale_note":" ⚠ not in Store Visit's list anymore",
   "home.uncoded_hint":"⚠ {n} outlet(s) in Store Visit have no maintenance code yet — add them in Settings.",
-  "home.signed_in_as":"Signed in as ", "home.id_prefix":" | ID: ", "home.requests_banner":"🔔 Delete requests pending:", "home.overdue_banner":"⚠ Reports open 30+ days:", "home.review":"review",
+  "home.signed_in_as":"Signed in as ", "home.id_prefix":" | ID: ", "home.requests_banner":"🔔 Delete requests pending:", "home.overdue2w_banner":"⚠ Unresolved items, 2+ weeks:", "home.overdue_banner":"⛔ Unresolved items, 30+ days:", "home.review":"review",
   "home.status_open":"open", "home.status_finished":"finished",
   "nr.new_finding":"New Finding", "nr.department":"Department (choose 1)", "nr.no_dept_for_you":"You don't have a department to report at this location.", "nr.issue":"Issue", "nr.issue_ph":"Describe what you found...",
+  "nr.cause":"Cause / Chronology", "nr.cause_ph":"Describe what led to this and the likely cause...",
   "nr.photos":"Photos (up to 3)", "nr.add_photo":"📷 Add photo (camera or gallery)",
   "nr.video_label":"Video", "nr.video_hint":"(optional, max 20MB — keep clips short, ~15–20 sec)", "nr.add_video":"🎥 Add video (camera or gallery)",
   "nr.add_video_short":"🎥 Add video",
@@ -762,7 +771,7 @@ en: {
   "nr.findings_in_report":"Findings in this report (", "nr.no_findings":"No findings added yet.",
   "nr.back_home":"← Back to home", "nr.submit_report":"Submit report", "nr.submitting":"Submitting…",
   "nr.hint":"Once submitted, findings can't be edited — only added to over time via progress updates.",
-  "nr.err_dept":"Choose a department.", "nr.err_issue":"Describe the issue.", "nr.err_proposal":"Choose a proposal.",
+  "nr.err_dept":"Choose a department.", "nr.err_issue":"Describe the issue.", "nr.err_cause":"Describe the cause / chronology.", "nr.err_proposal":"Choose a proposal.",
   "nr.err_broken_photo":"Broken sparepart photo is required.", "nr.err_broken_name":"Broken part name is required.",
   "nr.err_add_one":"Add at least one finding first.", "nr.err_submit_failed":"Submit failed: ",
   "nr.video_too_big":"That video is {n} — max is 20MB. Record a shorter clip (15–20 sec) and try again.",
@@ -778,7 +787,7 @@ en: {
   "id.print_btn":"View / export progress report", "id.status_resolved":"RESOLVED", "id.status_unresolved":"UNRESOLVED",
   "id.confirmed_by":"Confirmed by ", "id.pending":"Pending", "id.confirm_btn":"Confirm", "id.waiting":"Waiting",
   "id.request_no_label":"Request No.:", "id.date_label":"Date:", "id.submitted_by_label":"Submitted by:",
-  "id.broken_part_label":"Broken part:", "id.sn_label":" (SN ", "id.findings_label":"Findings:", "id.proposed_action_label":"Proposed Action:",
+  "id.broken_part_label":"Broken part:", "id.sn_label":" (SN ", "id.findings_label":"Findings:", "id.cause_label":"Cause/Chronology:", "id.proposed_action_label":"Proposed Action:",
   "id.report_no_label":"Report No.:", "id.department_label":"Department:", "id.brand_label":"Brand:", "id.outlet_label":"Outlet:",
   "id.progress_n_prefix":"Progress ", "id.finding_label":"Finding/Progress:", "id.resolution_label":"Resolution:", "id.next_step_label":"Next step:",
   "id.why_label":"Why:", "id.approval_title":"Approval",
@@ -1251,7 +1260,7 @@ function renderHome(){
     $("homeHint").textContent=tf("home.uncoded_hint",{n:uncodedOutlets.length});
   } else { $("homeHint").textContent=""; }
   refreshRequestsBadge();
-  refreshOverdueBanner();
+  refreshOverdueBanners();
   refreshNotifyBadge();
   loadMyReports();
 }
@@ -1264,16 +1273,61 @@ async function refreshRequestsBadge(){
   $("btnRequestsBanner").classList.toggle("hide", n===0);
 }
 
-var OVERDUE_DAYS=30;
-async function refreshOverdueBanner(){
-  if(!isStaff()){ $("btnOverdueBanner").classList.add("hide"); return; }
-  var cutoff=new Date(Date.now()-OVERDUE_DAYS*86400000).toISOString();
-  var r=await sb.from("maint_items").select("id",{count:"exact"}).eq("status","open").lt("created_at",cutoff);
-  var n=(r.count)||0;
-  $("overdueCount").textContent=n;
-  $("btnOverdueBanner").classList.toggle("hide", n===0);
+// v13: overdue banner is now two-tier (orange at 2 weeks, red at 30 days) and visible beyond
+// owner/admin — also to OM, FOH/Area Manager/Store Manager/SPV/Captain (store_manager_spv
+// slot), Head Bar (barista slot), Head Chef (kitchen_leader slot), and Maintenance. "Open"
+// already means unresolved regardless of progress entries (status only flips to "resolved"
+// once every required approval is confirmed — see the status:"resolved" assignment in
+// confirmApproval()), so no change was needed there, just the tiering/visibility below.
+var OVERDUE_DAYS_ORANGE=14, OVERDUE_DAYS_RED=30;
+var OVERDUE_BANNER_SLOTS=["om","store_manager_spv","barista","kitchen_leader","maintenance_team"];
+function myEligibleSlots(){
+  if(!myRoles) return [];
+  return myRoles.map(function(r){ return GRANULAR_TO_SLOT[r.role]||r.role; });
+}
+function canSeeOverdueBanners(){
+  if(isStaff()) return true;
+  if(isViewOnly()) return false;
+  var slots=myEligibleSlots();
+  return slots.some(function(s){ return OVERDUE_BANNER_SLOTS.indexOf(s)>=0; });
+}
+// null = sees every department (owner/admin, OM, and FOH-group titleholders oversee the whole
+// store; Maintenance handles every department too). Head Bar is narrowed to BAR, Head Chef to
+// BOH -- mirrors DEPT_SCOPE_FOR_GROUP's existing narrowing of what they can report on.
+function overdueDeptScope(){
+  if(isStaff()) return null;
+  var slots=myEligibleSlots();
+  if(slots.indexOf("om")>=0 || slots.indexOf("store_manager_spv")>=0 || slots.indexOf("maintenance_team")>=0) return null;
+  var depts=[];
+  if(slots.indexOf("barista")>=0) depts.push("BAR");
+  if(slots.indexOf("kitchen_leader")>=0) depts.push("BOH");
+  return depts.length ? depts : null;
+}
+async function refreshOverdueBanners(){
+  if(!canSeeOverdueBanners()){
+    $("btnOverdue2wBanner").classList.add("hide");
+    $("btnOverdueBanner").classList.add("hide");
+    return;
+  }
+  var cutoffOrange=new Date(Date.now()-OVERDUE_DAYS_ORANGE*86400000).toISOString();
+  var cutoffRed=new Date(Date.now()-OVERDUE_DAYS_RED*86400000).toISOString();
+  var depts=overdueDeptScope();
+  function baseQuery(){
+    var q=sb.from("maint_items").select("id",{count:"exact"}).eq("status","open");
+    if(depts) q=q.in("department", depts);
+    if(myAccessLocIds!==null) q=q.in("location_id", myAccessLocIds.length?myAccessLocIds:["__none__"]);
+    return q;
+  }
+  var rRed=await baseQuery().lt("created_at",cutoffRed);
+  var rOrange=await baseQuery().lt("created_at",cutoffOrange).gte("created_at",cutoffRed);
+  var nRed=rRed.count||0, nOrange=rOrange.count||0;
+  $("overdue30Count").textContent=nRed;
+  $("overdue2wCount").textContent=nOrange;
+  $("btnOverdueBanner").classList.toggle("hide", nRed===0);
+  $("btnOverdue2wBanner").classList.toggle("hide", nOrange===0);
 }
 $("btnOverdueBanner").addEventListener("click", function(){ openRecall(); });
+$("btnOverdue2wBanner").addEventListener("click", function(){ openRecall(); });
 
 // In-app notifications: unread count for the signed-in user (any role — a member can be
 // subscribed too), delivered via maint_notifications rows created by notifyForNewReport()
@@ -1563,7 +1617,7 @@ function openNewReport(){
   if(isViewOnly()) return; // defensive — button is hidden, but block the route directly too
   draftItems=[]; draftPhotos=[]; draftBrokenPhoto=null; draftVideoFile=null; draftBrokenVideoFile=null; nrDept=null;
   $("nrHeader").innerHTML="<b>"+t("nr.location_label")+"</b> "+currentLocation.brand+" — "+currentLocation.name+" ("+currentLocation.city+")<br><b>"+t("nr.date_label")+"</b> "+new Date().toLocaleDateString()+"<br><b>"+t("nr.submitted_by_label")+"</b> "+me.name;
-  $("nrIssue").value=""; $("nrProposal").value="";
+  $("nrIssue").value=""; $("nrCause").value=""; $("nrProposal").value="";
   $("nrBrokenWrap").classList.add("hide"); $("nrBrokenName").value=""; $("nrBrokenSerial").value="";
   renderThumbs($("nrPhotoPrev"), [], function(){});
   renderThumbs($("nrBrokenPhotoPrev"), [], function(){});
@@ -1604,6 +1658,7 @@ function renderNrList(){
     d.innerHTML='<div class="no">#'+(idx+1)+'</div><span class="tag">'+it.department+'</span> '+
       (it.proposal==="sparepart"?'<span class="tag" style="background:#fff7ed;color:#9a3412">'+t("nr.tag_sparepart")+'</span>':'<span class="tag" style="background:#eff6ff;color:#1e3a8a">'+t("nr.tag_technician")+'</span>')+
       '<div style="margin-top:6px">'+escapeHtml(it.issue)+'</div>'+
+      (it.cause?'<div class="muted" style="margin-top:4px"><b>'+t("nr.cause")+':</b> '+escapeHtml(it.cause)+'</div>':'')+
       (it.photos.length?'<div class="thumbrow">'+it.photos.map(function(p){return '<div class="t"><img src="'+p+'"></div>';}).join("")+'</div>':'')+
       '<button type="button" class="del" data-i="'+idx+'">'+t("nr.remove")+'</button>';
     d.querySelector(".del").addEventListener("click", function(){ draftItems.splice(idx,1); renderNrList(); });
@@ -1719,6 +1774,8 @@ $("btnNrAdd").addEventListener("click", function(){
   if(!nrDept){ $("nrMsg").textContent=t("nr.err_dept"); return; }
   var issue=$("nrIssue").value.trim();
   if(!issue){ $("nrMsg").textContent=t("nr.err_issue"); return; }
+  var cause=$("nrCause").value.trim();
+  if(!cause){ $("nrMsg").textContent=t("nr.err_cause"); return; }
   var proposal=$("nrProposal").value;
   if(!proposal){ $("nrMsg").textContent=t("nr.err_proposal"); return; }
   var broken=null;
@@ -1727,9 +1784,9 @@ $("btnNrAdd").addEventListener("click", function(){
     if(!$("nrBrokenName").value.trim()){ $("nrMsg").textContent=t("nr.err_broken_name"); return; }
     broken={name:$("nrBrokenName").value.trim(), serial:$("nrBrokenSerial").value.trim(), photo:draftBrokenPhoto, videoFile:draftBrokenVideoFile};
   }
-  draftItems.push({department:nrDept, issue:issue, photos:draftPhotos.slice(), videoFile:draftVideoFile, proposal:proposal, broken_part:broken});
+  draftItems.push({department:nrDept, issue:issue, cause:cause, photos:draftPhotos.slice(), videoFile:draftVideoFile, proposal:proposal, broken_part:broken});
   nrDept=null; renderNrDeptWrap();
-  $("nrIssue").value=""; $("nrProposal").value=""; $("nrBrokenWrap").classList.add("hide");
+  $("nrIssue").value=""; $("nrCause").value=""; $("nrProposal").value=""; $("nrBrokenWrap").classList.add("hide");
   draftPhotos=[]; draftBrokenPhoto=null; draftVideoFile=null; draftBrokenVideoFile=null;
   renderThumbs($("nrPhotoPrev"),[],function(){}); renderThumbs($("nrBrokenPhotoPrev"),[],function(){});
   renderVideoPrev($("nrVideoPrev"), null, function(){}); renderVideoPrev($("nrBrokenVideoPrev"), null, function(){});
@@ -1760,7 +1817,7 @@ $("btnNrSubmit").addEventListener("click", async function(){
       itemRows.push({
         id:code, report_id:reportCode, location_id:currentLocation.id, seq:seq,
         brand:currentLocation.brand, city:currentLocation.city, outlet:currentLocation.name, department:it.department,
-        issue:it.issue, photos:photos, video_url:videoUrl, proposal:it.proposal, broken_part:broken,
+        issue:it.issue, cause:it.cause, photos:photos, video_url:videoUrl, proposal:it.proposal, broken_part:broken,
         status:"open", progress:[], approvals:approvals,
         created_by:me.id, created_name:me.name
       });
@@ -1929,7 +1986,7 @@ async function openReportPrint(reportCode){
     html+='<div class="report-page"><div class="sec-h">'+dept+'</div><table class="rep"><thead><tr><th>No</th><th>Masalah</th><th>Foto / Video</th><th>Tindakan yang Diusulkan</th><th>Kode Item</th></tr></thead><tbody>';
     byDept[dept].forEach(function(it, idx){
       var media=(it.photos||[]).map(function(p){return '<img src="'+p+'">';}).join("")+(it.video_url?'<div><a href="'+it.video_url+'" target="_blank">▶ video</a></div>':"");
-      html+='<tr><td class="no">'+(idx+1)+'</td><td>'+escapeHtml(it.issue)+'</td><td class="ph">'+media+'</td><td>'+(it.proposal==="sparepart"?"Minta Suku Cadang":"Panggil Teknisi / Vendor")+'</td><td>'+it.id+'</td></tr>';
+      html+='<tr><td class="no">'+(idx+1)+'</td><td>'+escapeHtml(it.issue)+(it.cause?'<br><br><b>Kronologi/Penyebab:</b> '+escapeHtml(it.cause):'')+'</td><td class="ph">'+media+'</td><td>'+(it.proposal==="sparepart"?"Minta Suku Cadang":"Panggil Teknisi / Vendor")+'</td><td>'+it.id+'</td></tr>';
     });
     html+='</tbody></table></div>';
   });
@@ -1968,7 +2025,7 @@ async function exportReportPdf(rep, its){
     y=pdfSectionBar(doc,dept,y);
     var rows=byDept[dept];
     var body=rows.map(function(it,idx){
-      return [idx+1, it.issue||"", "", it.proposal==="sparepart"?"Minta Suku Cadang":"Panggil Teknisi / Vendor", ""];
+      return [idx+1, (it.issue||"")+(it.cause?"\n\nKronologi/Penyebab: "+it.cause:""), "", it.proposal==="sparepart"?"Minta Suku Cadang":"Panggil Teknisi / Vendor", ""];
     });
     doc.autoTable({
       startY:y,
@@ -2242,6 +2299,7 @@ function firstReportBlockHtml(it, lang){
   return '<div><b>'+tt("id.request_no_label",lang)+'</b> '+it.id+' &nbsp; <b>'+tt("id.date_label",lang)+'</b> '+new Date(it.created_at).toLocaleString()+' &nbsp; <b>'+tt("id.submitted_by_label",lang)+'</b> '+it.created_name+'</div>'+
     '<div style="margin-top:6px">'+media+'</div>'+
     '<div style="margin-top:6px"><b>'+tt("id.findings_label",lang)+'</b> '+escapeHtml(it.issue)+'</div>'+
+    (it.cause?'<div style="margin-top:4px"><b>'+tt("id.cause_label",lang)+'</b> '+escapeHtml(it.cause)+'</div>':'')+
     '<div style="margin-top:4px"><b>'+tt("id.proposed_action_label",lang)+'</b> '+prop+'</div>'+broken;
 }
 
