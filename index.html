@@ -168,6 +168,7 @@
     <button class="btn hide" id="btnOverdue2wBanner" style="background:#ffedd5;color:#9a3412;border:1px solid #fdba74;margin-bottom:16px"><span data-i18n="home.overdue2w_banner">⚠ Unresolved items, 2+ weeks:</span> <span id="overdue2wCount">0</span> — <span data-i18n="home.review">review</span></button>
     <button class="btn hide" id="btnOverdueBanner" style="background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;margin-bottom:16px"><span data-i18n="home.overdue_banner">⛔ Unresolved items, 30+ days:</span> <span id="overdue30Count">0</span> — <span data-i18n="home.review">review</span></button>
     <button class="btn hide" id="btnNotifyBanner" style="background:#dbeafe;color:#1e3a8a;border:1px solid #93c5fd;margin-bottom:16px"><span data-i18n="notify.banner">🔔 New reports for you:</span> <span id="notifyBannerCount">0</span> — <span data-i18n="home.review">review</span></button>
+    <button class="btn hide" id="btnScheduleBanner" style="background:#ede9fe;color:#5b21b6;border:1px solid #c4b5fd;margin-bottom:16px"><span data-i18n="sched.banner">🔧 Scheduled maintenance due:</span> <span id="scheduleCount">0</span> — <span data-i18n="home.review">review</span></button>
     <div class="card">
       <h2 class="section" data-i18n="home.pick_location">Pick a location</h2>
       <div class="row"><label data-i18n="home.brand">Brand</label><select id="selBrand"></select></div>
@@ -179,6 +180,7 @@
       </div>
       <small class="hint" id="homeHint"></small>
     </div>
+    <button class="btn hide" id="btnScheduleNav" style="background:#f5f3ff;color:#5b21b6;border:1px solid #ddd6fe;margin-bottom:16px" data-i18n="sched.nav_btn">🔧 Scheduled Maintenance</button>
     <div class="card">
       <div class="sec-head"><h2 class="section" style="margin:0;border:none" data-i18n="home.recent">Recent Reports</h2></div>
       <div class="dept-wrap">
@@ -367,6 +369,42 @@
       <div id="notifyList"></div><p class="muted" id="notifyEmpty" data-i18n="notify.no_notifications">No notifications.</p>
     </div>
   </section>
+
+  <!-- ============ SCHEDULED MAINTENANCE (v15) ============ -->
+  <section id="scheduleView" class="hide">
+    <div class="card">
+      <div class="sec-head"><h2 class="section" style="margin:0;border:none" data-i18n="sched.title">Scheduled Maintenance</h2><button class="btn back small" id="btnSchedBack" data-i18n="recall.back">← Back</button></div>
+      <div id="schedList"></div><p class="muted hide" id="schedEmpty" data-i18n="sched.no_schedules">No scheduled maintenance yet.</p>
+    </div>
+    <div class="card hide" id="schedAddCard">
+      <h2 class="section" data-i18n="sched.add_title">Add a scheduled task</h2>
+      <div class="row"><label data-i18n="sched.location_label">Location</label><select id="schedNewLoc"></select></div>
+      <div class="row"><label data-i18n="sched.task_label">Task name</label><input type="text" id="schedNewName" placeholder="e.g. Cuci AC" data-i18n-ph="sched.task_ph"></div>
+      <div class="row"><label data-i18n="sched.interval_label">Repeat every (months)</label><input type="number" id="schedNewInterval" min="1" step="1" placeholder="3"></div>
+      <div class="msg" id="schedAddMsg"></div>
+      <button class="btn proceed" id="btnSchedAdd" data-i18n="sched.add_btn">+ Add schedule</button>
+    </div>
+  </section>
+
+  <!-- ============ SCHEDULED MAINTENANCE — FILE COMPLETION REPORT MODAL ============ -->
+  <div id="schedReportModal" class="hide modal-overlay">
+    <div class="card modal-card">
+      <h2 class="section" id="schedReportTitle">Cuci AC</h2>
+      <div class="row"><label data-i18n="nr.issue">Issue</label><textarea id="schedRepIssue"></textarea></div>
+      <div class="row"><label data-i18n="nr.cause">Cause / Chronology</label><textarea id="schedRepCause"></textarea></div>
+      <div class="row">
+        <label data-i18n="nr.photos">Photos (up to 3)</label>
+        <label class="add-photo-lbl" for="schedRepPhoto" data-i18n="nr.add_photo">📷 Add photo (camera or gallery)</label>
+        <input type="file" id="schedRepPhoto" accept="image/*" multiple class="hide">
+        <div class="thumbrow" id="schedRepPhotoPrev"></div>
+      </div>
+      <div class="msg" id="schedRepMsg"></div>
+      <div class="btnrow2" style="margin-top:8px">
+        <button class="btn back" id="schedRepCancel" data-i18n="common.cancel">Cancel</button>
+        <button class="btn proceed" id="schedRepSubmit" data-i18n="nr.submit_report">Submit report</button>
+      </div>
+    </div>
+  </div>
 
   <!-- ============ MEMBER ACCESS MODAL ============ -->
   <div id="memberAccessModal" class="hide modal-overlay">
@@ -579,7 +617,7 @@
    All maint_* tables are new and separate. See Maintenance_Project_Plan.md
    and Maintenance_Project_Schema.sql for the full spec this implements.
 ===================================================================== */
-var APP_VERSION="v3.7"; // bump this with each build so it's visible which version is deployed (shown in the footer, bottom of the page)
+var APP_VERSION="v3.8"; // bump this with each build so it's visible which version is deployed (shown in the footer, bottom of the page)
 var BUILTIN={url:"https://clprrwuizmlsddxmlvrh.supabase.co", key:"sb_publishable_bY46Emu9VVzYZEhpjxnr2A_9_ranhHt"};
 var sb=null;
 var $=function(id){return document.getElementById(id);};
@@ -646,6 +684,16 @@ id: {
   "nr.video_too_big":"Video tersebut berukuran {n} — maksimal 20MB. Rekam klip yang lebih pendek (15–20 detik) dan coba lagi.",
   "nr.remove":"✕ Hapus", "nr.tag_sparepart":"Suku Cadang", "nr.tag_technician":"Teknisi",
   "nr.location_label":"Lokasi:", "nr.date_label":"Tanggal:", "nr.submitted_by_label":"Dikirim oleh:",
+  "sched.banner":"🔧 Pemeliharaan berkala jatuh tempo:", "sched.nav_btn":"🔧 Pemeliharaan Berkala", "sched.title":"Pemeliharaan Berkala",
+  "sched.no_schedules":"Belum ada jadwal pemeliharaan berkala.", "sched.add_title":"Tambah jadwal baru",
+  "sched.location_label":"Lokasi", "sched.task_label":"Nama tugas", "sched.task_ph":"contoh: Cuci AC",
+  "sched.interval_label":"Ulangi setiap (bulan)", "sched.add_btn":"+ Tambah jadwal",
+  "sched.err_location":"Pilih lokasi.", "sched.err_task":"Isi nama tugas.", "sched.err_interval":"Isi interval dalam bulan (minimal 1).",
+  "sched.added_prefix":"Ditambahkan: ", "sched.confirm_delete":"Hapus jadwal pemeliharaan ini?", "sched.delete_failed":"Gagal menghapus: ",
+  "sched.every_prefix":"setiap ", "sched.every_months_suffix":" bulan", "sched.last_completed_label":"Terakhir dikerjakan:",
+  "sched.never_done":"belum pernah", "sched.status_overdue":"Jatuh tempo", "sched.status_soon":"Segera jatuh tempo", "sched.status_ok":"Sesuai jadwal",
+  "sched.days_overdue_suffix":" hari terlambat", "sched.days_left_suffix":" hari lagi",
+  "sched.file_report_btn":"📋 Buat laporan", "sched.default_cause":"Pemeliharaan rutin terjadwal.", "sched.err_location_missing":"Lokasi jadwal ini tidak ditemukan.",
   "recall.title":"Lihat laporan", "recall.back":"← Kembali", "recall.search_ph":"🔎 Cari berdasarkan kode item, kode laporan, atau teks masalah…",
   "recall.location":"Lokasi", "recall.department":"Departemen", "recall.all":"Semua", "recall.unresolved_only":"Hanya yang belum selesai",
   "recall.all_brands":"Semua brand", "recall.all_cities":"Semua kota", "recall.all_outlets":"Semua outlet", "recall.no_matching":"Tidak ada item yang cocok.",
@@ -777,6 +825,16 @@ en: {
   "nr.video_too_big":"That video is {n} — max is 20MB. Record a shorter clip (15–20 sec) and try again.",
   "nr.remove":"✕ Remove", "nr.tag_sparepart":"Sparepart", "nr.tag_technician":"Technician",
   "nr.location_label":"Location:", "nr.date_label":"Date:", "nr.submitted_by_label":"Submitted by:",
+  "sched.banner":"🔧 Scheduled maintenance due:", "sched.nav_btn":"🔧 Scheduled Maintenance", "sched.title":"Scheduled Maintenance",
+  "sched.no_schedules":"No scheduled maintenance yet.", "sched.add_title":"Add a scheduled task",
+  "sched.location_label":"Location", "sched.task_label":"Task name", "sched.task_ph":"e.g. Cuci AC",
+  "sched.interval_label":"Repeat every (months)", "sched.add_btn":"+ Add schedule",
+  "sched.err_location":"Choose a location.", "sched.err_task":"Enter a task name.", "sched.err_interval":"Enter an interval in months (at least 1).",
+  "sched.added_prefix":"Added: ", "sched.confirm_delete":"Delete this scheduled task?", "sched.delete_failed":"Delete failed: ",
+  "sched.every_prefix":"every ", "sched.every_months_suffix":" month(s)", "sched.last_completed_label":"Last done:",
+  "sched.never_done":"never done yet", "sched.status_overdue":"Overdue", "sched.status_soon":"Due soon", "sched.status_ok":"On schedule",
+  "sched.days_overdue_suffix":" days overdue", "sched.days_left_suffix":" days left",
+  "sched.file_report_btn":"📋 File report", "sched.default_cause":"Routine scheduled maintenance.", "sched.err_location_missing":"This schedule's location was not found.",
   "recall.title":"Recall report", "recall.back":"← Back", "recall.search_ph":"🔎 Search by item code, report code, or issue text…",
   "recall.location":"Location", "recall.department":"Department", "recall.all":"All", "recall.unresolved_only":"Unresolved only",
   "recall.all_brands":"All brands", "recall.all_cities":"All cities", "recall.all_outlets":"All outlets", "recall.no_matching":"No matching items.",
@@ -955,7 +1013,7 @@ var ROLE_GROUPS=[
 var DEPT_SCOPE_FOR_GROUP={ "BAR":["BAR"], "BOH":["BOH"], "PASTRY":["PASTRY"], "CK":["BOH","PASTRY"] };
 
 function show(v){
-  ["loginView","setpwView","homeView","newReportView","recallListView","itemDetailView","settingsView","requestsView","notifyView"]
+  ["loginView","setpwView","homeView","newReportView","recallListView","itemDetailView","settingsView","requestsView","notifyView","scheduleView"]
     .forEach(function(x){$(x).classList.add("hide");});
   $(v).classList.remove("hide"); window.scrollTo(0,0);
 }
@@ -1098,7 +1156,9 @@ async function afterLogin(){
   await loadAccessAndRoles();
   await loadLocations();
   await loadApprovalRules();
+  await loadSchedules();
   $("btnSettings").classList.toggle("hide", !isStaff());
+  $("btnScheduleNav").classList.toggle("hide", !canSeeScheduleBanner());
   $("btnLogout").classList.remove("hide");
   if(isStaff()) runMediaCleanup(); // fire-and-forget background housekeeping, never blocks the UI
   // Deep link from an exported PDF's "Kode Item" link (?item=<code>) — jump straight to that
@@ -1196,6 +1256,18 @@ async function loadApprovalRules(){
   (r.data||[]).forEach(function(row){ approvalRules[row.location_type+"|"+row.department]=row.required_roles; });
 }
 
+// v15: scheduled/preventive maintenance. Wrapped defensively -- if maint_schedules doesn't
+// exist yet (SQL not run yet on this deployment), this just leaves `schedules` empty and the
+// rest of the feature quietly does nothing, instead of breaking login/Home for everyone.
+var schedules=[];
+async function loadSchedules(){
+  try{
+    var r=await sb.from("maint_schedules").select("*").eq("active",true);
+    if(r.error) throw r.error;
+    schedules=r.data||[];
+  }catch(e){ schedules=[]; }
+}
+
 function visibleLocations(){
   var active=locations.filter(function(l){ return l.active!==false; });
   if(myAccessLocIds===null) return active;
@@ -1261,6 +1333,7 @@ function renderHome(){
   } else { $("homeHint").textContent=""; }
   refreshRequestsBadge();
   refreshOverdueBanners();
+  refreshScheduleBanner();
   refreshNotifyBadge();
   loadMyReports();
 }
@@ -1340,6 +1413,186 @@ async function refreshNotifyBadge(){
   $("btnNotifyBanner").classList.toggle("hide", n===0);
 }
 $("btnNotifyBanner").addEventListener("click", function(){ openNotifyView(); });
+
+/* ---------------- v15: scheduled (preventive) maintenance ---------------- */
+// Only owner/admin, or a maintenance_team titleholder scoped to that schedule's location (or
+// global), can create/edit/delete a schedule -- mirrors canManageDeletions()'s pattern, just
+// keyed off the maintenance_team slot instead of om. Matches the RLS policy exactly, so a
+// button hidden by this never fails server-side either.
+function canManageSchedule(locId){ return isStaff() || hasRole("maintenance_team", locId); }
+// Same wide visibility group as the overdue-items banners (OM, FOH/Store Manager, Head Bar,
+// Head Chef, Maintenance, owner/admin) -- reminders about what needs doing should reach the
+// same people either way.
+function canSeeScheduleBanner(){ return canSeeOverdueBanners(); }
+// Next-due = last_completed_at (or created_at, if never done) + interval_months. Computed
+// live rather than stored, same approach as the overdue banners' age math.
+function scheduleDueDate(sch){
+  var base=new Date(sch.last_completed_at || sch.created_at);
+  var d=new Date(base);
+  d.setMonth(d.getMonth()+sch.interval_months);
+  return d;
+}
+function scheduleIsDue(sch){ return scheduleDueDate(sch).getTime() <= Date.now(); }
+function visibleSchedules(){
+  if(myAccessLocIds===null) return schedules;
+  return schedules.filter(function(s){ return myAccessLocIds.indexOf(s.location_id)>=0; });
+}
+async function refreshScheduleBanner(){
+  if(!canSeeScheduleBanner()){ $("btnScheduleBanner").classList.add("hide"); return; }
+  var due=visibleSchedules().filter(scheduleIsDue);
+  $("scheduleCount").textContent=due.length;
+  $("btnScheduleBanner").classList.toggle("hide", due.length===0);
+}
+$("btnScheduleBanner").addEventListener("click", function(){ openScheduleView(); });
+$("btnScheduleNav").addEventListener("click", function(){ openScheduleView(); });
+
+async function openScheduleView(){
+  await loadSchedules();
+  renderScheduleList();
+  renderSchedAddCard();
+  show("scheduleView");
+}
+$("btnSchedBack").addEventListener("click", function(){ show("homeView"); renderHome(); });
+
+function scheduleDaysUntilDue(sch){ return Math.ceil((scheduleDueDate(sch).getTime()-Date.now())/86400000); }
+function scheduleStatusBadge(sch){
+  var days=scheduleDaysUntilDue(sch);
+  if(days<=0) return '<span class="pill" style="background:#fee2e2;color:#991b1b">'+t("sched.status_overdue")+" · "+Math.abs(days)+t("sched.days_overdue_suffix")+'</span>';
+  if(days<=14) return '<span class="pill" style="background:#ffedd5;color:#9a3412">'+t("sched.status_soon")+" · "+days+t("sched.days_left_suffix")+'</span>';
+  return '<span class="pill" style="background:#dcfce7;color:#166534">'+t("sched.status_ok")+" · "+days+t("sched.days_left_suffix")+'</span>';
+}
+function renderScheduleList(){
+  var host=$("schedList"); host.innerHTML="";
+  var mine=visibleSchedules().filter(function(s){ return locations.some(function(l){ return l.id===s.location_id; }); });
+  mine.sort(function(a,b){ return scheduleDueDate(a)-scheduleDueDate(b); });
+  $("schedEmpty").classList.toggle("hide", mine.length>0);
+  mine.forEach(function(sch){
+    var loc=locations.find(function(l){ return l.id===sch.location_id; });
+    var canManage=canManageSchedule(sch.location_id);
+    var row=document.createElement("div");
+    row.style.cssText="border:1px solid var(--line);border-radius:10px;padding:10px;margin-bottom:8px";
+    var lastDone=sch.last_completed_at? new Date(sch.last_completed_at).toLocaleDateString() : t("sched.never_done");
+    row.innerHTML=
+      "<div style='display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap'>"+
+        "<div><b>"+escapeHtml(sch.task_name)+"</b><div class='muted' style='font-size:12px'>"+loc.brand+" — "+loc.name+" · "+t("sched.every_prefix")+sch.interval_months+t("sched.every_months_suffix")+"</div></div>"+
+        scheduleStatusBadge(sch)+
+      "</div>"+
+      "<div class='muted' style='font-size:12px;margin-top:6px'>"+t("sched.last_completed_label")+" "+lastDone+"</div>"+
+      "<div class='schedRowActions' style='margin-top:8px;display:flex;gap:8px;flex-wrap:wrap'></div>";
+    var actions=row.querySelector(".schedRowActions");
+    if(!isViewOnly()){
+      var fileBtn=document.createElement("button"); fileBtn.type="button"; fileBtn.className="btn small proceed"; fileBtn.style.width="auto";
+      fileBtn.textContent=t("sched.file_report_btn");
+      fileBtn.addEventListener("click", function(){ openSchedReportModal(sch); });
+      actions.appendChild(fileBtn);
+    }
+    if(canManage){
+      var delBtn=document.createElement("button"); delBtn.type="button"; delBtn.className="del"; delBtn.textContent=t("settings.delete");
+      delBtn.addEventListener("click", async function(){
+        if(!confirm(t("sched.confirm_delete"))) return;
+        var del=await sb.from("maint_schedules").delete().eq("id",sch.id).select("id");
+        if(del.error || !del.data || !del.data.length){ alert(t("sched.delete_failed")+((del.error&&del.error.message)||"blocked")); return; }
+        await loadSchedules(); renderScheduleList();
+      });
+      actions.appendChild(delBtn);
+    }
+    host.appendChild(row);
+  });
+}
+function renderSchedAddCard(){
+  var manageable=locations.filter(function(l){ return l.active!==false && canManageSchedule(l.id); });
+  $("schedAddCard").classList.toggle("hide", manageable.length===0);
+  var sel=$("schedNewLoc"); sel.innerHTML="";
+  manageable.forEach(function(l){
+    var opt=document.createElement("option"); opt.value=l.id; opt.textContent=l.brand+" — "+l.name; sel.appendChild(opt);
+  });
+  $("schedNewName").value=""; $("schedNewInterval").value=""; $("schedAddMsg").textContent="";
+}
+$("btnSchedAdd").addEventListener("click", async function(){
+  $("schedAddMsg").className="msg";
+  var locId=$("schedNewLoc").value, name=$("schedNewName").value.trim(), interval=parseInt($("schedNewInterval").value,10);
+  if(!locId){ $("schedAddMsg").className="msg err"; $("schedAddMsg").textContent=t("sched.err_location"); return; }
+  if(!name){ $("schedAddMsg").className="msg err"; $("schedAddMsg").textContent=t("sched.err_task"); return; }
+  if(!interval || interval<1){ $("schedAddMsg").className="msg err"; $("schedAddMsg").textContent=t("sched.err_interval"); return; }
+  $("btnSchedAdd").disabled=true;
+  try{
+    var ins=await sb.from("maint_schedules").insert({
+      location_id:locId, task_name:name, interval_months:interval,
+      created_by:me.id, created_name:me.name
+    });
+    if(ins.error) throw ins.error;
+    await loadSchedules(); renderScheduleList(); renderSchedAddCard();
+    $("schedAddMsg").className="msg ok"; $("schedAddMsg").textContent=t("sched.added_prefix")+name;
+  }catch(e){ $("schedAddMsg").className="msg err"; $("schedAddMsg").textContent=(e.message||e); }
+  finally{ $("btnSchedAdd").disabled=false; }
+});
+
+/* ---- file a completion report for a scheduled task (reuses the same photo-picker
+   helpers as New Report, and the same 2-step insert + rollback-on-failure pattern as
+   btnNrSubmit) ---- */
+var schedRepPhotos=[], schedRepCurrentSchedule=null;
+function openSchedReportModal(sch){
+  schedRepCurrentSchedule=sch;
+  $("schedReportTitle").textContent=sch.task_name;
+  $("schedRepIssue").value=sch.task_name;
+  $("schedRepCause").value=t("sched.default_cause");
+  schedRepPhotos=[];
+  renderThumbs($("schedRepPhotoPrev"), [], function(){});
+  $("schedRepMsg").textContent="";
+  $("schedReportModal").classList.remove("hide");
+}
+$("schedRepCancel").addEventListener("click", function(){ $("schedReportModal").classList.add("hide"); });
+$("schedRepPhoto").addEventListener("change", async function(){
+  var got=await pickCompressed($("schedRepPhoto"), true);
+  schedRepPhotos=schedRepPhotos.concat(got).slice(0,3);
+  renderThumbs($("schedRepPhotoPrev"), schedRepPhotos, function(i){ schedRepPhotos.splice(i,1); renderThumbs($("schedRepPhotoPrev"), schedRepPhotos, arguments.callee); });
+  $("schedRepPhoto").value="";
+});
+$("schedRepSubmit").addEventListener("click", async function(){
+  $("schedRepMsg").textContent="";
+  var sch=schedRepCurrentSchedule; if(!sch) return;
+  var issue=$("schedRepIssue").value.trim(); if(!issue){ $("schedRepMsg").textContent=t("nr.err_issue"); return; }
+  var cause=$("schedRepCause").value.trim(); if(!cause){ $("schedRepMsg").textContent=t("nr.err_cause"); return; }
+  var loc=locations.find(function(l){ return l.id===sch.location_id; });
+  if(!loc){ $("schedRepMsg").textContent=t("sched.err_location_missing"); return; }
+  $("schedRepSubmit").disabled=true; $("schedRepSubmit").textContent=t("nr.submitting");
+  var reportCode=null, reportCreated=false;
+  try{
+    reportCode=await makeReportCode(loc);
+    var seq=await nextItemSeq(loc, "FACILITY");
+    var code=makeItemCode(loc, "FACILITY", seq);
+    var photos=await uploadPhotos(schedRepPhotos, code);
+    var rules=approvalRules[loc.type+"|FACILITY"]||[];
+    var approvals=rules.map(function(role){ return {role:role, confirmed:false, by:null, by_name:null, at:null, proof:[]}; });
+    var itemRow={
+      id:code, report_id:reportCode, location_id:loc.id, seq:seq,
+      brand:loc.brand, city:loc.city, outlet:loc.name, department:"FACILITY",
+      issue:issue, cause:cause, photos:photos, video_url:null, proposal:"technician", broken_part:null,
+      status:"open", progress:[], approvals:approvals,
+      created_by:me.id, created_name:me.name,
+      source:"scheduled", schedule_id:sch.id
+    };
+    var repIns=await sb.from("maint_reports").insert({
+      id:reportCode, location_id:loc.id, brand:loc.brand, city:loc.city, outlet:loc.name,
+      brand_code:loc.brand_code, store_code:loc.store_code,
+      submitted_by:me.id, submitted_name:me.name, item_count:1, cached_status:"open"
+    });
+    if(repIns.error) throw repIns.error;
+    reportCreated=true;
+    var itemIns=await sb.from("maint_items").insert([itemRow]);
+    if(itemIns.error) throw itemIns.error;
+    await notifyForNewReport(reportCode, loc, [itemRow]);
+    $("schedReportModal").classList.add("hide");
+    openReportPrint(reportCode);
+  }catch(e){
+    if(reportCreated && reportCode){
+      try{ await sb.from("maint_reports").delete().eq("id", reportCode); }catch(e2){}
+    }
+    $("schedRepMsg").textContent=t("nr.err_submit_failed")+(e.message||e)+" "+t("nr.err_submit_retry");
+  }finally{
+    $("schedRepSubmit").disabled=false; $("schedRepSubmit").textContent=t("nr.submit_report");
+  }
+});
 async function openNotifyView(){
   var r=await sb.from("maint_notifications").select("*").eq("user_id",me.id).order("created_at",{ascending:false}).limit(50);
   var rows=r.data||[];
@@ -2108,7 +2361,7 @@ async function exportReportPdf(rep, its){
 }
 
 function showPrintable(html, backLabel, backFn, onExport, waMsgFn){
-  ["loginView","setpwView","homeView","newReportView","recallListView","itemDetailView","settingsView","requestsView","notifyView"]
+  ["loginView","setpwView","homeView","newReportView","recallListView","itemDetailView","settingsView","requestsView","notifyView","scheduleView"]
     .forEach(function(x){$(x).classList.add("hide");});
   var old=document.getElementById("printHost"); if(old) old.remove();
   var host=document.createElement("section"); host.id="printHost";
@@ -2498,6 +2751,14 @@ $("pgSubmit").addEventListener("click", async function(){
     var upd=await sb.from("maint_items").update({progress:newProg}).eq("id",currentItem.id);
     if(upd.error) throw upd.error;
     currentItem.progress=newProg;
+    // v15: if this item came from a scheduled-maintenance task and this progress entry marks
+    // it resolved, reset that schedule's clock now -- the next cycle is timed from when the
+    // work actually happened, not from whenever approvals finish. Best-effort: never let a
+    // failure here block the progress entry itself, which already saved successfully above.
+    if(entry.resolution==="resolved" && currentItem.schedule_id){
+      try{ await sb.from("maint_schedules").update({last_completed_at:entry.at}).eq("id",currentItem.schedule_id); }
+      catch(e3){ /* best-effort */ }
+    }
     $("progressModal").classList.add("hide");
     renderProgressList();
   }catch(e){
