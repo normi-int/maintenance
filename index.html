@@ -579,7 +579,7 @@
    All maint_* tables are new and separate. See Maintenance_Project_Plan.md
    and Maintenance_Project_Schema.sql for the full spec this implements.
 ===================================================================== */
-var APP_VERSION="v3.6"; // bump this with each build so it's visible which version is deployed (shown in the footer, bottom of the page)
+var APP_VERSION="v3.7"; // bump this with each build so it's visible which version is deployed (shown in the footer, bottom of the page)
 var BUILTIN={url:"https://clprrwuizmlsddxmlvrh.supabase.co", key:"sb_publishable_bY46Emu9VVzYZEhpjxnr2A_9_ranhHt"};
 var sb=null;
 var $=function(id){return document.getElementById(id);};
@@ -642,7 +642,7 @@ id: {
   "nr.hint":"Setelah dikirim, temuan tidak dapat diedit — hanya dapat ditambahkan seiring waktu melalui pembaruan progres.",
   "nr.err_dept":"Pilih departemen.", "nr.err_issue":"Jelaskan masalahnya.", "nr.err_cause":"Jelaskan kronologi/penyebabnya.", "nr.err_proposal":"Pilih tindakan.",
   "nr.err_broken_photo":"Foto suku cadang rusak wajib diisi.", "nr.err_broken_name":"Nama komponen rusak wajib diisi.",
-  "nr.err_add_one":"Tambahkan setidaknya satu temuan terlebih dahulu.", "nr.err_submit_failed":"Gagal mengirim: ",
+  "nr.err_add_one":"Tambahkan setidaknya satu temuan terlebih dahulu.", "nr.err_submit_failed":"Gagal mengirim: ", "nr.err_submit_retry":"Temuan Anda masih tersimpan di bawah — silakan coba kirim lagi.",
   "nr.video_too_big":"Video tersebut berukuran {n} — maksimal 20MB. Rekam klip yang lebih pendek (15–20 detik) dan coba lagi.",
   "nr.remove":"✕ Hapus", "nr.tag_sparepart":"Suku Cadang", "nr.tag_technician":"Teknisi",
   "nr.location_label":"Lokasi:", "nr.date_label":"Tanggal:", "nr.submitted_by_label":"Dikirim oleh:",
@@ -773,7 +773,7 @@ en: {
   "nr.hint":"Once submitted, findings can't be edited — only added to over time via progress updates.",
   "nr.err_dept":"Choose a department.", "nr.err_issue":"Describe the issue.", "nr.err_cause":"Describe the cause / chronology.", "nr.err_proposal":"Choose a proposal.",
   "nr.err_broken_photo":"Broken sparepart photo is required.", "nr.err_broken_name":"Broken part name is required.",
-  "nr.err_add_one":"Add at least one finding first.", "nr.err_submit_failed":"Submit failed: ",
+  "nr.err_add_one":"Add at least one finding first.", "nr.err_submit_failed":"Submit failed: ", "nr.err_submit_retry":"Your findings are still saved below — please try submitting again.",
   "nr.video_too_big":"That video is {n} — max is 20MB. Record a shorter clip (15–20 sec) and try again.",
   "nr.remove":"✕ Remove", "nr.tag_sparepart":"Sparepart", "nr.tag_technician":"Technician",
   "nr.location_label":"Location:", "nr.date_label":"Date:", "nr.submitted_by_label":"Submitted by:",
@@ -1798,8 +1798,21 @@ $("btnNrSubmit").addEventListener("click", async function(){
   $("nrMsg").textContent="";
   if(!draftItems.length){ $("nrMsg").textContent=t("nr.err_add_one"); return; }
   $("btnNrSubmit").disabled=true; $("btnNrSubmit").textContent=t("nr.submitting");
+  // v14: the report row and the item rows are two separate sequential inserts (items must
+  // come second -- maint_items.report_id has an FK to maint_reports(id), so the report has to
+  // exist first). If the report insert succeeds but the item insert then fails for any reason
+  // (flaky connection, timeout, etc.), the report row used to get left behind as an empty
+  // orphan shell -- it showed up in Home/Recall with a nonzero item_count but no actual items,
+  // and printed a blank PDF. Found 7 of these in production from before this fix (all traced
+  // to the same submit-time gap, not any single root cause we could pin down -- most likely
+  // transient connectivity drops between the two calls). Fix: track whether the report row was
+  // actually created, and if the item insert then fails, delete it again (best-effort) before
+  // showing the error, so a failed submission never leaves a dangling report behind. The
+  // draftItems on-screen list is untouched either way -- draftItems is only cleared after a
+  // full success, so nothing the user typed is lost on failure; they just tap Submit again.
+  var reportCode=null, reportCreated=false;
   try{
-    var reportCode=await makeReportCode(currentLocation);
+    reportCode=await makeReportCode(currentLocation);
     var itemRows=[];
     for(var i=0;i<draftItems.length;i++){
       var it=draftItems[i];
@@ -1828,13 +1841,17 @@ $("btnNrSubmit").addEventListener("click", async function(){
       submitted_by:me.id, submitted_name:me.name, item_count:itemRows.length, cached_status:"open"
     });
     if(repIns.error) throw repIns.error;
+    reportCreated=true;
     var itemIns=await sb.from("maint_items").insert(itemRows);
     if(itemIns.error) throw itemIns.error;
     draftItems=[];
     await notifyForNewReport(reportCode, currentLocation, itemRows);
     openReportPrint(reportCode);
   }catch(e){
-    $("nrMsg").textContent=t("nr.err_submit_failed")+(e.message||e);
+    if(reportCreated && reportCode){
+      try{ await sb.from("maint_reports").delete().eq("id", reportCode); }catch(e2){ /* best-effort rollback -- surfacing the original error matters more */ }
+    }
+    $("nrMsg").textContent=t("nr.err_submit_failed")+(e.message||e)+" "+t("nr.err_submit_retry");
   }finally{
     $("btnNrSubmit").disabled=false; $("btnNrSubmit").textContent=t("nr.submit_report");
   }
