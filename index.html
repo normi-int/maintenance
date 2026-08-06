@@ -381,6 +381,7 @@
       <div class="row"><label data-i18n="sched.location_label">Location</label><select id="schedNewLoc"></select></div>
       <div class="row"><label data-i18n="sched.task_label">Task name</label><input type="text" id="schedNewName" placeholder="e.g. Cuci AC" data-i18n-ph="sched.task_ph"></div>
       <div class="row"><label data-i18n="sched.interval_label">Repeat every (months)</label><input type="number" id="schedNewInterval" min="1" step="1" placeholder="3"></div>
+      <div class="row"><label data-i18n="sched.last_done_label">Last done (optional)</label><input type="date" id="schedNewLastDone"><p class="muted" style="font-size:12px;margin:4px 0 0" data-i18n="sched.last_done_hint">Leave blank if this is being tracked for the first time starting today.</p></div>
       <div class="msg" id="schedAddMsg"></div>
       <button class="btn proceed" id="btnSchedAdd" data-i18n="sched.add_btn">+ Add schedule</button>
     </div>
@@ -617,7 +618,7 @@
    All maint_* tables are new and separate. See Maintenance_Project_Plan.md
    and Maintenance_Project_Schema.sql for the full spec this implements.
 ===================================================================== */
-var APP_VERSION="v3.8"; // bump this with each build so it's visible which version is deployed (shown in the footer, bottom of the page)
+var APP_VERSION="v3.9"; // bump this with each build so it's visible which version is deployed (shown in the footer, bottom of the page)
 var BUILTIN={url:"https://clprrwuizmlsddxmlvrh.supabase.co", key:"sb_publishable_bY46Emu9VVzYZEhpjxnr2A_9_ranhHt"};
 var sb=null;
 var $=function(id){return document.getElementById(id);};
@@ -688,6 +689,8 @@ id: {
   "sched.no_schedules":"Belum ada jadwal pemeliharaan berkala.", "sched.add_title":"Tambah jadwal baru",
   "sched.location_label":"Lokasi", "sched.task_label":"Nama tugas", "sched.task_ph":"contoh: Cuci AC",
   "sched.interval_label":"Ulangi setiap (bulan)", "sched.add_btn":"+ Tambah jadwal",
+  "sched.last_done_label":"Terakhir dikerjakan (opsional)", "sched.last_done_hint":"Kosongkan jika baru mulai dilacak mulai hari ini.",
+  "sched.err_last_done_future":"Tanggal terakhir dikerjakan tidak boleh di masa depan.",
   "sched.err_location":"Pilih lokasi.", "sched.err_task":"Isi nama tugas.", "sched.err_interval":"Isi interval dalam bulan (minimal 1).",
   "sched.added_prefix":"Ditambahkan: ", "sched.confirm_delete":"Hapus jadwal pemeliharaan ini?", "sched.delete_failed":"Gagal menghapus: ",
   "sched.every_prefix":"setiap ", "sched.every_months_suffix":" bulan", "sched.last_completed_label":"Terakhir dikerjakan:",
@@ -829,6 +832,8 @@ en: {
   "sched.no_schedules":"No scheduled maintenance yet.", "sched.add_title":"Add a scheduled task",
   "sched.location_label":"Location", "sched.task_label":"Task name", "sched.task_ph":"e.g. Cuci AC",
   "sched.interval_label":"Repeat every (months)", "sched.add_btn":"+ Add schedule",
+  "sched.last_done_label":"Last done (optional)", "sched.last_done_hint":"Leave blank if this is being tracked for the first time starting today.",
+  "sched.err_last_done_future":"Last-done date can't be in the future.",
   "sched.err_location":"Choose a location.", "sched.err_task":"Enter a task name.", "sched.err_interval":"Enter an interval in months (at least 1).",
   "sched.added_prefix":"Added: ", "sched.confirm_delete":"Delete this scheduled task?", "sched.delete_failed":"Delete failed: ",
   "sched.every_prefix":"every ", "sched.every_months_suffix":" month(s)", "sched.last_completed_label":"Last done:",
@@ -1506,20 +1511,24 @@ function renderSchedAddCard(){
   manageable.forEach(function(l){
     var opt=document.createElement("option"); opt.value=l.id; opt.textContent=l.brand+" — "+l.name; sel.appendChild(opt);
   });
-  $("schedNewName").value=""; $("schedNewInterval").value=""; $("schedAddMsg").textContent="";
+  $("schedNewName").value=""; $("schedNewInterval").value=""; $("schedNewLastDone").value=""; $("schedAddMsg").textContent="";
 }
 $("btnSchedAdd").addEventListener("click", async function(){
   $("schedAddMsg").className="msg";
   var locId=$("schedNewLoc").value, name=$("schedNewName").value.trim(), interval=parseInt($("schedNewInterval").value,10);
+  var lastDoneVal=$("schedNewLastDone").value; // yyyy-mm-dd or ""
   if(!locId){ $("schedAddMsg").className="msg err"; $("schedAddMsg").textContent=t("sched.err_location"); return; }
   if(!name){ $("schedAddMsg").className="msg err"; $("schedAddMsg").textContent=t("sched.err_task"); return; }
   if(!interval || interval<1){ $("schedAddMsg").className="msg err"; $("schedAddMsg").textContent=t("sched.err_interval"); return; }
+  if(lastDoneVal && new Date(lastDoneVal).getTime() > Date.now()){ $("schedAddMsg").className="msg err"; $("schedAddMsg").textContent=t("sched.err_last_done_future"); return; }
   $("btnSchedAdd").disabled=true;
   try{
-    var ins=await sb.from("maint_schedules").insert({
+    var row={
       location_id:locId, task_name:name, interval_months:interval,
       created_by:me.id, created_name:me.name
-    });
+    };
+    if(lastDoneVal) row.last_completed_at=new Date(lastDoneVal+"T00:00:00").toISOString();
+    var ins=await sb.from("maint_schedules").insert(row);
     if(ins.error) throw ins.error;
     await loadSchedules(); renderScheduleList(); renderSchedAddCard();
     $("schedAddMsg").className="msg ok"; $("schedAddMsg").textContent=t("sched.added_prefix")+name;
