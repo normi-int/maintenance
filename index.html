@@ -545,6 +545,11 @@
         <div class="row hide" id="pgStaffWhyWrap"><label data-i18n="pg.why_unresolved">Why unresolved</label><textarea id="pgStaffWhy"></textarea></div>
       </div>
 
+      <div class="row hide" id="pgConfirmPassWrap">
+        <label data-i18n="pg.confirm_pass_label">Your password (confirms this on your behalf)</label>
+        <input type="password" id="pgConfirmPass" autocomplete="current-password">
+        <div class="muted" style="font-size:12px;margin-top:4px" data-i18n="pg.confirm_pass_hint">Marking this resolved will automatically confirm your own approval. Others still need to confirm separately.</div>
+      </div>
       <div class="msg err" id="pgMsg"></div>
       <div class="btnrow2" style="margin-top:10px">
         <button class="btn back" id="pgCancel" data-i18n="common.cancel">Cancel</button>
@@ -618,7 +623,7 @@
    All maint_* tables are new and separate. See Maintenance_Project_Plan.md
    and Maintenance_Project_Schema.sql for the full spec this implements.
 ===================================================================== */
-var APP_VERSION="v3.9"; // bump this with each build so it's visible which version is deployed (shown in the footer, bottom of the page)
+var APP_VERSION="v3.11"; // bump this with each build so it's visible which version is deployed (shown in the footer, bottom of the page)
 var BUILTIN={url:"https://clprrwuizmlsddxmlvrh.supabase.co", key:"sb_publishable_bY46Emu9VVzYZEhpjxnr2A_9_ranhHt"};
 var sb=null;
 var $=function(id){return document.getElementById(id);};
@@ -727,6 +732,10 @@ id: {
   "pg.err_not_repairable_reason":"Alasan wajib diisi.", "pg.err_reinspect_reason":"Alasan wajib diisi.",
   "pg.err_after_photo":"Foto \"setelah\" wajib diisi.", "pg.err_parts_photo":"Foto suku cadang yang diterima wajib diisi.",
   "pg.err_why":"Jelaskan alasan belum selesai.", "pg.err_save_failed":"Gagal menyimpan: ",
+  "pg.confirm_pass_label":"Kata sandi Anda (mengonfirmasi persetujuan a/n Anda sendiri)",
+  "pg.confirm_pass_hint":"Menandai selesai akan otomatis mengonfirmasi persetujuan Anda sendiri. Pihak lain tetap harus mengonfirmasi terpisah.",
+  "pg.err_confirm_pass":"Masukkan kata sandi Anda untuk mengonfirmasi.", "pg.err_confirm_pass_wrong":"Kata sandi salah.",
+  "pg.err_confirm_pass_saved_but":"Progres tersimpan, tapi konfirmasi otomatis gagal — konfirmasi manual melalui kartu Persetujuan: ",
   "ap.title_prefix":"Konfirmasi selesai — ", "ap.sub":"Item hanya akan tampil Selesai setelah setiap peran yang diperlukan mengonfirmasi.",
   "ap.user_pass_label":"Nama pengguna & kata sandi Anda sendiri", "ap.user_pass_hint":"(untuk mencatat siapa yang mengonfirmasi — perangkat ini mungkin digunakan bersama)",
   "ap.username_ph":"Nama pengguna", "ap.password_ph":"Kata sandi", "ap.confirm":"Konfirmasi",
@@ -870,6 +879,10 @@ en: {
   "pg.err_not_repairable_reason":"Reason is required.", "pg.err_reinspect_reason":"Reason is required.",
   "pg.err_after_photo":"Photo of 'after' is required.", "pg.err_parts_photo":"Photo of parts received is required.",
   "pg.err_why":"Explain why it's unresolved.", "pg.err_save_failed":"Save failed: ",
+  "pg.confirm_pass_label":"Your password (confirms this on your own behalf)",
+  "pg.confirm_pass_hint":"Marking this resolved will automatically confirm your own approval. Others still need to confirm separately.",
+  "pg.err_confirm_pass":"Enter your password to confirm.", "pg.err_confirm_pass_wrong":"Incorrect password.",
+  "pg.err_confirm_pass_saved_but":"Progress saved, but auto-confirm failed — confirm manually via the Approval card: ",
   "ap.title_prefix":"Confirm resolved — ", "ap.sub":"Item only shows Resolved once every required role has confirmed.",
   "ap.user_pass_label":"Your own username & password", "ap.user_pass_hint":"(to record who confirmed — this device may be shared)",
   "ap.username_ph":"Username", "ap.password_ph":"Password", "ap.confirm":"Confirm",
@@ -964,9 +977,9 @@ $("btnLangEN").addEventListener("click", function(){ setLang("en"); });
 applyI18n(); // apply default language immediately, even before login (login screen defaults to Indonesian)
 
 // 9 approval "slots" the resolution-approval matrix (maint_approval_rules) is built on:
-// store_manager_spv (FOH oversight), barista (BAR - Head Bar), bar_staff (BAR - Senior
-// Barista/Barista, added v11 as an extra required layer alongside Head Bar), kitchen_leader
-// (BOH - Head Chef), boh_staff (BOH - Sous Chef/CDP, added v11 alongside Head Chef),
+// store_manager_spv (FOH oversight), barista (BAR - Head Bar), bar_staff (BAR - Barista,
+// added v11 as an extra required layer alongside Head Bar), kitchen_leader
+// (BOH - Head Chef), boh_staff (BOH - Others, added v11 alongside Head Chef),
 // pastry_leader (PASTRY), ck (Central Kitchen), maintenance_team, om (Operational Manager,
 // Central Kitchen oversight — also required on STORE/FOH items alongside store_manager_spv).
 // NOTE: om is its own distinct slot, separate from the "Area Manager" title (which is one of
@@ -980,21 +993,25 @@ var ROLE_LABEL={
 // Granular functional titles a member can actually be assigned (shown in the member-access
 // modal / Team table). Each maps to one of the slot keys above via GRANULAR_TO_SLOT --
 // holding that title satisfies the corresponding slot's approval requirement (see hasRole()).
-// v11: Senior Barista/Barista and Sous Chef/CDP now ALSO count as approvers (bar_staff /
-// boh_staff slots) — an extra required layer alongside the Head-level title, not a
-// replacement for it. Only CK Staff remains deliberately excluded (Central Kitchen still
-// Head-only for approvals).
+// v11: Barista and BOH - Others now ALSO count as approvers (bar_staff / boh_staff slots) —
+// an extra required layer alongside the Head-level title, not a replacement for it. Only CK
+// Staff remains deliberately excluded (Central Kitchen still Head-only for approvals).
+// v16: simplified BAR to 2 tiers (Head Bar / Barista, dropped the separate Senior Barista
+// tier) per owner request. BOH kept at 3 tiers (Head Chef / Sous Chef / BOH - Others) --
+// owner initially asked to collapse BOH to 2 tiers too, but restored Sous Chef after
+// reviewing real positions against HR records, since some staff are genuinely Sous Chefs
+// rather than generic BOH staff. CDP dropped as a separate tier (folds into BOH - Others).
 var GRANULAR_LABEL={
   foh_area_manager:"FOH - Area Manager", foh_store_manager:"FOH - Store Manager", foh_spv:"FOH - SPV", foh_captain:"FOH - Captain",
-  bar_head:"BAR - Head Bar", bar_senior_barista:"BAR - Senior Barista", bar_barista:"BAR - Barista",
-  boh_head_chef:"BOH - Head Chef", boh_sous_chef:"BOH - Sous Chef", boh_cdp:"BOH - CDP",
+  bar_head:"BAR - Head Bar", bar_barista:"BAR - Barista",
+  boh_head_chef:"BOH - Head Chef", boh_sous_chef:"BOH - Sous Chef", boh_others:"BOH - Others",
   pastry:"Pastry", ck_head:"CK - Head", ck_staff:"CK - Staff",
   maintenance_team:"Maintenance", om:"Operational Manager", others:"Others"
 };
 var GRANULAR_TO_SLOT={
   foh_area_manager:"store_manager_spv", foh_store_manager:"store_manager_spv", foh_spv:"store_manager_spv", foh_captain:"store_manager_spv",
-  bar_head:"barista", bar_senior_barista:"bar_staff", bar_barista:"bar_staff",
-  boh_head_chef:"kitchen_leader", boh_sous_chef:"boh_staff", boh_cdp:"boh_staff",
+  bar_head:"barista", bar_barista:"bar_staff",
+  boh_head_chef:"kitchen_leader", boh_sous_chef:"boh_staff", boh_others:"boh_staff",
   pastry:"pastry_leader", ck_head:"ck",
   maintenance_team:"maintenance_team", om:"om"
   // ck_staff, others: deliberately absent — valid titles to hold (and they still gate which
@@ -1003,8 +1020,8 @@ var GRANULAR_TO_SLOT={
 };
 var ROLE_GROUPS=[
   {label:"FOH", keys:["foh_area_manager","foh_store_manager","foh_spv","foh_captain"]},
-  {label:"BAR", keys:["bar_head","bar_senior_barista","bar_barista"]},
-  {label:"BOH", keys:["boh_head_chef","boh_sous_chef","boh_cdp"]},
+  {label:"BAR", keys:["bar_head","bar_barista"]},
+  {label:"BOH", keys:["boh_head_chef","boh_sous_chef","boh_others"]},
   {label:"CK", keys:["ck_head","ck_staff"]},
   {label:"PASTRY", keys:["pastry"]},
   {label:"Other", keys:["maintenance_team","om","others"]}
@@ -2658,6 +2675,7 @@ function resetProgressModal(){
   $("pgMsg").textContent="";
   [["pgTechResBtn1","tech_res"],["pgTechResBtn2","tech_res"],["pgStaffResBtn1","staff_res"],["pgStaffResBtn2","staff_res"]].forEach(function(p){ $(p[0]).classList.remove("on"); });
   pgPhotos.tech_res=null; pgPhotos.staff_res=null;
+  $("pgConfirmPass").value=""; $("pgConfirmPassWrap").classList.add("hide");
 }
 $("btnAddProgress").addEventListener("click", function(){ resetProgressModal(); $("progressModal").classList.remove("hide"); });
 $("pgCancel").addEventListener("click", function(){ $("progressModal").classList.add("hide"); });
@@ -2698,16 +2716,24 @@ function setResToggle(pairIds, key, val){
   pairIds.forEach(function(id,i){ $(id).classList.toggle("on", (i===0&&val==="resolved")||(i===1&&val==="unresolved")); });
   pgPhotos[key]=val;
 }
-$("pgTechResBtn1").addEventListener("click", function(){ setResToggle(["pgTechResBtn1","pgTechResBtn2"],"tech_res","resolved"); $("pgTechResolved").classList.remove("hide"); $("pgTechUnresolved").classList.add("hide"); });
-$("pgTechResBtn2").addEventListener("click", function(){ setResToggle(["pgTechResBtn1","pgTechResBtn2"],"tech_res","unresolved"); $("pgTechUnresolved").classList.remove("hide"); $("pgTechResolved").classList.add("hide"); });
-$("pgStaffResBtn1").addEventListener("click", function(){ setResToggle(["pgStaffResBtn1","pgStaffResBtn2"],"staff_res","resolved"); $("pgStaffWhyWrap").classList.add("hide"); });
-$("pgStaffResBtn2").addEventListener("click", function(){ setResToggle(["pgStaffResBtn1","pgStaffResBtn2"],"staff_res","unresolved"); $("pgStaffWhyWrap").classList.remove("hide"); });
+// v17: whichever resolution toggle just flips to "resolved" (tech or staff -- only one type is
+// visible at a time per pgType) reveals the password-confirm field; flipping back to
+// "unresolved" hides it and clears whatever was typed, so a stale password never gets submitted.
+function toggleConfirmPassWrap(show){
+  $("pgConfirmPassWrap").classList.toggle("hide", !show);
+  if(!show){ $("pgConfirmPass").value=""; }
+}
+$("pgTechResBtn1").addEventListener("click", function(){ setResToggle(["pgTechResBtn1","pgTechResBtn2"],"tech_res","resolved"); $("pgTechResolved").classList.remove("hide"); $("pgTechUnresolved").classList.add("hide"); toggleConfirmPassWrap(true); });
+$("pgTechResBtn2").addEventListener("click", function(){ setResToggle(["pgTechResBtn1","pgTechResBtn2"],"tech_res","unresolved"); $("pgTechUnresolved").classList.remove("hide"); $("pgTechResolved").classList.add("hide"); toggleConfirmPassWrap(false); });
+$("pgStaffResBtn1").addEventListener("click", function(){ setResToggle(["pgStaffResBtn1","pgStaffResBtn2"],"staff_res","resolved"); $("pgStaffWhyWrap").classList.add("hide"); toggleConfirmPassWrap(true); });
+$("pgStaffResBtn2").addEventListener("click", function(){ setResToggle(["pgStaffResBtn1","pgStaffResBtn2"],"staff_res","unresolved"); $("pgStaffWhyWrap").classList.remove("hide"); toggleConfirmPassWrap(false); });
 
 $("pgSubmit").addEventListener("click", async function(){
   $("pgMsg").textContent="";
   var type=$("pgType").value;
   if(!type){ $("pgMsg").textContent=t("pg.err_type"); return; }
   var entry={type:type, by:me.id, by_name:me.name, at:new Date().toISOString()};
+  var confirmPerson=null; // v17: set below if this entry marks the item resolved and the submitter's own password checks out
   try{
     if(type==="tech_visit"){
       if(!pgPhotos.tech_photo){ $("pgMsg").textContent=t("pg.err_tech_photo"); return; }
@@ -2715,6 +2741,7 @@ $("pgSubmit").addEventListener("click", async function(){
       if(!pgPhotos.tech_res){ $("pgMsg").textContent=t("pg.err_choose_res"); return; }
       if(!pgPhotos.tech_form_photo){ $("pgMsg").textContent=t("pg.err_tech_form"); return; }
       entry.resolution=pgPhotos.tech_res;
+      if(entry.resolution==="resolved"){ confirmPerson=await verifyOwnPassword(); if(!confirmPerson) return; }
       entry.finding_text=$("pgTechFinding").value.trim();
       if(pgPhotos.tech_res==="unresolved"){
         var ns=$("pgNextStep").value; if(!ns){ $("pgMsg").textContent=t("pg.err_next_step"); return; }
@@ -2747,6 +2774,7 @@ $("pgSubmit").addEventListener("click", async function(){
       if(!pgPhotos.after_photo_staff){ $("pgMsg").textContent=t("pg.err_after_photo"); return; }
       if(!pgPhotos.staff_res){ $("pgMsg").textContent=t("pg.err_choose_res"); return; }
       entry.resolution=pgPhotos.staff_res;
+      if(entry.resolution==="resolved"){ confirmPerson=await verifyOwnPassword(); if(!confirmPerson) return; }
       if(pgPhotos.staff_res==="unresolved"){
         if(!$("pgStaffWhy").value.trim()){ $("pgMsg").textContent=t("pg.err_why"); return; }
         entry.reason=$("pgStaffWhy").value.trim();
@@ -2768,14 +2796,38 @@ $("pgSubmit").addEventListener("click", async function(){
       try{ await sb.from("maint_schedules").update({last_completed_at:entry.at}).eq("id",currentItem.schedule_id); }
       catch(e3){ /* best-effort */ }
     }
+    // v17: the progress entry itself already saved successfully above -- password was already
+    // verified before we got here, so this just applies the resulting confirm(s). If it fails
+    // (network blip etc.), don't pretend the progress entry didn't save; surface the error but
+    // leave the item as-is so the person can confirm manually via the approval card instead.
+    if(confirmPerson){
+      try{ await autoConfirmOwnApprovals(confirmPerson); }
+      catch(e4){ $("pgMsg").textContent=t("pg.err_confirm_pass_saved_but")+(e4.message||e4); }
+    }
     $("progressModal").classList.add("hide");
     renderProgressList();
+    renderApprovals();
+    $("idStatusBadge").innerHTML='<span class="statusbadge '+(currentItem.status==="resolved"?"resolved":"open")+'">'+(currentItem.status==="resolved"?t("id.status_resolved"):t("id.status_unresolved"))+'</span>';
   }catch(e){
     $("pgMsg").textContent=t("pg.err_save_failed")+(e.message||e);
   }finally{
     $("pgSubmit").disabled=false;
   }
 });
+// v17: re-verifies the currently-logged-in person's OWN password (like a "confirm it's really
+// you" prompt, not a login) before letting them mark an item resolved. Reuses the same
+// non-persisted verify client as the manual approval modal so it never disturbs the real
+// session. Returns the verified profile on success, or null (with an error message already
+// shown) on failure.
+async function verifyOwnPassword(){
+  var pw=$("pgConfirmPass").value;
+  if(!pw){ $("pgMsg").textContent=t("pg.err_confirm_pass"); return null; }
+  try{
+    var person=await verifyCredentials(me.username, pw);
+    if(person.id!==me.id) throw new Error("mismatch");
+    return person;
+  }catch(e){ $("pgMsg").textContent=t("pg.err_confirm_pass_wrong"); return null; }
+}
 
 /* ---------------- approval confirm modal ---------------- */
 var verifySb=null;
@@ -2853,6 +2905,34 @@ async function recomputeReportStatus(reportId){
   var r=await sb.from("maint_items").select("status").eq("report_id",reportId);
   var allDone=(r.data||[]).every(function(x){return x.status==="resolved";});
   await sb.from("maint_reports").update({cached_status: allDone?"finished":"open"}).eq("id",reportId);
+}
+// v17: auto-confirms every not-yet-confirmed approval slot the just-verified person (always the
+// submitter themselves, confirming "on their own behalf" per owner request) qualifies for --
+// mirrors apSubmit's confirm logic exactly, just applied to whichever slot(s) match instead of
+// one clicked slot. Everyone else's slot is untouched and still needs its own manual confirm
+// before the item (and report) can close. Silent no-op if the person doesn't match any open
+// slot -- e.g. someone outside the approval chain logged the progress entry, which is fine, it
+// just means nothing auto-confirms and all approvals stay manual for this item.
+async function autoConfirmOwnApprovals(person){
+  var approvals=currentItem.approvals||[];
+  if(!approvals.length) return;
+  var isPersonStaff = person.role==="owner"||person.role==="admin";
+  var changed=false;
+  var newApprovals=approvals.map(function(a){
+    if(a.confirmed) return a;
+    var okRole = isPersonStaff || myRolesFor(person.id, a.role, currentItem.location_id);
+    if(!okRole) return a;
+    changed=true;
+    return Object.assign({}, a, {confirmed:true, by:person.id, by_name:person.name, at:new Date().toISOString()});
+  });
+  if(!changed) return;
+  var allConfirmed=newApprovals.every(function(x){return x.confirmed;});
+  var patch={approvals:newApprovals};
+  if(allConfirmed){ patch.status="resolved"; patch.resolved_at=new Date().toISOString(); }
+  var upd=await sb.from("maint_items").update(patch).eq("id",currentItem.id);
+  if(upd.error) throw upd.error;
+  Object.assign(currentItem, patch);
+  if(allConfirmed) await recomputeReportStatus(currentItem.report_id);
 }
 
 /* ---------------- print progress report (Indonesian-only, always — see i18n note at top) ---------------- */
