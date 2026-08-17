@@ -623,7 +623,7 @@
    All maint_* tables are new and separate. See Maintenance_Project_Plan.md
    and Maintenance_Project_Schema.sql for the full spec this implements.
 ===================================================================== */
-var APP_VERSION="v3.11"; // bump this with each build so it's visible which version is deployed (shown in the footer, bottom of the page)
+var APP_VERSION="v3.12"; // bump this with each build so it's visible which version is deployed (shown in the footer, bottom of the page)
 var BUILTIN={url:"https://clprrwuizmlsddxmlvrh.supabase.co", key:"sb_publishable_bY46Emu9VVzYZEhpjxnr2A_9_ranhHt"};
 var sb=null;
 var $=function(id){return document.getElementById(id);};
@@ -787,7 +787,8 @@ id: {
   "notify.departments_label":"Departemen", "notify.locations_label":"Lokasi",
   "notify.member_section_label":"Beri tahu saat ada laporan baru", "notify.edit_notifications":"Notifikasi",
   "notify.subscribed_prefix":"Diberi tahu: ",
-  "notify.title":"Notifikasi", "notify.no_notifications":"Tidak ada notifikasi.", "notify.new_tag":"baru"
+  "notify.title":"Notifikasi", "notify.no_notifications":"Tidak ada notifikasi.", "notify.new_tag":"baru",
+  "notify.confirm_tag":"perlu konfirmasi"
 },
 en: {
   "header.settings":"⚙ Settings", "header.signout":"Sign out",
@@ -934,7 +935,8 @@ en: {
   "notify.departments_label":"Departments", "notify.locations_label":"Locations",
   "notify.member_section_label":"Notify about new reports", "notify.edit_notifications":"Notifications",
   "notify.subscribed_prefix":"Notified: ",
-  "notify.title":"Notifications", "notify.no_notifications":"No notifications.", "notify.new_tag":"new"
+  "notify.title":"Notifications", "notify.no_notifications":"No notifications.", "notify.new_tag":"new",
+  "notify.confirm_tag":"needs confirmation"
 }
 };
 function tt(key, lang){
@@ -1626,9 +1628,13 @@ async function openNotifyView(){
   $("notifyEmpty").style.display = rows.length? "none":"block";
   rows.forEach(function(n){
     var d=document.createElement("div"); d.className="listcard";
-    d.innerHTML='<div class="t">'+escapeHtml(n.brand||"")+' — '+escapeHtml(n.outlet||"")+(n.read_at?'':' <span class="pill open">'+t("notify.new_tag")+'</span>')+'</div>'+
-      '<div class="m">'+n.report_id+' · '+escapeHtml(n.departments||"")+' · '+new Date(n.created_at).toLocaleString()+'</div>';
-    d.addEventListener("click", function(){ openReportPrint(n.report_id); });
+    // v17: a row with item_id set is a "needs your confirmation" alert (notifyForConfirmationNeeded),
+    // not the original v8 new-report kind -- shown with its own label and deep-links straight into
+    // the item's approval card instead of the printed report.
+    var isConfirm = !!n.item_id;
+    d.innerHTML='<div class="t">'+(isConfirm?'<span class="pill open">'+t("notify.confirm_tag")+'</span> ':'')+escapeHtml(n.brand||"")+' — '+escapeHtml(n.outlet||"")+(n.read_at?'':' <span class="pill open">'+t("notify.new_tag")+'</span>')+'</div>'+
+      '<div class="m">'+(n.item_id||n.report_id)+' · '+escapeHtml(n.departments||"")+' · '+new Date(n.created_at).toLocaleString()+'</div>';
+    d.addEventListener("click", function(){ if(isConfirm && n.item_id){ openItemDetail(n.item_id); } else { openReportPrint(n.report_id); } });
     list.appendChild(d);
   });
   show("notifyView");
@@ -2155,6 +2161,39 @@ async function notifyForNewReport(reportCode, loc, itemRows){
     });
     await sb.from("maint_notifications").insert(rows);
   }catch(e){ /* best-effort — never block report submission on notification delivery */ }
+}
+// v17: "needs your confirmation" notifications. Triggered from pgSubmit the moment a progress
+// entry marks an item resolved (after any auto-confirm from the submitter's own slot has
+// already been applied to currentItem.approvals). Unlike notifyForNewReport above, this is NOT
+// the opt-in maint_notify_rules subscription -- it targets maint_roles holders directly: anyone
+// whose granular title maps (via GRANULAR_TO_SLOT) to a still-unconfirmed approval slot on this
+// item, scoped to the item's location (or global if their role row has location_id null, same
+// convention as every other role check in this file). A row with item_id set is how the Home
+// notification list (openNotifyView) tells this kind apart from a v8 new-report row -- clicking
+// it deep-links straight into the item via openItemDetail() instead of openReportPrint().
+// Best-effort: a failure here must never block the progress entry itself, which already saved
+// successfully before this runs.
+async function notifyForConfirmationNeeded(item, submitterId){
+  try{
+    var pendingApprovals=(item.approvals||[]).filter(function(a){ return !a.confirmed; });
+    if(!pendingApprovals.length) return;
+    var pendingRoles=pendingApprovals.map(function(a){ return a.role; });
+    var rr=await sb.from("maint_roles").select("user_id,role,location_id");
+    var recipientIds=[];
+    (rr.data||[]).forEach(function(row){
+      if(row.user_id===submitterId) return; // never notify the person who just submitted this
+      var slot=GRANULAR_TO_SLOT[row.role]||row.role;
+      if(pendingRoles.indexOf(slot)<0) return;
+      if(row.location_id!==null && row.location_id!==item.location_id) return;
+      if(recipientIds.indexOf(row.user_id)<0) recipientIds.push(row.user_id);
+    });
+    if(!recipientIds.length) return;
+    var deptLabel=pendingApprovals.map(function(a){ return ROLE_LABEL[a.role]||a.role; }).join(", ");
+    var rows=recipientIds.map(function(uid){
+      return {user_id:uid, report_id:item.report_id, item_id:item.id, location_id:item.location_id, brand:item.brand, outlet:item.outlet, departments:deptLabel};
+    });
+    await sb.from("maint_notifications").insert(rows);
+  }catch(e){ /* best-effort — never block the progress entry on notification delivery */ }
 }
 
 /* ---------------- PDF export (real client-side PDF via jsPDF — not browser print-to-PDF) ----------------
@@ -2804,6 +2843,9 @@ $("pgSubmit").addEventListener("click", async function(){
       try{ await autoConfirmOwnApprovals(confirmPerson); }
       catch(e4){ $("pgMsg").textContent=t("pg.err_confirm_pass_saved_but")+(e4.message||e4); }
     }
+    // v17: alert whoever still needs to confirm -- reads currentItem.approvals AFTER the
+    // auto-confirm above, so the submitter's own (now-confirmed) slot is correctly excluded.
+    if(entry.resolution==="resolved"){ await notifyForConfirmationNeeded(currentItem, me.id); }
     $("progressModal").classList.add("hide");
     renderProgressList();
     renderApprovals();
